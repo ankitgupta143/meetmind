@@ -88,3 +88,31 @@ export const dashboardData = {
   },
 ],
 };
+
+
+export const meetingsData = [
+  {
+    id: 1,
+    title: "Weekly Engineering Sync",
+    date: "Today • 10:30 AM",
+    duration: "45 min",
+    participants: 8,
+    status: "Completed",
+  },
+  {
+    id: 2,
+    title: "Client Demo",
+    date: "Yesterday • 2:00 PM",
+    duration: "30 min",
+    participants: 5,
+    status: "Processing",
+  },
+  {
+    id: 3,
+    title: "Product Roadmap Review",
+    date: "Jul 28 • 11:00 AM",
+    duration: "1 hr",
+    participants: 12,
+    status: "Summary Ready",
+  },
+];
