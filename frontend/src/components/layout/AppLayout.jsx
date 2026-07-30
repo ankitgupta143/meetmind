@@ -1,5 +1,6 @@
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
+import UploadMeetingModal from "../upload/UploadMeetingModal";
 
 const AppLayout = ({ children }) => {
   return (
@@ -14,6 +15,8 @@ const AppLayout = ({ children }) => {
             {children}
           </main>
         </div>
+
+        <UploadMeetingModal />
       </div>
     </div>
   );
