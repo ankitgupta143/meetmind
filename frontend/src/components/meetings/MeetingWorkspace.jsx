@@ -8,40 +8,26 @@ import Transcript from "./Transcript";
 import ActionItems from "./ActionItems";
 import Decisions from "./Decisions";
 import Analytics from "./Analytics";
+import { AIAssistant } from "../ai-assistant";
+import { WORKSPACE_TABS } from "@/constants/meeting";
 
 export default function MeetingWorkspace() {
-  const [activeTab, setActiveTab] = useState("summary");
+  const [activeTab, setActiveTab] = useState(WORKSPACE_TABS.ASSISTANT);
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case "summary":
-        return <AISummary />;
-
-      case "transcript":
-        return <Transcript />;
-
-      case "actions":
-        return <ActionItems />;
-
-      case "decisions":
-        return <Decisions />;
-
-      case "analytics":
-        return <Analytics />;
-
-      default:
-        return <AISummary />;
-    }
+  const workspaceViews = {
+    summary: <AISummary />,
+    transcript: <Transcript />,
+    actions: <ActionItems />,
+    decisions: <Decisions />,
+    analytics: <Analytics />,
+    assistant: <AIAssistant />,
   };
 
   return (
     <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
-      <MeetingSidebar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-      />
+      <MeetingSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
-      <section>{renderContent()}</section>
+      <section>{workspaceViews[activeTab] ?? <AISummary />}</section>
     </div>
   );
 }

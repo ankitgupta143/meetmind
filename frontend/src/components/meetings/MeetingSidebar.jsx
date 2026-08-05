@@ -6,6 +6,7 @@ import {
   CheckSquare,
   Target,
   BarChart3,
+  Bot,
 } from "lucide-react";
 
 const menuItems = [
@@ -42,6 +43,12 @@ const menuItems = [
     subtitle: "Insights & metrics",
     icon: BarChart3,
   },
+  {
+    id: "assistant",
+    title: "AI Assistant",
+    description: "Ask about this meeting",
+    icon: Bot,
+},
 ];
 
 export default function MeetingSidebar({
