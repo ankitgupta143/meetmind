@@ -1,0 +1,58 @@
+export const searchData = [
+  {
+    id: "meeting-1",
+    type: "meeting",
+    title: "Weekly Engineering Sync",
+    description: "Sprint planning and backend discussion",
+    icon: "meeting",
+  },
+  {
+    id: "meeting-2",
+    type: "meeting",
+    title: "Authentication Review",
+    description: "JWT & OAuth implementation",
+    icon: "meeting",
+  },
+  {
+    id: "action-1",
+    type: "action",
+    title: "Complete Backend API Testing",
+    description: "Assigned to John Doe",
+    icon: "action",
+  },
+  {
+    id: "action-2",
+    type: "action",
+    title: "Deploy Production Build",
+    description: "Assigned to Alex Brown",
+    icon: "action",
+  },
+  {
+    id: "decision-1",
+    type: "decision",
+    title: "Release scheduled next Friday",
+    description: "Approved by Product Team",
+    icon: "decision",
+  },
+  {
+    id: "speaker-1",
+    type: "speaker",
+    title: "John Doe",
+    description: "Backend Engineer",
+    icon: "speaker",
+  },
+  {
+    id: "speaker-2",
+    type: "speaker",
+    title: "Sarah Miller",
+    description: "UI/UX Designer",
+    icon: "speaker",
+  },
+  {
+    id: "transcript-1",
+    type: "transcript",
+    title: "Redis caching discussion",
+    description: "Performance optimization meeting",
+    icon: "transcript",
+  },
+];
