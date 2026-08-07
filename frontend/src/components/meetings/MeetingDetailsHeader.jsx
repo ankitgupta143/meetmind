@@ -1,5 +1,6 @@
 "use client";
 
+import { useExportDrawer } from "@/context/ExportDrawerContext";
 import {
   ArrowLeft,
   CalendarDays,
@@ -11,6 +12,7 @@ import {
 } from "lucide-react";
 
 export default function MeetingDetailsHeader() {
+  const { setOpen } = useExportDrawer();
   return (
     <div className="rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
@@ -54,7 +56,7 @@ export default function MeetingDetailsHeader() {
             <Share2 size={18} />
           </button>
 
-          <button className="rounded-xl border border-zinc-200 px-4 py-2 transition hover:bg-zinc-50">
+          <button className="rounded-xl border border-zinc-200 px-4 py-2 transition hover:bg-zinc-50" onClick={() => setOpen(true)}>
             <Download size={18} />
           </button>
 
