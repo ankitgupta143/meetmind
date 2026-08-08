@@ -1,7 +1,8 @@
 "use client"
 
-import { Bell, Search, UploadCloud } from "lucide-react";
+import { Search, UploadCloud } from "lucide-react";
 import { useUploadModal } from "@/context/UploadModalContext";
+import { NotificationDrawer } from "@/components/notifications";
 
 const Navbar = () => {
   const { setOpen } = useUploadModal();
@@ -28,9 +29,7 @@ const Navbar = () => {
           Upload Meeting
         </button>
 
-        <button className="rounded-xl p-3 hover:bg-zinc-100 dark:hover:bg-zinc-800">
-          <Bell size={20} />
-        </button>
+        <NotificationDrawer />
 
         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-indigo-600 font-semibold text-white">
           A
