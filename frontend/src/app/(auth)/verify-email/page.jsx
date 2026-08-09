@@ -1,0 +1,1 @@
+import VerifyEmailCard from "@/components/auth/VerifyEmailCard"; export default function VerifyEmailPage(){return <section className="flex items-center justify-center p-6 sm:p-12"><VerifyEmailCard/></section>}

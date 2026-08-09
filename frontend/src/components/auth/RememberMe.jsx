@@ -1,0 +1,1 @@
+export default function RememberMe({ checked, onChange }){return <label className="flex items-center gap-2 text-sm text-zinc-600"><input type="checkbox" checked={checked} onChange={event=>onChange(event.target.checked)} className="size-4 rounded accent-indigo-600"/>Remember me</label>}
