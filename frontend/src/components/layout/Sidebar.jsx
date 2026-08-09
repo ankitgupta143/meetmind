@@ -128,7 +128,8 @@ const Sidebar = () => {
 
       {/* Footer */}
       <div className="border-t p-5">
-        <button
+        <Link
+          href="/settings"
           className={`group flex w-full items-center rounded-2xl py-3 text-zinc-600 transition-all duration-200 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white ${
             collapsed ? "justify-center" : "gap-4 px-4"
           }`}
@@ -139,7 +140,7 @@ const Sidebar = () => {
           />
 
           {!collapsed && <span className="font-medium">Settings</span>}
-        </button>
+        </Link>
       </div>
     </aside>
   );

@@ -1,0 +1,5 @@
+"use client";
+import Link from "next/link";
+import { Sparkles } from "lucide-react";
+import { navLinks } from "./constants";
+export default function Navbar() { return <nav className="sticky top-0 z-50 border-b border-zinc-200/70 bg-white/85 backdrop-blur-xl"><div className="mx-auto flex h-18 max-w-7xl items-center justify-between px-6"><Link href="/" className="flex items-center gap-2 font-bold"><span className="flex size-9 items-center justify-center rounded-xl bg-indigo-600 text-white"><Sparkles className="size-4" /></span>MeetMind</Link><div className="hidden items-center gap-7 md:flex">{navLinks.map((link) => <a key={link} className="text-sm font-medium text-zinc-600 hover:text-indigo-600" href={`#${link.toLowerCase().replaceAll(" ", "-")}`}>{link}</a>)}</div><div className="flex gap-3"><Link href="/dashboard" className="hidden px-3 py-2 text-sm font-semibold text-zinc-700 sm:block">Log in</Link><Link href="/dashboard" className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-indigo-600/25 hover:bg-indigo-700">Start free</Link></div></div></nav>; }
