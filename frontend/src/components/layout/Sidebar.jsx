@@ -11,6 +11,7 @@ import {
   Search,
   Users,
   Settings,
+  Puzzle,
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react";
@@ -40,6 +41,11 @@ const menu = [
     title: "Workspace",
     href: "/workspace",
     icon: Users,
+  },
+  {
+    title: "Integrations",
+    href: "/integrations",
+    icon: Puzzle,
   },
 ];
 
