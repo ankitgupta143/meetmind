@@ -17,8 +17,8 @@ const HeroSection = () => {
     hour < 12 ? "Good Morning" : hour < 18 ? "Good Afternoon" : "Good Evening";
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-zinc-200 bg-white p-10 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-      <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-indigo-500/10 blur-3xl" />
+    <section className="relative overflow-hidden rounded-[2rem] border border-indigo-100/70 bg-gradient-to-br from-white via-indigo-50/50 to-violet-50/70 p-7 shadow-[0_18px_45px_-30px_rgba(79,70,229,0.4)] sm:p-10 dark:border-zinc-800 dark:from-zinc-900 dark:via-zinc-900 dark:to-indigo-950/40">
+      <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-indigo-500/20 blur-3xl" />
 
       <div className="absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-violet-500/10 blur-3xl" />
       <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">

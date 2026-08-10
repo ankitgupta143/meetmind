@@ -5,14 +5,14 @@ import ExportDrawer from "../export/ExportDrawer";
 
 const AppLayout = ({ children }) => {
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <div className="flex gap-6 p-6">
+    <div className="min-h-screen bg-transparent dark:bg-zinc-950">
+      <div className="flex gap-5 p-4 sm:p-6">
         <Sidebar />
 
-        <div className="flex min-h-[calc(100vh-48px)] flex-1 flex-col">
+        <div className="flex min-w-0 min-h-[calc(100vh-48px)] flex-1 flex-col">
           <Navbar />
 
-          <main className="mt-6 flex-1 rounded-3xl bg-white p-8 shadow-sm dark:bg-zinc-900">
+          <main className="mt-5 min-w-0 flex-1 rounded-[2rem] border border-white/70 bg-white/70 p-4 shadow-[0_20px_60px_-28px_rgba(40,43,80,0.28)] backdrop-blur-xl sm:p-8 dark:border-zinc-800 dark:bg-zinc-900/80">
             {children}
           </main>
         </div>

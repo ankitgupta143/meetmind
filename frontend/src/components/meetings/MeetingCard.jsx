@@ -19,8 +19,8 @@ const statusStyles = {
 export default function MeetingCard({ meeting }) {
   return (
     <div className="group cursor-pointer rounded-2xl border border-zinc-200 bg-white p-6 transition-all duration-300 hover:-translate-y-1 hover:border-indigo-300 hover:shadow-lg">
-      <div className="flex items-start justify-between">
-        <div>
+      <div className="flex flex-col items-start gap-3 sm:flex-row sm:justify-between">
+        <div className="min-w-0">
           <h3 className="text-lg font-semibold text-zinc-900">
             {meeting.title}
           </h3>
@@ -44,7 +44,7 @@ export default function MeetingCard({ meeting }) {
         </div>
 
         <span
-          className={`rounded-full px-3 py-1 text-xs font-medium ${
+          className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${
             statusStyles[meeting.status]
           }`}
         >

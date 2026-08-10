@@ -14,7 +14,7 @@ import {
 export default function MeetingDetailsHeader() {
   const { setOpen } = useExportDrawer();
   return (
-    <div className="rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm">
+    <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-8">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
         {/* Left */}
         <div>
@@ -23,7 +23,7 @@ export default function MeetingDetailsHeader() {
             Back to Meetings
           </button>
 
-          <h1 className="text-4xl font-bold tracking-tight">
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
             Weekly Engineering Sync
           </h1>
 
@@ -51,7 +51,7 @@ export default function MeetingDetailsHeader() {
         </div>
 
         {/* Right */}
-        <div className="flex flex-wrap gap-3">
+        <div className="flex w-full flex-wrap gap-3 lg:w-auto">
           <button className="rounded-xl border border-zinc-200 px-4 py-2 transition hover:bg-zinc-50">
             <Share2 size={18} />
           </button>
