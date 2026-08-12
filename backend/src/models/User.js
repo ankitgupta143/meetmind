@@ -4,7 +4,10 @@ const { Schema } = mongoose;
 
 const userSchema = new Schema(
   {
+    // ─────────────────────────────
     // Identity
+    // ─────────────────────────────
+
     firstName: {
       type: String,
       required: [true, "First name is required"],
@@ -28,10 +31,16 @@ const userSchema = new Schema(
       maxlength: [254, "Email cannot exceed 254 characters"],
     },
 
+    // ─────────────────────────────
     // Authentication
+    // ─────────────────────────────
+
     passwordHash: {
       type: String,
       select: false,
+      required: function () {
+        return this.authProvider === "local";
+      },
     },
 
     authProvider: {
@@ -40,12 +49,15 @@ const userSchema = new Schema(
       default: "local",
     },
 
-    emailVerified: {
-      type: Boolean,
-      default: false,
+    emailVerifiedAt: {
+      type: Date,
+      default: null,
     },
 
+    // ─────────────────────────────
     // Account
+    // ─────────────────────────────
+
     role: {
       type: String,
       enum: ["user", "admin"],
@@ -73,7 +85,10 @@ const userSchema = new Schema(
       default: null,
     },
 
+    // ─────────────────────────────
     // Profile
+    // ─────────────────────────────
+
     avatar: {
       url: {
         type: String,
@@ -86,7 +101,10 @@ const userSchema = new Schema(
       },
     },
 
-    // Embedded settings
+    // ─────────────────────────────
+    // User Settings
+    // ─────────────────────────────
+
     settings: {
       appearance: {
         theme: {
