@@ -8,14 +8,17 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "verify:db": "node src/scripts/verifyDatabase.js"
+    "verify:db": "node src/scripts/verifyDatabase.js",
+    "test:password": "node src/scripts/testPassword.js",
+    "test:registration": "node src/scripts/testRegistration.js"
   },
   "dependencies": {
     "argon2": "^0.45.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "mongoose": "^9.9.2"
+    "mongoose": "^9.9.2",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
