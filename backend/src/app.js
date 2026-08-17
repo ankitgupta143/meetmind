@@ -3,6 +3,9 @@ import cors from "cors";
 
 const app = express();
 
+import authRoutes from "./routes/auth.routes.js";
+import { errorHandler } from "./middlewares/error.middleware.js";
+
 app.use(cors({
     origin: process.env.FRONTEND_URL || "http://localhost:3000",
     credentials: true,
@@ -17,5 +20,8 @@ app.get("/health", (req, res) => {
         message: "MeetMind API is running",
     });
 });
+
+app.use("/api/v1/auth", authRoutes);
+app.use(errorHandler);
 
 export default app;

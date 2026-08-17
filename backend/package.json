@@ -10,7 +10,8 @@
     "start": "node src/server.js",
     "verify:db": "node src/scripts/verifyDatabase.js",
     "test:password": "node src/scripts/testPassword.js",
-    "test:registration": "node src/scripts/testRegistration.js"
+    "test:registration": "node src/scripts/testRegistration.js",
+    "test:validation": "node src/scripts/testValidation.js"
   },
   "dependencies": {
     "argon2": "^0.45.1",
