@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 const app = express();
 
 import authRoutes from "./routes/auth.routes.js";
+import userRoutes from "./routes/user.routes.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 
 app.use(cors({
@@ -24,6 +25,7 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/users", userRoutes)
 app.use(errorHandler);
 
 export default app;

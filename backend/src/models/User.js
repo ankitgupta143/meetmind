@@ -89,6 +89,36 @@ const userSchema = new Schema(
     // Profile
     // ─────────────────────────────
 
+    profile: {
+      phone: {
+        type: String,
+        trim: true,
+        default: null,
+        maxlength: [30, "Phone number cannot exceed 30 characters"],
+      },
+
+      company: {
+        type: String,
+        trim: true,
+        default: null,
+        maxlength: [100, "Company name cannot exceed 100 characters"],
+      },
+
+      jobTitle: {
+        type: String,
+        trim: true,
+        default: null,
+        maxlength: [100, "Job title cannot exceed 100 characters"],
+      },
+
+      country: {
+        type: String,
+        trim: true,
+        default: null,
+        maxlength: [100, "Country cannot exceed 100 characters"],
+      },
+    },
+
     avatar: {
       url: {
         type: String,
@@ -210,7 +240,7 @@ const userSchema = new Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 const User = mongoose.model("User", userSchema);

@@ -14,7 +14,8 @@
     "test:validation": "node src/scripts/testValidation.js",
     "test:login": "node src/scripts/testLogin.js",
     "test:token": "node src/scripts/testAccessToken.js",
-    "test:session": "node src/scripts/testSession.js"
+    "test:session": "node src/scripts/testSession.js",
+    "test:user-profile": "node src/scripts/testUserProfile.js"
   },
   "dependencies": {
     "argon2": "^0.45.1",

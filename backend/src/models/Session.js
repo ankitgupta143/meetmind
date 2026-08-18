@@ -33,7 +33,6 @@ const sessionSchema = new Schema(
     expiresAt: {
       type: Date,
       required: [true, "Session expiration is required"],
-      index: true,
     },
 
     revokedAt: {

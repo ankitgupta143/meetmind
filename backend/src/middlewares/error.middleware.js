@@ -55,6 +55,20 @@ export function errorHandler(err, req, res, next) {
     });
   }
 
+  if (err.code === "USER_NOT_FOUND") {
+  return res.status(404).json({
+    success: false,
+    message: "User not found.",
+  });
+}
+
+if (err.code === "USER_DELETED") {
+  return res.status(404).json({
+    success: false,
+    message: "User account no longer exists.",
+  });
+}
+
   return res.status(500).json({
     success: false,
     message: "Internal Server Error.",
