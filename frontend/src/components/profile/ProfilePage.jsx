@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { validateName, validatePhone, validateMaxLength } from "@/lib/validation";
 
 import ProfileHeader from "./ProfileHeader";
 import ProfileAvatar from "./ProfileAvatar";
@@ -40,8 +41,24 @@ const mapProfileToRequest = (values) => ({
 
 const ProfilePage = () => {
   const { user, loading, updateUser } = useAuth();
-  const [values, setValues] = useState({});
+  const [values, setValues] = useState(() => mapUserToProfile(user));
   const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  const validateProfile = () => {
+    const next = {
+      firstName: validateName(values.firstName, "First name"),
+      lastName: validateName(values.lastName, "Last name"),
+      phone: validatePhone(values.phone),
+      company: validateMaxLength(values.company, 100, "Company"),
+      role: validateMaxLength(values.role, 100, "Job title"),
+      timezone: validateMaxLength(values.timezone, 100, "Timezone"),
+      country: validateMaxLength(values.country, 100, "Country"),
+      language: validateMaxLength(values.language, 20, "Language"),
+    };
+    setErrors(next);
+    return Object.values(next).every((v) => !v);
+  };
 
   // Sync form inputs when authenticated user data becomes available/changes
   useEffect(() => {
@@ -50,11 +67,10 @@ const ProfilePage = () => {
     }
   }, [user]);
 
-  const change = (field, value) =>
-    setValues((current) => ({
-      ...current,
-      [field]: value,
-    }));
+  const change = (field, value) => {
+    setValues((current) => ({ ...current, [field]: value }));
+    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: null }));
+  };
 
   if (loading) {
     return (
@@ -70,6 +86,7 @@ const ProfilePage = () => {
 
   const handleSave = async () => {
     if (saving) return;
+    if (!validateProfile()) return toast.error("Please fix the form errors before saving.");
 
     setSaving(true);
     try {
@@ -108,7 +125,7 @@ const ProfilePage = () => {
         onRemove={() => toast.info("Avatar removed.")}
       />
 
-      <PersonalInformation values={values} onChange={change} />
+      <PersonalInformation values={values} onChange={change} errors={errors} />
 
       <ProfileActions onSave={handleSave} saving={saving} />
 

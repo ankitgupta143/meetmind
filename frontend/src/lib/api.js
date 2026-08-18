@@ -35,8 +35,16 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // If 401 Unauthorized error and we haven't retried yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Auth endpoints (login, register, refresh) should NEVER trigger a silent
+    // token refresh — their 401s carry real error messages (e.g. wrong password).
+    const isAuthEndpoint = originalRequest?.url?.includes("/auth/");
+
+    // If 401 Unauthorized, not an auth endpoint, and we haven't retried yet
+    if (
+      error.response?.status === 401 &&
+      !isAuthEndpoint &&
+      !originalRequest._retry
+    ) {
       originalRequest._retry = true;
 
       try {
@@ -51,20 +59,19 @@ api.interceptors.response.use(
 
         if (newAccessToken) {
           setAccessToken(newAccessToken);
-          
+
           // Update the original request's authorization header and retry
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           return api(originalRequest);
         }
       } catch (refreshError) {
-        // Refresh token is expired or invalid, user must log in again
+        // Refresh token is expired or invalid — force logout
         setAccessToken("");
-        
-        // Broadcast custom logout event or handle globally if needed
+
         if (typeof window !== "undefined") {
           window.dispatchEvent(new Event("auth:logout"));
         }
-        
+
         return Promise.reject(refreshError);
       }
     }

@@ -20,6 +20,10 @@ export const updateProfileSchema = z
       .string()
       .trim()
       .max(30, "Phone number cannot exceed 30 characters")
+      .refine(
+        (val) => val === "" || /^\+?[\d\s\-().]{7,30}$/.test(val),
+        { message: "Please enter a valid phone number." }
+      )
       .optional(),
 
     company: z
