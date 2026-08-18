@@ -19,6 +19,7 @@ export const metadata = {
 
 import { UploadModalProvider } from "@/context/UploadModalContext";
 import { ExportDrawerProvider } from "@/context/ExportDrawerContext";
+import { AuthProvider } from "@/context/AuthContext";
 
 export default function RootLayout({ children }) {
   return (
@@ -26,12 +27,14 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <UploadModalProvider>
-        <ExportDrawerProvider>
-          {children}
-          <Toaster richColors position="top-right" />
-          </ExportDrawerProvider>
-        </UploadModalProvider>
+        <AuthProvider>
+          <UploadModalProvider>
+            <ExportDrawerProvider>
+              {children}
+              <Toaster richColors position="top-right" />
+            </ExportDrawerProvider>
+          </UploadModalProvider>
+        </AuthProvider>
       </body>
     </html>
   );
