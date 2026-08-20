@@ -76,6 +76,13 @@ export async function updateCurrentUser(
       updates.country;
   }
 
+  if(updates.avatar !== undefined){
+    setOperations.avatar = {
+      url: updates.avatar.url ?? null,
+      publicId: updates.avatar.publicId ?? null,
+    }
+  }
+
   if (updates.timezone !== undefined) {
     setOperations[
       "settings.localization.timezone"

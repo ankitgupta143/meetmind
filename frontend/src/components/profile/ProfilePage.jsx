@@ -4,7 +4,11 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
-import { validateName, validatePhone, validateMaxLength } from "@/lib/validation";
+import {
+  validateName,
+  validatePhone,
+  validateMaxLength,
+} from "@/lib/validation";
 
 import ProfileHeader from "./ProfileHeader";
 import ProfileAvatar from "./ProfileAvatar";
@@ -86,13 +90,14 @@ const ProfilePage = () => {
 
   const handleSave = async () => {
     if (saving) return;
-    if (!validateProfile()) return toast.error("Please fix the form errors before saving.");
+    if (!validateProfile())
+      return toast.error("Please fix the form errors before saving.");
 
     setSaving(true);
     try {
       const payload = mapProfileToRequest(values);
       const response = await api.patch("/users/me", payload);
-      
+
       const updatedUser = response.data?.data?.user;
       if (!updatedUser) {
         throw new Error("Invalid response from server.");
@@ -100,13 +105,14 @@ const ProfilePage = () => {
 
       // Update global auth state
       updateUser(updatedUser);
-      
+
       // Update local form state
       setValues(mapUserToProfile(updatedUser));
-      
+
       toast.success("Profile changes saved successfully.");
     } catch (error) {
-      const message = error.response?.data?.message || "Failed to update profile.";
+      const message =
+        error.response?.data?.message || "Failed to update profile.";
       toast.error(message);
     } finally {
       setSaving(false);
@@ -119,10 +125,15 @@ const ProfilePage = () => {
 
       <ProfileAvatar
         name={`${values.firstName} ${values.lastName}`}
-        onUpload={() =>
-          toast.info("Avatar upload will be available with the backend.")
-        }
-        onRemove={() => toast.info("Avatar removed.")}
+        onUpload={(result) => {
+          if (!result.success) {
+            toast.error(result.error);
+            return;
+          }
+
+          toast.success(`Selected ${result.file.name} successfully.`);
+        }}
+        onRemove={() => toast.info("Avatar removal will be available soon.")}
       />
 
       <PersonalInformation values={values} onChange={change} errors={errors} />

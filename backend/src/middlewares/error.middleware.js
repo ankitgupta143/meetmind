@@ -1,6 +1,34 @@
 export function errorHandler(err, req, res, next) {
   console.error(err);
 
+  if (err.name === "MulterError") {
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res.status(400).json({
+        success: false,
+        message: "Avatar must be 2 MB or smaller.",
+      });
+    }
+
+    return res.status(400).json({
+      success: false,
+      message: err.message,
+    });
+  }
+
+  if (err.code === "INVALID_FILE_TYPE") {
+    return res.status(400).json({
+      success: false,
+      message: `${err.message} Received type: ${err.receivedMimeType || "unknown"}.`,
+    });
+  }
+
+  if (err.code === "AVATAR_REQUIRES") {
+    return res.status(400).json({
+      success: false,
+      message: err.message,
+    });
+  }
+
   if (err.code === "EMAIL_ALREADY_EXISTS") {
     return res.status(409).json({
       success: false,
