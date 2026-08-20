@@ -1,5 +1,6 @@
-"use client"
+"use client";
 
+import Image from "next/image";
 import { Search, UploadCloud, LogOut } from "lucide-react";
 import { useUploadModal } from "@/context/UploadModalContext";
 import { NotificationDrawer } from "@/components/notifications";
@@ -8,8 +9,18 @@ import { useAuth } from "@/context/AuthContext";
 const Navbar = () => {
   const { setOpen } = useUploadModal();
   const { user, logout } = useAuth();
-  
-  const avatarLetter = user?.firstName?.charAt(0).toUpperCase() || "U";
+
+  const avatarUrl = user?.avatar?.url;
+
+  const avatarInitials =
+    `${user?.firstName ?? ""} ${user?.lastName ?? ""}`
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((part) => part.charAt(0))
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "U";
 
   return (
     <header className="flex h-20 items-center justify-between rounded-[1.75rem] border border-white/70 bg-white/75 px-5 shadow-[0_12px_35px_-22px_rgba(40,43,80,0.35)] backdrop-blur-xl sm:px-8 dark:border-zinc-800 dark:bg-zinc-900/80">
@@ -41,13 +52,26 @@ const Navbar = () => {
             <span className="hidden text-sm font-semibold text-zinc-700 dark:text-zinc-300 md:block">
               {user.firstName}
             </span>
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-indigo-600 font-semibold text-white shadow-md">
-              {avatarLetter}
+
+            {/* Avatar */}
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-indigo-600 font-semibold text-white shadow-md">
+              {avatarUrl ? (
+                <Image
+                  src={avatarUrl}
+                  alt={`${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || "User Avatar"}
+                  width={44}
+                  height={44}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span>{avatarInitials}</span>
+              )}
             </div>
+
             <button
               onClick={logout}
               title="Sign Out"
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-zinc-500 hover:bg-zinc-100 hover:text-red-600 dark:text-zinc-400 dark:hover:bg-zinc-800 transition-colors"
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-red-600 dark:text-zinc-400 dark:hover:bg-zinc-800"
             >
               <LogOut size={18} />
             </button>

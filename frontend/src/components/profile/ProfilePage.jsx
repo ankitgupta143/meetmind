@@ -119,21 +119,57 @@ const ProfilePage = () => {
     }
   };
 
+  const handleAvatarUpload = async (result) => {
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("avatar", result.file);
+      const response = await api.post("/users/me/avatar", formData);
+      const updatedUser = response.data?.data?.user;
+
+      if (!updatedUser) {
+        throw new Error("Invalid response from server.");
+      }
+
+      updateUser(updatedUser);
+      toast.success("Avatar uploaded successfully.");
+    } catch (error) {
+      const message =
+        error.response?.data?.message || "Failed to upload avatar.";
+      toast.error(message);
+    }
+  };
+
+  const handleAvatarRemove = async() => {
+    try {
+      const response = await api.delete("/users/me/avatar");
+      const updatedUser = response.data?.data?.user;
+
+      if (!updatedUser) {
+        throw new Error("Invalid response from server.");
+      }
+
+      updateUser(updatedUser);
+      toast.success("Avatar removed successfully");
+    } catch (error) {
+      const message = error.response?.data?.message || "Failed to remove avatar.";
+      toast.error(message);
+    }
+  }
+
   return (
     <div className="mx-auto max-w-6xl space-y-8 pb-10">
       <ProfileHeader />
 
       <ProfileAvatar
         name={`${values.firstName} ${values.lastName}`}
-        onUpload={(result) => {
-          if (!result.success) {
-            toast.error(result.error);
-            return;
-          }
-
-          toast.success(`Selected ${result.file.name} successfully.`);
-        }}
-        onRemove={() => toast.info("Avatar removal will be available soon.")}
+        avatarUrl={user?.avatar?.url}
+        onUpload={handleAvatarUpload}
+        onRemove={handleAvatarRemove}
       />
 
       <PersonalInformation values={values} onChange={change} errors={errors} />

@@ -16,11 +16,14 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to attach access token
+// Request interceptor to attach access token and handle multipart FormData
 api.interceptors.request.use(
   (config) => {
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
     }
     return config;
   },
