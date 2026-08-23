@@ -32,6 +32,38 @@ api.interceptors.request.use(
   }
 );
 
+let refreshTokenPromise = null;
+
+export const refreshSession = async () => {
+  if (!refreshTokenPromise) {
+    refreshTokenPromise = axios
+      .post(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
+        {},
+        { withCredentials: true }
+      )
+      .then((response) => {
+        const newAccessToken = response.data?.data?.accessToken;
+        if (newAccessToken) {
+          setAccessToken(newAccessToken);
+          return newAccessToken;
+        }
+        throw new Error("No access token returned");
+      })
+      .catch((refreshError) => {
+        setAccessToken("");
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("auth:logout"));
+        }
+        return Promise.reject(refreshError);
+      })
+      .finally(() => {
+        refreshTokenPromise = null;
+      });
+  }
+  return refreshTokenPromise;
+};
+
 // Response interceptor to handle token refresh automatically
 api.interceptors.response.use(
   (response) => response,
@@ -51,30 +83,12 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        // Request a new access token from the refresh endpoint
-        const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
-          {},
-          { withCredentials: true }
-        );
-
-        const newAccessToken = response.data?.data?.accessToken;
-
+        const newAccessToken = await refreshSession();
         if (newAccessToken) {
-          setAccessToken(newAccessToken);
-
-          // Update the original request's authorization header and retry
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           return api(originalRequest);
         }
       } catch (refreshError) {
-        // Refresh token is expired or invalid — force logout
-        setAccessToken("");
-
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new Event("auth:logout"));
-        }
-
         return Promise.reject(refreshError);
       }
     }

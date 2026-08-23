@@ -11,12 +11,12 @@ import Analytics from "./Analytics";
 import { AIAssistant } from "../ai-assistant";
 import { WORKSPACE_TABS } from "@/constants/meeting";
 
-export default function MeetingWorkspace() {
+export default function MeetingWorkspace({ meeting }) {
   const [activeTab, setActiveTab] = useState(WORKSPACE_TABS.ASSISTANT);
 
   const workspaceViews = {
     summary: <AISummary />,
-    transcript: <Transcript />,
+    transcript: <Transcript meetingId={meeting?._id} />,
     actions: <ActionItems />,
     decisions: <Decisions />,
     analytics: <Analytics />,
@@ -27,7 +27,9 @@ export default function MeetingWorkspace() {
     <div className="grid min-w-0 gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
       <MeetingSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
-      <section className="min-w-0">{workspaceViews[activeTab] ?? <AISummary />}</section>
+      <section className="min-w-0">
+        {workspaceViews[activeTab] ?? <AISummary />}
+      </section>
     </div>
   );
 }

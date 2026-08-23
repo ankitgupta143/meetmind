@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import api, { setAccessToken } from "@/lib/api";
+import api, { setAccessToken, refreshSession } from "@/lib/api";
 
 const AuthContext = createContext();
 
@@ -15,14 +15,12 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     async function checkSession() {
       try {
-        // This request triggers a 401 if token is empty, which our Axios interceptor
-        // intercepts and refreshes silently before completing this call.
+        await refreshSession();
         const response = await api.get("/users/me");
         if (response.data?.success) {
           setUser(response.data.data.user);
         }
       } catch (error) {
-        console.log("No active session found.");
         setUser(null);
         setAccessToken("");
       } finally {

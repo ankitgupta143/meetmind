@@ -18,6 +18,9 @@ const statusStyles = {
 
   "Summary Ready":
     "bg-indigo-50 text-indigo-700",
+
+  Failed:
+    "bg-red-100 text-red-700",
 };
 
 const RecentMeetings = () => {

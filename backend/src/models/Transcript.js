@@ -88,9 +88,17 @@ const transcriptSchema = new Schema(
   }
 );
 
-// transcriptSchema.index({
-//   meetingId: 1,
-// });
+// Fast text search across segment text and speaker names
+transcriptSchema.index(
+  { "segments.text": "text", "segments.speaker": "text" },
+  { name: "segments_text_search" }
+);
+
+// Fast speaker filter per meeting
+transcriptSchema.index(
+  { meetingId: 1, "segments.speaker": 1 },
+  { name: "meeting_speaker_filter" }
+);
 
 const Transcript = mongoose.model("Transcript", transcriptSchema);
 
