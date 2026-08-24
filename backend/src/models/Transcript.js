@@ -31,7 +31,7 @@ const transcriptSegmentSchema = new Schema(
   },
   {
     _id: false,
-  }
+  },
 );
 
 const transcriptSchema = new Schema(
@@ -58,8 +58,14 @@ const transcriptSchema = new Schema(
 
     provider: {
       type: String,
-      enum: ["whisper", "assemblyai", "deepgram", "manual"],
-      default: "whisper",
+      enum: [
+        "groq-whisper",
+        "openai-whisper",
+        "assemblyai",
+        "deepgram",
+        "manual",
+      ],
+      default: "groq-whisper",
     },
 
     rawText: {
@@ -85,19 +91,19 @@ const transcriptSchema = new Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Fast text search across segment text and speaker names
 transcriptSchema.index(
   { "segments.text": "text", "segments.speaker": "text" },
-  { name: "segments_text_search" }
+  { name: "segments_text_search" },
 );
 
 // Fast speaker filter per meeting
 transcriptSchema.index(
   { meetingId: 1, "segments.speaker": 1 },
-  { name: "meeting_speaker_filter" }
+  { name: "meeting_speaker_filter" },
 );
 
 const Transcript = mongoose.model("Transcript", transcriptSchema);

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Meeting from "../models/Meeting.js";
+import { deleteMeetingFromCloudinary, uploadMeetingToCloudinary } from "./cloudinary.service.js";
 
 export async function getUserMeetings({ userId, page = 1, limit = 10 }) {
   const skip = (page - 1) * limit;
@@ -54,4 +55,59 @@ export async function getUserMeetingById({ meetingId, userId }) {
   }
 
   return meeting;
+}
+
+export async function createMeeting({ userId, file }) {
+  if (!file) {
+    const error = new Error("Meeting recording is required.");
+    error.code = "MEETING_FILE_REQUIRED";
+    throw error;
+  }
+
+  const result = await uploadMeetingToCloudinary(file.buffer, {
+    folder: "meetmind/meetings",
+    resource_type: "auto",
+  });
+
+  const title = file.originalname.replace(/\.[^/.]+$/, "").trim();
+
+  try {
+    const meeting = await Meeting.create({
+      ownerId: new mongoose.Types.ObjectId(userId),
+      title: title || "Untitled Meeting",
+      meetingDate: new Date(),
+      source: "upload",
+      status: "draft",
+      processingStatus: "pending",
+      durationSeconds: result.duration || 0,
+      recording: {
+        url: result.secure_url || result.url,
+        publicId: result.public_id,
+        fileName: file.originalname,
+        fileSize: file.size,
+        mimeType: file.mimetype,
+        durationSeconds: result.duration || null,
+      }
+    })
+    return meeting;
+  } catch (error) {
+    // If MongoDB creation fails after Cloudinary succeeds,
+    // remove the uploaded recording so we don't leave
+    // an orphaned file in Cloudinary.
+    if (result.public_id) {
+      try {
+        await deleteMeetingFromCloudinary(
+          result.public_id,
+          result.resource_type
+        );
+      } catch (cleanupError) {
+        console.error(
+          "Failed to clean up Cloudinary recording:",
+          cleanupError
+        );
+      }
+    }
+
+    throw error;
+  }
 }
