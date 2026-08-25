@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
 import { useState } from "react";
 import {
   LayoutDashboard,
@@ -14,61 +13,31 @@ import {
   Puzzle,
   PanelLeftClose,
   PanelLeftOpen,
+  X,
 } from "lucide-react";
 
 const menu = [
-  {
-    title: "Dashboard",
-    href: "/",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Meetings",
-    href: "/meetings",
-    icon: CalendarDays,
-  },
-  {
-    title: "AI Assistant",
-    href: "/ai-assistant",
-    icon: Sparkles,
-  },
-  {
-    title: "Search",
-    href: "/search",
-    icon: Search,
-  },
-  {
-    title: "Workspace",
-    href: "/workspace",
-    icon: Users,
-  },
-  {
-    title: "Integrations",
-    href: "/integrations",
-    icon: Puzzle,
-  },
+  { title: "Dashboard",    href: "/",             icon: LayoutDashboard },
+  { title: "Meetings",     href: "/meetings",     icon: CalendarDays    },
+  { title: "AI Assistant", href: "/ai-assistant", icon: Sparkles        },
+  { title: "Search",       href: "/search",       icon: Search          },
+  { title: "Workspace",    href: "/workspace",    icon: Users           },
+  { title: "Integrations", href: "/integrations", icon: Puzzle          },
 ];
 
-const Sidebar = () => {
-  const [collapsed, setCollapsed] = useState(false);
+// Shared sidebar content — used in both desktop & mobile drawer
+function SidebarContent({ collapsed, setCollapsed, onClose }) {
   const pathname = usePathname();
 
   return (
-    <aside
-      className={`sticky top-6 hidden h-[calc(100vh-48px)] rounded-[2rem] border border-white/10 bg-slate-950 p-1.5 text-slate-100 shadow-[0_20px_60px_-20px_rgba(15,23,42,0.55)] transition-all duration-300 lg:flex lg:flex-col ${
-        collapsed ? "w-20" : "w-[280px]"
-      }`}
-    >
+    <div className="flex h-full flex-col">
       {/* Header */}
-      <div
-        className={`px-5 pt-6 ${collapsed ? "flex flex-col items-center" : ""}`}
-      >
+      <div className={`px-5 pt-6 ${collapsed ? "flex flex-col items-center" : ""}`}>
         {collapsed ? (
           <>
             <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-600/25">
               <Sparkles size={24} />
             </div>
-
             <button
               onClick={() => setCollapsed(false)}
               className="rounded-xl p-2 transition hover:bg-white/10"
@@ -82,20 +51,29 @@ const Sidebar = () => {
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-600/25">
                 <Sparkles size={24} />
               </div>
-
               <div>
-                <h1 className="text-xl font-bold tracking-tight">MeetMind</h1>
-
+                <h2 className="text-xl font-bold tracking-tight">MeetMind</h2>
                 <p className="text-xs text-slate-400">AI Meeting Intelligence</p>
               </div>
             </div>
 
-            <button
-              onClick={() => setCollapsed(true)}
-              className="rounded-xl p-2 transition hover:bg-white/10"
-            >
-              <PanelLeftClose size={20} />
-            </button>
+            {/* Mobile: X close button — Desktop: collapse button */}
+            {onClose ? (
+              <button
+                onClick={onClose}
+                className="rounded-xl p-2 transition hover:bg-white/10"
+                aria-label="Close menu"
+              >
+                <X size={20} />
+              </button>
+            ) : (
+              <button
+                onClick={() => setCollapsed(true)}
+                className="rounded-xl p-2 transition hover:bg-white/10"
+              >
+                <PanelLeftClose size={20} />
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -106,6 +84,7 @@ const Sidebar = () => {
           <Link
             key={item.title}
             href={item.href}
+            onClick={onClose ?? undefined}
             className={`group mb-2 flex w-full items-center rounded-2xl py-3 transition-all duration-200 ${
               collapsed ? "justify-center" : "gap-4 px-4"
             } ${
@@ -120,16 +99,16 @@ const Sidebar = () => {
                 pathname !== item.href && "group-hover:scale-110"
               }`}
             />
-
             {!collapsed && <span className="font-medium">{item.title}</span>}
           </Link>
         ))}
       </nav>
 
-      {/* Footer */}
+      {/* Footer — Settings */}
       <div className="border-t border-white/10 p-5">
         <Link
           href="/settings"
+          onClick={onClose ?? undefined}
           className={`group flex w-full items-center rounded-2xl py-3 text-slate-400 transition-all duration-200 hover:bg-white/10 hover:text-white ${
             collapsed ? "justify-center" : "gap-4 px-4"
           }`}
@@ -138,11 +117,52 @@ const Sidebar = () => {
             size={20}
             className="transition-transform duration-200 group-hover:rotate-90"
           />
-
           {!collapsed && <span className="font-medium">Settings</span>}
         </Link>
       </div>
-    </aside>
+    </div>
+  );
+}
+
+const Sidebar = ({ mobileOpen, setMobileOpen }) => {
+  const [collapsed, setCollapsed] = useState(false);
+
+  return (
+    <>
+      {/* ─── Desktop sidebar (lg+) ─── */}
+      <aside
+        className={`sticky top-6 hidden h-[calc(100vh-48px)] flex-shrink-0 rounded-[2rem] border border-white/10 bg-slate-950 p-1.5 text-slate-100 shadow-[0_20px_60px_-20px_rgba(15,23,42,0.55)] transition-all duration-300 lg:flex lg:flex-col ${
+          collapsed ? "w-20" : "w-[280px]"
+        }`}
+      >
+        <SidebarContent
+          collapsed={collapsed}
+          setCollapsed={setCollapsed}
+          onClose={null}
+        />
+      </aside>
+
+      {/* ─── Mobile/tablet drawer (< lg) ─── */}
+      {mobileOpen && (
+        <>
+          {/* Dark backdrop */}
+          <div
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
+            onClick={() => setMobileOpen(false)}
+            aria-hidden="true"
+          />
+
+          {/* Slide-in panel */}
+          <aside className="fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col rounded-r-[2rem] bg-slate-950 p-1.5 text-slate-100 shadow-[4px_0_40px_rgba(15,23,42,0.5)] lg:hidden">
+            <SidebarContent
+              collapsed={false}
+              setCollapsed={() => {}}
+              onClose={() => setMobileOpen(false)}
+            />
+          </aside>
+        </>
+      )}
+    </>
   );
 };
 

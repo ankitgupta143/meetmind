@@ -28,7 +28,7 @@ export default function AIAssistant() {
       <ChatHeader onNewChat={clearConversation} />
 
       {messages.length === 0 ? (
-        <div className="flex flex-1 flex-col justify-center px-8">
+        <div className="flex flex-1 flex-col overflow-y-auto px-8 py-6">
           <EmptyConversation />
 
           <PromptSuggestions

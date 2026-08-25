@@ -1,12 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { Search, UploadCloud, LogOut } from "lucide-react";
+import { Search, UploadCloud, LogOut, Menu } from "lucide-react";
 import { useUploadModal } from "@/context/UploadModalContext";
 import { NotificationDrawer } from "@/components/notifications";
 import { useAuth } from "@/context/AuthContext";
 
-const Navbar = () => {
+const Navbar = ({ onMenuClick }) => {
   const { setOpen } = useUploadModal();
   const { user, logout } = useAuth();
 
@@ -24,7 +24,17 @@ const Navbar = () => {
 
   return (
     <header className="flex h-20 items-center justify-between rounded-[1.75rem] border border-white/70 bg-white/75 px-5 shadow-[0_12px_35px_-22px_rgba(40,43,80,0.35)] backdrop-blur-xl sm:px-8 dark:border-zinc-800 dark:bg-zinc-900/80">
-      <div className="relative hidden w-[420px] sm:block">
+      {/* Hamburger — mobile/tablet only */}
+      <button
+        onClick={onMenuClick}
+        className="flex h-10 w-10 items-center justify-center rounded-xl text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900 lg:hidden dark:hover:bg-zinc-800"
+        aria-label="Open navigation menu"
+      >
+        <Menu size={22} />
+      </button>
+
+      {/* Search bar — desktop only */}
+      <div className="relative hidden w-[420px] lg:block">
         <Search
           className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400"
           size={18}
@@ -42,7 +52,8 @@ const Navbar = () => {
           className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-indigo-600/30"
         >
           <UploadCloud size={18} />
-          Upload Meeting
+          <span className="hidden sm:inline">Upload Meeting</span>
+          <span className="sm:hidden">Upload</span>
         </button>
 
         <NotificationDrawer />
