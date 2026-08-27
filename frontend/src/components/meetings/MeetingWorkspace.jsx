@@ -11,24 +11,65 @@ import Analytics from "./Analytics";
 import { AIAssistant } from "../ai-assistant";
 import { WORKSPACE_TABS } from "@/constants/meeting";
 
-export default function MeetingWorkspace({ meeting }) {
-  const [activeTab, setActiveTab] = useState(WORKSPACE_TABS.ASSISTANT);
+export default function MeetingWorkspace({
+  meeting,
+  insights,
+}) {
+  const [activeTab, setActiveTab] = useState(
+    WORKSPACE_TABS.ASSISTANT
+  );
 
   const workspaceViews = {
-    summary: <AISummary />,
-    transcript: <Transcript meetingId={meeting?._id} />,
-    actions: <ActionItems />,
-    decisions: <Decisions />,
-    analytics: <Analytics />,
-    assistant: <AIAssistant />,
+    summary: (
+      <AISummary
+        insights={insights}
+      />
+    ),
+
+    transcript: (
+      <Transcript
+        meetingId={meeting?._id}
+      />
+    ),
+
+    actions: (
+      <ActionItems
+        insights={insights}
+      />
+    ),
+
+    decisions: (
+      <Decisions
+        insights={insights}
+      />
+    ),
+
+    analytics: (
+      <Analytics
+        insights={insights}
+      />
+    ),
+
+    assistant: (
+      <AIAssistant
+        meetingId={meeting?._id}
+      />
+    ),
   };
 
   return (
     <div className="grid min-w-0 gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
-      <MeetingSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <MeetingSidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+      />
 
       <section className="min-w-0">
-        {workspaceViews[activeTab] ?? <AISummary />}
+        {workspaceViews[activeTab] ?? (
+          <AISummary
+            insights={insights}
+          />
+        )}
       </section>
     </div>
   );

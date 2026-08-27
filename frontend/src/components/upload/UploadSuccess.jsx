@@ -1,8 +1,12 @@
 "use client";
 
 import { CheckCircle2, ArrowRight, FileText, BrainCircuit, ListTodo, BarChart3 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
-export default function UploadSuccess({ setOpen }) {
+export default function UploadSuccess({meeting, setOpen }) {
+  const router = useRouter();
+
+
   const generatedItems = [
     {
       icon: FileText,
@@ -23,10 +27,14 @@ export default function UploadSuccess({ setOpen }) {
   ];
 
   const handleOpenWorkspace = () => {
+    if(!meeting?.id){
+      console.error("Cannot open workspace: meeting ID is missing.");
+      return;
+    }
+
     setOpen(false);
 
-    // Later:
-    // router.push(`/meetings/${meetingId}`);
+    router.push(`/meetings/${meeting._id}`);
   };
 
   return (
@@ -79,9 +87,16 @@ export default function UploadSuccess({ setOpen }) {
         </div>
       </div>
 
+      {meeting?.id && (
+        <p className="mt-5 text-center text-xs text-zinc-400">
+          Meeting ID: {meeting._id}
+        </p>
+      )}
+
       <div className="mt-10 flex justify-end">
         <button
           onClick={handleOpenWorkspace}
+          disabled={!meeting?._id}
           className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 font-medium text-white transition hover:bg-indigo-700"
         >
           Open Workspace

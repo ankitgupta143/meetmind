@@ -1,7 +1,11 @@
 import multer from "multer";
 import path from "path";
 
-const MAX_FILE_SIZE = 500 * 1024 * 1024;
+// Groq Whisper API hard limit is 25 MB.
+// WAV files are uncompressed — a 38 MB WAV is typically ~3-4 MB as MP3.
+// Users should convert to MP3 or M4A before uploading.
+const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
+
 
 const ALLOWED_MIME_TYPES = [
   "audio/mpeg",

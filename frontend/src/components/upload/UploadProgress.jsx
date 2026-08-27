@@ -3,32 +3,79 @@
 import { useEffect, useState } from "react";
 import { UploadCloud, FileAudio, FileVideo } from "lucide-react";
 import { UPLOAD_STEPS } from "@/constants/upload";
+import api from "@/lib/api";
 
 export default function UploadProgress({
   file,
   setStep,
+  setMeeting,
 }) {
   const [progress, setProgress] = useState(0);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(timer);
+    if(!file){
+      setError("No recording selected.");
+      return;
+    }
 
-          setTimeout(() => {
-            setStep(UPLOAD_STEPS.PROCESSING);
-          }, 600);
+    let cancelled = false;
 
-          return 100;
+    const uploadMeeting = async() => {
+      try {
+        setError("");
+        setProgress(0);
+
+        const formData = new FormData();
+        formData.append("recording", file);  // must match multer field name on backend
+
+        const response = await api.post("/meetings", formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+            onUploadProgress: (event) => {
+              if(!event.total) return;
+
+              const percentage = Math.round(
+                (event.loaded * 100) / event.total
+              );
+
+              if(!cancelled){
+                setProgress(percentage);
+              }
+            }
+          }
+        );
+
+        if(cancelled) return;
+
+        const meeting = response.data?.data?.meeting;
+
+        if(!meeting?._id){
+          throw new Error("Meeting was uploaded but no meeting ID was returned.");
         }
 
-        return prev + 2;
-      });
-    }, 70);
+        setMeeting(meeting);
+        setProgress(100);
 
-    return () => clearInterval(timer);
-  }, [setStep]);
+        setTimeout(() => {
+          if(!cancelled){
+            setStep(UPLOAD_STEPS.PROCESSING);
+          }
+        }, 500);
+      } catch (error) {
+        if(cancelled) return;
+
+        console.error("Meeting upload failed:", error);
+
+        setError(error.response?.data?.message || error.message || "Failed to upload meeting.");
+      }
+    };
+    uploadMeeting();
+
+    return() => {
+      cancelled = true;
+    }
+  }, [file, setMeeting, setStep]);
 
   const isVideo = file?.type?.startsWith("video");
 
@@ -98,7 +145,9 @@ export default function UploadProgress({
         </div>
 
         <div className="mt-4 flex items-center justify-between text-sm text-zinc-500">
-          <span>Uploading...</span>
+          <span>
+            {error ? "Upload failed" : "Uploading..."}
+          </span>
 
           <span>
             {(
@@ -111,6 +160,12 @@ export default function UploadProgress({
             {formatSize(file?.size)}
           </span>
         </div>
+
+        {error && (
+          <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+            {error}
+          </div>
+        )}
       </div>
     </div>
   );

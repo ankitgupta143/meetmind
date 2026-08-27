@@ -44,7 +44,7 @@ const actionItemSchema = new Schema(
   },
   {
     _id: false,
-  }
+  },
 );
 
 const decisionSchema = new Schema(
@@ -72,7 +72,7 @@ const decisionSchema = new Schema(
   },
   {
     _id: false,
-  }
+  },
 );
 
 const riskSchema = new Schema(
@@ -99,7 +99,7 @@ const riskSchema = new Schema(
   },
   {
     _id: false,
-  }
+  },
 );
 
 const timelineItemSchema = new Schema(
@@ -126,7 +126,7 @@ const timelineItemSchema = new Schema(
   },
   {
     _id: false,
-  }
+  },
 );
 
 const speakerStatSchema = new Schema(
@@ -153,7 +153,7 @@ const speakerStatSchema = new Schema(
   },
   {
     _id: false,
-  }
+  },
 );
 
 const topicSchema = new Schema(
@@ -174,7 +174,7 @@ const topicSchema = new Schema(
   },
   {
     _id: false,
-  }
+  },
 );
 
 const meetingInsightsSchema = new Schema(
@@ -259,6 +259,24 @@ const meetingInsightsSchema = new Schema(
         default: 0,
       },
 
+      messageCount: {
+        type: Number,
+        min: 0,
+        default: 0,
+      },
+
+      wordCount: {
+        type: Number,
+        min: 0,
+        default: 0,
+      },
+
+      totalTalkTimeSeconds: {
+        type: Number,
+        min: 0,
+        default: 0,
+      },
+
       speakerStats: {
         type: [speakerStatSchema],
         default: [],
@@ -287,12 +305,12 @@ const meetingInsightsSchema = new Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 const MeetingInsights = mongoose.model(
   "MeetingInsights",
-  meetingInsightsSchema
+  meetingInsightsSchema,
 );
 
 export default MeetingInsights;

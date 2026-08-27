@@ -3,7 +3,7 @@ import {
   getUserMeetingById,
   getUserMeetings,
 } from "../services/meeting.service.js";
-import { generateMeetingInsights } from "../services/meetingInsights.service.js";
+import { generateMeetingInsights, getUserMeetingInsights } from "../services/meetingInsights.service.js";
 import { processMeeting } from "../services/meetingProcessing.service.js";
 
 export async function getMeetingsController(req, res, next) {
@@ -118,6 +118,32 @@ export async function testMeetingInsightsController(req, res, next) {
         insights,
       },
     });
+  } catch (error) {
+    next(error);
+  }
+}
+
+
+export async function getMeetingInsightsController(req, res, next){
+  try {
+    const insights = await getUserMeetingInsights({
+      meetingId: req.params.id,
+      userId: req.user.id,
+    });
+
+    if(!insights){
+      return res.status(404).json({
+        success: false,
+        message: "Meeting insights not found.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        insights,
+      }
+    })
   } catch (error) {
     next(error);
   }

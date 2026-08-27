@@ -3,24 +3,14 @@
 import {
   CalendarClock,
   PlayCircle,
-  Flag,
   CheckCircle2,
   CircleDot,
   Clock3,
 } from "lucide-react";
 
-import { meetingTimeline } from "@/constants/mockData";
+export default function MeetingTimeline({ insights }) {
+  const timeline = insights?.timeline ?? [];
 
-const icons = {
-  start: PlayCircle,
-  topic: CircleDot,
-  discussion: CalendarClock,
-  decision: CheckCircle2,
-  planning: Flag,
-  end: Clock3,
-};
-
-export default function MeetingTimeline() {
   return (
     <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
       {/* Header */}
@@ -34,22 +24,36 @@ export default function MeetingTimeline() {
         </p>
       </div>
 
-      <div className="relative ml-4">
-        {/* Vertical Line */}
-        <div className="absolute left-5 top-0 h-full w-0.5 bg-zinc-200" />
+      {/* Empty State */}
+      {timeline.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 p-10 text-center">
+          <CalendarClock
+            size={40}
+            className="mx-auto text-zinc-400"
+          />
 
-        <div className="space-y-8">
-          {meetingTimeline.map((item) => {
-            const Icon = icons[item.type];
+          <h3 className="mt-4 font-semibold text-zinc-900">
+            No timeline events
+          </h3>
 
-            return (
+          <p className="mt-1 text-sm text-zinc-500">
+            No key milestones were detected for this meeting.
+          </p>
+        </div>
+      ) : (
+        <div className="relative ml-4">
+          {/* Vertical Line */}
+          <div className="absolute left-5 top-0 h-full w-0.5 bg-zinc-200" />
+
+          <div className="space-y-8">
+            {timeline.map((item, index) => (
               <div
-                key={item.id}
+                key={`${item.timestamp}-${index}`}
                 className="group relative flex gap-5"
               >
                 {/* Timeline Icon */}
-                <div className="relative z-10 flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 bg-white shadow-sm transition-all duration-300 group-hover:border-indigo-500 group-hover:bg-indigo-50">
-                  <Icon
+                <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white shadow-sm transition-all duration-300 group-hover:border-indigo-500 group-hover:bg-indigo-50">
+                  <CircleDot
                     size={18}
                     className="text-indigo-600"
                   />
@@ -64,21 +68,42 @@ export default function MeetingTimeline() {
                       </h3>
 
                       <p className="mt-1 text-sm text-zinc-500">
-                        {item.time}
+                        {formatTimestamp(item.timestamp)}
                       </p>
+
+                      {item.description && (
+                        <p className="mt-3 text-sm leading-6 text-zinc-600">
+                          {item.description}
+                        </p>
+                      )}
                     </div>
 
-                    <button className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 px-4 py-2 text-sm font-medium transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600">
-                      <PlayCircle size={16} />
-                      {item.duration}
-                    </button>
+                    <span className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-500">
+                      <Clock3 size={16} />
+
+                      {formatTimestamp(item.timestamp)}
+                    </span>
                   </div>
                 </div>
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </section>
   );
+}
+
+function formatTimestamp(seconds = 0) {
+  const totalSeconds = Math.max(
+    0,
+    Math.floor(Number(seconds) || 0)
+  );
+
+  const minutes = Math.floor(totalSeconds / 60);
+  const remainingSeconds = totalSeconds % 60;
+
+  return `${String(minutes).padStart(2, "0")}:${String(
+    remainingSeconds
+  ).padStart(2, "0")}`;
 }

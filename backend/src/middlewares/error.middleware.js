@@ -5,13 +5,28 @@ export function errorHandler(err, req, res, next) {
     if (err.code === "LIMIT_FILE_SIZE") {
       return res.status(400).json({
         success: false,
-        message: "Avatar must be 2 MB or smaller.",
+        message: "Recording must be 25 MB or smaller. WAV files are large — please convert to MP3 or M4A first.",
       });
     }
 
     return res.status(400).json({
       success: false,
       message: err.message,
+    });
+  }
+
+  if (err.code === "FILE_TOO_LARGE_FOR_TRANSCRIPTION") {
+    return res.status(400).json({
+      success: false,
+      message: err.message,
+    });
+  }
+
+  // Groq API returned 413 — file was too large for Whisper
+  if (err.status === 413 || err.error?.error?.code === "request_too_large") {
+    return res.status(400).json({
+      success: false,
+      message: "Recording is too large for transcription (Groq limit: 25 MB). Please re-upload as MP3 or M4A.",
     });
   }
 
@@ -96,6 +111,20 @@ if (err.code === "USER_DELETED") {
     message: "User account no longer exists.",
   });
 }
+
+  if (err.code === "MEETING_NOT_FOUND") {
+    return res.status(404).json({
+      success: false,
+      message: err.message || "Meeting not found.",
+    });
+  }
+
+  if (err.code === "TRANSCRIPT_NOT_FOUND") {
+    return res.status(400).json({
+      success: false,
+      message: err.message,
+    });
+  }
 
   return res.status(500).json({
     success: false,

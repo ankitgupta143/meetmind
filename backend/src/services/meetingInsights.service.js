@@ -21,7 +21,9 @@ export async function generateMeetingInsights({ meetingId, userId }) {
   });
 
   if (!meeting) {
-    throw new Error("Meeting not found.");
+    const err = new Error("Meeting not found.");
+    err.code = "MEETING_NOT_FOUND";
+    throw err;
   }
 
   const transcript = await Transcript.findOne({
@@ -30,8 +32,29 @@ export async function generateMeetingInsights({ meetingId, userId }) {
   });
 
   if (!transcript) {
-    throw new Error("Completed transcript not found for this meeting.");
+    const err = new Error(
+      "Transcript not ready. Please run transcription before generating insights.",
+    );
+    err.code = "TRANSCRIPT_NOT_FOUND";
+    throw err;
   }
+
+  const segments = transcript.segments || [];
+
+  const messageCount = segments.length;
+
+  const wordCount = segments.reduce((total, segment) => {
+    return total + (segment.text?.trim().match(/\S+/g)?.length || 0);
+  }, 0);
+
+  const totalTalkTimeSeconds = segments.reduce((total, segment) => {
+    const duration = Math.max(
+      0,
+      (segment.endTime || 0) - (segment.startTime || 0),
+    );
+
+    return total + duration;
+  }, 0);
 
   const existingInsights = await MeetingInsights.findOne({
     meetingId: meeting._id,
@@ -207,6 +230,12 @@ ${transcript.rawText.slice(0, 6000)}
         analytics: {
           totalDurationSeconds: meeting.durationSeconds || 0,
 
+          messageCount,
+
+          wordCount,
+
+          totalTalkTimeSeconds,
+
           speakerStats: [],
 
           sentiment: {
@@ -241,4 +270,24 @@ ${transcript.rawText.slice(0, 6000)}
 
     throw error;
   }
+}
+
+export async function getUserMeetingInsights({ meetingId, userId }) {
+  const meeting = await Meeting.findOne({
+    _id: meetingId,
+    ownerId: userId,
+    status: { $ne: "deleted" },
+  })
+    .select("_id")
+    .lean();
+
+  if (!meeting) {
+    return null;
+  }
+
+  const insights = await MeetingInsights.findOne({
+    meetingId: meeting._id,
+  }).lean();
+
+  return insights;
 }

@@ -4,7 +4,6 @@ import { useState } from "react";
 
 import { AnimatePresence, motion } from "framer-motion";
 import { UPLOAD_STEPS } from "@/constants/upload";
-
 import { X } from "lucide-react";
 
 import { useUploadModal } from "@/context/UploadModalContext";
@@ -18,8 +17,19 @@ export default function UploadMeetingModal() {
   const { open, setOpen } = useUploadModal();
 
   const [step, setStep] = useState(UPLOAD_STEPS.IDLE);
-
   const [selectedFile, setSelectedFile] = useState(null);
+  const [meeting, setMeeting] = useState(null);
+
+  const handleClose = () => {
+    setOpen(false);
+
+    // Reset modal state for the next upload
+    setTimeout(() => {
+      setStep(UPLOAD_STEPS.IDLE);
+      setSelectedFile(null);
+      setMeeting(null);
+    }, 300);
+  };
 
   if (!open) return null;
 
@@ -54,8 +64,8 @@ export default function UploadMeetingModal() {
           className="relative mx-4 w-full max-w-4xl overflow-hidden rounded-3xl bg-white shadow-2xl"
         >
           <button
-            onClick={() => setOpen(false)}
-            className="absolute right-6 top-6 rounded-xl p-2 hover:bg-zinc-100"
+            onClick={handleClose}
+            className="absolute right-6 top-6 z-10 rounded-xl p-2 hover:bg-zinc-100"
           >
             <X />
           </button>
@@ -69,12 +79,27 @@ export default function UploadMeetingModal() {
             )}
 
             {step === UPLOAD_STEPS.UPLOADING && (
-              <UploadProgress file={selectedFile} setStep={setStep} />
+              <UploadProgress
+                file={selectedFile}
+                setStep={setStep}
+                setMeeting={setMeeting}
+              />
             )}
 
-            {step === UPLOAD_STEPS.PROCESSING && <AIProcessing setStep={setStep} />}
+            {step === UPLOAD_STEPS.PROCESSING && (
+              <AIProcessing
+                meeting={meeting}
+                setStep={setStep}
+                setMeeting={setMeeting}
+              />
+            )}
 
-            {step === UPLOAD_STEPS.SUCCESS && <UploadSuccess setOpen={setOpen} />}
+            {step === UPLOAD_STEPS.SUCCESS && (
+              <UploadSuccess
+                meeting={meeting}
+                setOpen={setOpen}
+              />
+            )}
           </div>
         </motion.div>
       </motion.div>

@@ -1,13 +1,23 @@
 "use client";
 
-import {
-  Sparkles,
-  Lightbulb,
-  Target,
-  CheckCircle2,
-} from "lucide-react";
+import { Sparkles, Lightbulb, Target, CheckCircle2 } from "lucide-react";
 
-export default function AISummary() {
+export default function AISummary({ insights }) {
+  const overview =
+    insights?.summary?.overview?.trim() ||
+    "No meeting overview is available yet.";
+
+  const keyTakeaways = Array.isArray(insights?.summary?.keyTakeaways)
+    ? insights.summary.keyTakeaways
+    : [];
+
+  const decisions = Array.isArray(insights?.decisions)
+    ? insights.decisions
+    : [];
+
+  const actionItems = Array.isArray(insights?.actionItems)
+    ? insights.actionItems
+    : [];
   return (
     <div className="space-y-6">
       {/* Overview */}
@@ -17,17 +27,10 @@ export default function AISummary() {
             <Sparkles size={18} />
           </div>
 
-          <h2 className="text-xl font-semibold">
-            Meeting Overview
-          </h2>
+          <h2 className="text-xl font-semibold">Meeting Overview</h2>
         </div>
 
-        <p className="leading-7 text-zinc-600">
-          The engineering team reviewed sprint progress,
-          discussed backend integration, and finalized
-          priorities for the upcoming release. The meeting
-          concluded with clear ownership for pending tasks.
-        </p>
+        <p className="leading-7 text-zinc-600">{overview}</p>
       </div>
 
       {/* Key Takeaways */}
@@ -37,16 +40,24 @@ export default function AISummary() {
             <Lightbulb size={18} />
           </div>
 
-          <h2 className="text-xl font-semibold">
-            Key Takeaways
-          </h2>
+          <h2 className="text-xl font-semibold">Key Takeaways</h2>
         </div>
 
-        <ul className="space-y-3 text-zinc-600">
-          <li>• Backend API integration is on schedule.</li>
-          <li>• Authentication module is ready for QA.</li>
-          <li>• Dashboard redesign will begin next sprint.</li>
-        </ul>
+        {keyTakeaways.length > 0 ? (
+          <ul className="space-y-3 text-zinc-600">
+            {keyTakeaways.map((takeaway, index) => (
+              <li key={`${takeaway} - ${index}`} className="flex gap-3">
+                <span className="text-amber-500">•</span>
+
+                <span>{takeaway}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-zinc-500">
+            No key takeaways were identified.
+          </p>
+        )}
       </div>
 
       {/* Decisions */}
@@ -56,15 +67,35 @@ export default function AISummary() {
             <Target size={18} />
           </div>
 
-          <h2 className="text-xl font-semibold">
-            Decisions Made
-          </h2>
+          <h2 className="text-xl font-semibold">Decisions Made</h2>
         </div>
 
-        <ul className="space-y-3 text-zinc-600">
-          <li>• Release scheduled for next Friday.</li>
-          <li>• API version v2 becomes the default.</li>
-        </ul>
+        {decisions.length > 0 ? (
+          <ul className="space-y-4 text-zinc-600">
+            {decisions.map((decision, index) => (
+              <li
+                key={`${decision.title}-${index}`}
+                className="rounded-xl bg-zinc-50 p-4"
+              >
+                <p className="font-medium text-zinc-900">{decision.title}</p>
+
+                {decision.description && (
+                  <p className="mt-1 text-sm leading-6 text-zinc-500">
+                    {decision.description}
+                  </p>
+                )}
+
+                {decision.owner && (
+                  <p className="mt-2 text-xs font-medium text-zinc-400">
+                    Owner: {decision.owner}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-zinc-500">No decisions were identified.</p>
+        )}
       </div>
 
       {/* Actions */}
@@ -74,16 +105,47 @@ export default function AISummary() {
             <CheckCircle2 size={18} />
           </div>
 
-          <h2 className="text-xl font-semibold">
-            Next Actions
-          </h2>
+          <h2 className="text-xl font-semibold">Next Actions</h2>
         </div>
 
-        <ul className="space-y-3 text-zinc-600">
-          <li>• Complete backend testing.</li>
-          <li>• Prepare production deployment checklist.</li>
-          <li>• Review UI redesign proposals.</li>
-        </ul>
+        {actionItems.length > 0 ? (
+          <ul className="space-y-4 text-zinc-600">
+            {actionItems.map((item, index) => (
+              <li
+                key={`${item.title}-${index}`}
+                className="rounded-xl bg-zinc-50 p-4"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <p className="font-medium text-zinc-900">
+                    {item.title}
+                  </p>
+
+                  {item.priority && (
+                    <span className="shrink-0 rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-medium capitalize text-indigo-700">
+                      {item.priority}
+                    </span>
+                  )}
+                </div>
+
+                {item.description && (
+                  <p className="mt-1 text-sm leading-6 text-zinc-500">
+                    {item.description}
+                  </p>
+                )}
+
+                {item.assignee && (
+                  <p className="mt-2 text-xs font-medium text-zinc-400">
+                    Assigned to: {item.assignee}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-zinc-500">
+            No action items were identified.
+          </p>
+        )}
       </div>
     </div>
   );

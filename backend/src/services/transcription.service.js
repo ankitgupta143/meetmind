@@ -40,6 +40,22 @@ export async function transcribeMeeting({
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
+    // Groq Whisper API hard limit is 25 MB.
+    // WAV files are uncompressed and can easily exceed this.
+    // Ask the user to re-upload as MP3 or M4A.
+    const GROQ_MAX_BYTES = 25 * 1024 * 1024; // 25 MB
+    if (buffer.byteLength > GROQ_MAX_BYTES) {
+      const sizeMB = (buffer.byteLength / 1024 / 1024).toFixed(1);
+      const err = new Error(
+        `Recording is ${sizeMB} MB. Groq Whisper only accepts files up to 25 MB. ` +
+        `Please re-upload as MP3 or M4A — compressed formats are much smaller.`
+      );
+      err.code = "FILE_TOO_LARGE_FOR_TRANSCRIPTION";
+      throw err;
+    }
+
+    console.log(`[Transcription] Sending ${(buffer.byteLength / 1024 / 1024).toFixed(1)} MB to Groq Whisper...`);
+
     const file = new File(
       [buffer],
       meeting.recording.fileName || "meeting-recording.mp4",

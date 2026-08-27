@@ -1,99 +1,112 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+
 import AppLayout from "@/components/layout/AppLayout";
 import MeetingDetailsHeader from "@/components/meetings/MeetingDetailsHeader";
 import MeetingWorkspace from "@/components/meetings/MeetingWorkspace";
-import { useAuth } from "@/context/AuthContext";
+
 import api from "@/lib/api";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 export default function MeetingDetailsPage() {
   const params = useParams();
-  const router = useRouter();
+  const meetingId = params?.id;
 
-  const {loading: authLoading, isAuthenticated} = useAuth();
+  const { loading: authLoading, isAuthenticated } = useAuth();
 
   const [meeting, setMeeting] = useState(null);
+  const [insights, setInsights] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if(authLoading) return;
-
-    if(!isAuthenticated){
-      setLoading(false);
+    if (
+      authLoading ||
+      !isAuthenticated ||
+      !meetingId
+    ) {
       return;
     }
 
-    const fetchMeeting = async() => {
+    const fetchMeetingData = async () => {
       try {
         setLoading(true);
         setError("");
 
-        const response = await api.get(`/meetings/${params.id}`);
-        const meetingData = response.data?.data?.meeting;
+        const [meetingResponse, insightsResponse] =
+          await Promise.all([
+            api.get(`/meetings/${meetingId}`),
+            api.get(`/meetings/${meetingId}/insights`),
+          ]);
 
-        if(!meetingData){
-          throw new Error("Meeting data was not returend.");
-        }
+        const meetingData =
+          meetingResponse.data?.data?.meeting;
+
+        const insightsData =
+          insightsResponse.data?.data?.insights;
+
         setMeeting(meetingData);
+        setInsights(insightsData);
       } catch (error) {
-        console.error("Failed to fetch meeting:", error);
+        console.error(
+          "Failed to load meeting workspace:",
+          error
+        );
 
-        if (error.response?.status === 404) {
-          setError("Meeting not found.");
-        } else {
-          setError(
-            error.response?.data?.message ||
-              "Failed to load meeting."
-          );
-        }
-      } finally{
+        setError(
+          error.response?.data?.message ||
+            "Failed to load meeting."
+        );
+      } finally {
         setLoading(false);
       }
     };
 
-    fetchMeeting();
-  }, [params.id, authLoading, isAuthenticated]);
+    fetchMeetingData();
+  }, [
+    authLoading,
+    isAuthenticated,
+    meetingId,
+  ]);
 
-  if (authLoading || loading) {
+  if (loading) {
     return (
       <AppLayout>
-        <div className="py-20 text-center text-sm text-zinc-500">
-          Loading meeting...
+        <div className="flex min-h-[400px] items-center justify-center">
+          <div className="text-sm text-zinc-500">
+            Loading meeting...
+          </div>
         </div>
       </AppLayout>
     );
   }
 
-  if (error) {
+  if (error || !meeting) {
     return (
       <AppLayout>
-        <div className="py-20 text-center">
-          <h2 className="text-lg font-semibold text-zinc-900">
-            {error}
-          </h2>
-
-          <button
-            onClick={() => router.push("/meetings")}
-            className="mt-4 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
-          >
-            Back to Meetings
-          </button>
+        <div className="flex min-h-[400px] items-center justify-center">
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-4 text-sm text-red-600">
+            {error || "Meeting not found."}
+          </div>
         </div>
       </AppLayout>
     );
   }
 
-  if (!meeting) {
-    return null;
-  }
   return (
     <AppLayout>
       <div className="space-y-8">
-        <MeetingDetailsHeader meeting={meeting}/>
-        <MeetingWorkspace meeting = {meeting}/>
+        <MeetingDetailsHeader
+          meeting={meeting}
+        />
+
+        <MeetingWorkspace
+          meeting={meeting}
+          insights={insights}
+        />
       </div>
     </AppLayout>
   );
