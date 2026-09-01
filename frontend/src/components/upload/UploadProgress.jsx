@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { UploadCloud, FileAudio, FileVideo } from "lucide-react";
 import { UPLOAD_STEPS } from "@/constants/upload";
 import api from "@/lib/api";
@@ -12,69 +12,68 @@ export default function UploadProgress({
 }) {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
+  const hasStartedRef = useRef(false);
 
   useEffect(() => {
-    if(!file){
+    if (!file) {
       setError("No recording selected.");
       return;
     }
 
-    let cancelled = false;
+    // Prevent duplicate upload invocation (e.g. React 18+ StrictMode double-mount in dev)
+    if (hasStartedRef.current) {
+      return;
+    }
+    hasStartedRef.current = true;
 
-    const uploadMeeting = async() => {
+    const uploadMeeting = async () => {
       try {
         setError("");
         setProgress(0);
 
         const formData = new FormData();
-        formData.append("recording", file);  // must match multer field name on backend
+        formData.append("recording", file); // must match multer field name on backend
 
-        const response = await api.post("/meetings", formData,
-          {
-            headers: { "Content-Type": "multipart/form-data" },
-            onUploadProgress: (event) => {
-              if(!event.total) return;
+        const response = await api.post("/meetings", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+          onUploadProgress: (event) => {
+            if (!event.total) return;
 
-              const percentage = Math.round(
-                (event.loaded * 100) / event.total
-              );
+            const percentage = Math.round(
+              (event.loaded * 100) / event.total
+            );
 
-              if(!cancelled){
-                setProgress(percentage);
-              }
-            }
-          }
-        );
-
-        if(cancelled) return;
+            setProgress(percentage);
+          },
+        });
 
         const meeting = response.data?.data?.meeting;
 
-        if(!meeting?._id){
-          throw new Error("Meeting was uploaded but no meeting ID was returned.");
+        if (!meeting?._id) {
+          throw new Error(
+            "Meeting was uploaded but no meeting ID was returned."
+          );
         }
 
         setMeeting(meeting);
         setProgress(100);
 
         setTimeout(() => {
-          if(!cancelled){
-            setStep(UPLOAD_STEPS.PROCESSING);
-          }
+          setStep(UPLOAD_STEPS.PROCESSING);
         }, 500);
       } catch (error) {
-        if(cancelled) return;
-
+        hasStartedRef.current = false;
         console.error("Meeting upload failed:", error);
 
-        setError(error.response?.data?.message || error.message || "Failed to upload meeting.");
+        setError(
+          error.response?.data?.message ||
+            error.message ||
+            "Failed to upload meeting."
+        );
       }
     };
-    uploadMeeting();
 
-    return() => {
-      cancelled = true;
-    }
+    uploadMeeting();
   }, [file, setMeeting, setStep]);
 
   const isVideo = file?.type?.startsWith("video");
@@ -162,8 +161,19 @@ export default function UploadProgress({
         </div>
 
         {error && (
-          <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-            {error}
+          <div className="mt-5 space-y-4">
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+              {error}
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                onClick={() => setStep(UPLOAD_STEPS.IDLE)}
+                className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700"
+              >
+                Try Again
+              </button>
+            </div>
           </div>
         )}
       </div>

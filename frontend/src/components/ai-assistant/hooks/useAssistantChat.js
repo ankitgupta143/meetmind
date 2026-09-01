@@ -1,169 +1,176 @@
 "use client";
 
+import { useParams } from "next/navigation";
 import { useState } from "react";
-
-import { getResponse } from "../services/mockAssistant";
+import api from "@/lib/api";
 
 export default function useAssistantChat() {
+  const { id: meetingId } = useParams();
+
   const [messages, setMessages] = useState([]);
-
   const [input, setInput] = useState("");
-
   const [isLoading, setIsLoading] = useState(false);
-
-  const streamResponse = (text, onUpdate, onComplete) => {
-    let index = 0;
-
-    const interval = setInterval(() => {
-      index++;
-
-      onUpdate(text.slice(0, index));
-
-      if (index >= text.length) {
-        clearInterval(interval);
-        onComplete();
-      }
-    }, 12); // Adjust speed (10–20ms feels natural)
-  };
 
   const sendMessage = async (message) => {
     const text = message || input;
 
-    if (!text.trim()) return;
+    if (!text.trim() || !meetingId || isLoading) {
+      return;
+    }
 
     const userMessage = {
       id: crypto.randomUUID(),
       role: "user",
-      content: text,
+      content: text.trim(),
       createdAt: new Date(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
-
     setInput("");
-
     setIsLoading(true);
 
-    const fullResponse = getResponse(text);
+    try {
+      const response = await api.post(
+        `/meetings/${meetingId}/assistant`,
+        {
+          message: text.trim(),
+        }
+      );
 
-    const assistantId = crypto.randomUUID();
+      const assistantContent =
+        response.data?.data?.message ||
+        "I couldn't generate a response.";
 
-    const assistantMessage = {
-      id: assistantId,
-      role: "assistant",
-      content: "",
-      createdAt: new Date(),
-      status: "streaming",
-    };
+      const assistantMessage = {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: assistantContent,
+        createdAt: new Date(),
+        status: "completed",
+      };
 
-    setMessages((prev) => [...prev, assistantMessage]);
+      setMessages((prev) => [
+        ...prev,
+        assistantMessage,
+      ]);
+    } catch (error) {
+      console.error(
+        "AI Assistant request failed:",
+        error
+      );
 
-    streamResponse(
-      fullResponse,
+      const errorMessage =
+        error.response?.data?.message ||
+        "Sorry, I couldn't process your question.";
 
-      (partialText) => {
-        setMessages((prev) =>
-          prev.map((message) =>
-            message.id === assistantId
-              ? {
-                  ...message,
-                  content: partialText,
-                }
-              : message,
-          ),
-        );
-      },
+      const assistantMessage = {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: errorMessage,
+        createdAt: new Date(),
+        status: "error",
+      };
 
-      () => {
-        setMessages((prev) =>
-          prev.map((message) =>
-            message.id === assistantId
-              ? {
-                  ...message,
-                  status: "completed",
-                }
-              : message,
-          ),
-        );
-
-        setIsLoading(false);
-      },
-    );
+      setMessages((prev) => [
+        ...prev,
+        assistantMessage,
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const regenerateResponse = (assistantMessageId) => {
+  const regenerateResponse = async (
+    assistantMessageId
+  ) => {
+    if (isLoading || !meetingId) {
+      return;
+    }
+
+    const assistantIndex = messages.findIndex(
+      (message) =>
+        message.id === assistantMessageId
+    );
+
+    if (assistantIndex === -1) {
+      return;
+    }
+
+    const previousUserMessage = [...messages]
+      .slice(0, assistantIndex)
+      .reverse()
+      .find(
+        (message) => message.role === "user"
+      );
+
+    if (!previousUserMessage) {
+      return;
+    }
+
     setIsLoading(true);
 
-    setMessages((prevMessages) => {
-      const assistantIndex = prevMessages.findIndex(
-        (message) => message.id === assistantMessageId,
-      );
-
-      if (assistantIndex === -1) {
-        setIsLoading(false);
-        return prevMessages;
-      }
-
-      const previousUserMessage = [...prevMessages]
-        .slice(0, assistantIndex)
-        .reverse()
-        .find((message) => message.role === "user");
-
-      if (!previousUserMessage) {
-        setIsLoading(false);
-        return prevMessages;
-      }
-
-      const fullResponse = getResponse(previousUserMessage.content);
-
-      streamResponse(
-        fullResponse,
-        (partialText) => {
-          setMessages((currentMessages) =>
-            currentMessages.map((message) =>
-              message.id === assistantMessageId
-                ? {
-                    ...message,
-                    content: partialText,
-                    status: "streaming",
-                  }
-                : message,
-            ),
-          );
-        },
-        () => {
-          setMessages((currentMessages) =>
-            currentMessages.map((message) =>
-              message.id === assistantMessageId
-                ? {
-                    ...message,
-                    status: "completed",
-                  }
-                : message,
-            ),
-          );
-
-          setIsLoading(false);
-        },
-      );
-
-      return prevMessages.map((message) =>
+    setMessages((prev) =>
+      prev.map((message) =>
         message.id === assistantMessageId
           ? {
               ...message,
               content: "",
               status: "streaming",
             }
-          : message,
+          : message
+      )
+    );
+
+    try {
+      const response = await api.post(
+        `/meetings/${meetingId}/assistant`,
+        {
+          message: previousUserMessage.content,
+        }
       );
-    });
+
+      const assistantContent =
+        response.data?.data?.message ||
+        "I couldn't generate a response.";
+
+      setMessages((prev) =>
+        prev.map((message) =>
+          message.id === assistantMessageId
+            ? {
+                ...message,
+                content: assistantContent,
+                status: "completed",
+              }
+            : message
+        )
+      );
+    } catch (error) {
+      console.error(
+        "AI Assistant regeneration failed:",
+        error
+      );
+
+      setMessages((prev) =>
+        prev.map((message) =>
+          message.id === assistantMessageId
+            ? {
+                ...message,
+                content:
+                  error.response?.data?.message ||
+                  "Sorry, I couldn't regenerate the response.",
+                status: "error",
+              }
+            : message
+        )
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const clearConversation = () => {
     setMessages([]);
-
     setInput("");
-
     setIsLoading(false);
   };
 

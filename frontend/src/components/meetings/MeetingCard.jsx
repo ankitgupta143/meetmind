@@ -19,7 +19,10 @@ export default function MeetingCard({ meeting }) {
   const router = useRouter();
 
   const handleClick = () => {
-    router.push(`/meetings/${meeting.id}`);
+    const meetingId = meeting?.id || meeting?._id;
+    if (meetingId) {
+      router.push(`/meetings/${meetingId}`);
+    }
   };
 
   return (

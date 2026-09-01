@@ -1,6 +1,6 @@
 import express from "express";
 import { authenticate } from "../middlewares/auth.middleware.js";
-import { createMeetingController, getMeetingByIdController, getMeetingInsightsController, getMeetingsController, testMeetingInsightsController, testTranscriptionController } from "../controllers/meeting.controller.js";
+import { createMeetingController, getMeetingByIdController, getMeetingInsightsController, getMeetingsController, meetingAssistantController, testMeetingInsightsController, testTranscriptionController } from "../controllers/meeting.controller.js";
 import { getMeetingTranscriptController } from "../controllers/transcript.controller.js";
 import meetingUpload from "../middlewares/meetingUpload.js";
 
@@ -20,6 +20,12 @@ router.post(
   "/:id/insights",
   authenticate,
   testMeetingInsightsController
+);
+
+router.post(
+  "/:id/assistant",
+  authenticate,
+  meetingAssistantController,
 );
 
 export default router;

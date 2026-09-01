@@ -58,7 +58,7 @@ export default function MeetingDetailsPage() {
 
         setError(
           error.response?.data?.message ||
-            "Failed to load meeting."
+          "Failed to load meeting."
         );
       } finally {
         setLoading(false);

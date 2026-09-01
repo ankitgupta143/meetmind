@@ -1,3 +1,4 @@
+import { askMeetingAssistant } from "../services/assistant.service.js";
 import {
   createMeeting,
   getUserMeetingById,
@@ -144,6 +145,30 @@ export async function getMeetingInsightsController(req, res, next){
         insights,
       }
     })
+  } catch (error) {
+    next(error);
+  }
+}
+
+
+export async function meetingAssistantController(
+  req,
+  res,
+  next,
+) {
+  try {
+    const { message } = req.body;
+
+    const result = await askMeetingAssistant({
+      meetingId: req.params.id,
+      userId: req.user.id,
+      message,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
   } catch (error) {
     next(error);
   }
