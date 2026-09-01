@@ -99,23 +99,45 @@ export function errorHandler(err, req, res, next) {
   }
 
   if (err.code === "USER_NOT_FOUND") {
-  return res.status(404).json({
-    success: false,
-    message: "User not found.",
-  });
-}
+    return res.status(404).json({
+      success: false,
+      message: "User not found.",
+    });
+  }
 
-if (err.code === "USER_DELETED") {
-  return res.status(404).json({
-    success: false,
-    message: "User account no longer exists.",
-  });
-}
+  if (err.code === "USER_DELETED") {
+    return res.status(404).json({
+      success: false,
+      message: "User account no longer exists.",
+    });
+  }
 
   if (err.code === "MEETING_NOT_FOUND") {
     return res.status(404).json({
       success: false,
       message: err.message || "Meeting not found.",
+    });
+  }
+
+  if (err.code === "INSIGHTS_NOT_FOUND" || err.code === "ACTION_ITEM_NOT_FOUND") {
+    return res.status(404).json({
+      success: false,
+      message: err.message,
+    });
+  }
+
+  if (
+    err.code === "INVALID_ACTION_ITEM_INDEX" ||
+    err.code === "INVALID_ACTION_ITEM_TITLE" ||
+    err.code === "INVALID_ACTION_ITEM_DESCRIPTION" ||
+    err.code === "INVALID_ACTION_ITEM_ASSIGNEE" ||
+    err.code === "INVALID_ACTION_ITEM_DUE_DATE" ||
+    err.code === "INVALID_ACTION_ITEM_PRIORITY" ||
+    err.code === "INVALID_ACTION_ITEM_STATUS"
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: err.message,
     });
   }
 

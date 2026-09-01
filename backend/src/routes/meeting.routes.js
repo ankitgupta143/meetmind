@@ -3,6 +3,9 @@ import { authenticate } from "../middlewares/auth.middleware.js";
 import { createMeetingController, getMeetingByIdController, getMeetingInsightsController, getMeetingsController, meetingAssistantController, testMeetingInsightsController, testTranscriptionController } from "../controllers/meeting.controller.js";
 import { getMeetingTranscriptController } from "../controllers/transcript.controller.js";
 import meetingUpload from "../middlewares/meetingUpload.js";
+import {
+  updateActionItemController,
+} from "../controllers/actionItem.controller.js";
 
 const router = express.Router();
 
@@ -28,4 +31,5 @@ router.post(
   meetingAssistantController,
 );
 
+router.patch("/:meetingId/action-items/:itemIndex", authenticate, updateActionItemController);
 export default router;
