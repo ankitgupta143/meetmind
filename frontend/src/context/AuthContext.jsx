@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import api, { setAccessToken, refreshSession } from "@/lib/api";
 
 const AuthContext = createContext();
@@ -77,7 +78,7 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Logout handler
+// Logout handler
   const logout = async () => {
     try {
       await api.post("/auth/logout");
@@ -87,6 +88,7 @@ export function AuthProvider({ children }) {
       // Always clear local state even if backend request fails
       setUser(null);
       setAccessToken("");
+      toast.success("Logged out successfully");
       router.push("/login");
     }
   };

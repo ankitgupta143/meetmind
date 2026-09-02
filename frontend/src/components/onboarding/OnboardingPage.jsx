@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,16 +17,21 @@ import { apps, platforms, roles } from "./data/onboarding";
 const Card = ({ selected, onClick, children }) => (
   <button
     onClick={onClick}
-    className={`relative rounded-2xl border p-5 text-left transition hover:border-indigo-300 ${selected ? "border-indigo-500 bg-indigo-50 ring-2 ring-indigo-100" : "border-zinc-200 bg-white hover:shadow-md"}`}
+    className={`relative rounded-2xl border p-4 text-left transition-all duration-200 cursor-pointer ${
+      selected
+        ? "border-indigo-500/60 bg-indigo-500/15 shadow-md shadow-indigo-500/20"
+        : "border-white/[0.08] bg-slate-900/50 hover:border-white/20 hover:bg-slate-900/80"
+    }`}
   >
     {selected && (
-      <span className="absolute right-3 top-3 flex size-5 items-center justify-center rounded-full bg-indigo-600 text-white">
-        <Check className="size-3" />
+      <span className="absolute right-3 top-3 flex size-4 items-center justify-center rounded-full bg-indigo-600 text-white">
+        <Check className="size-2.5 stroke-[3]" />
       </span>
     )}
     {children}
   </button>
 );
+
 export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [role, setRole] = useState("");
@@ -33,6 +39,7 @@ export default function OnboardingPage() {
   const [connected, setConnected] = useState([]);
   const [file, setFile] = useState("");
   const router = useRouter();
+
   const next = () => {
     if (step === 2 && !role)
       return toast.error("Choose the role that best fits you.");
@@ -41,52 +48,52 @@ export default function OnboardingPage() {
     if (step === 5 && !file)
       return toast.error("Upload a meeting or choose Skip for now.");
     if (step === 5) {
-      toast.success("You are all set!");
+      toast.success("Workspace initialized!");
       router.push("/dashboard");
       return;
     }
     setStep((current) => current + 1);
   };
+
   const toggle = (id) =>
     setConnected((current) =>
       current.includes(id)
         ? current.filter((item) => item !== id)
         : [...current, id],
     );
+
   const screens = {
     1: (
       <div className="text-center">
-        <span className="mx-auto flex size-16 items-center justify-center rounded-3xl bg-indigo-600 text-white shadow-xl shadow-indigo-200">
-          <Sparkles className="size-8" />
+        <span className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white shadow-xl shadow-indigo-600/30">
+          <Sparkles className="size-7" />
         </span>
-        <p className="mt-8 text-sm font-bold uppercase tracking-widest text-indigo-600">
-          Welcome to MeetMind
+        <p className="mt-6 text-xs font-bold uppercase tracking-widest text-indigo-400">
+          Welcome to MeetMind AI
         </p>
-        <h1 className="mt-3 text-4xl font-bold tracking-tight">
-          Let&apos;s make every meeting count.
+        <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+          Make every conversation actionable.
         </h1>
-        <p className="mx-auto mt-4 max-w-md leading-7 text-zinc-600">
-          We&apos;ll take less than a minute to personalize your workspace.
+        <p className="mx-auto mt-3 max-w-md text-xs sm:text-sm leading-relaxed text-slate-400">
+          Let&apos;s personalize your workspace with your preferred tools and AI synthesis workflows.
         </p>
       </div>
     ),
     2: (
       <div>
-        <p className="text-sm font-bold uppercase tracking-widest text-indigo-600">
-          Step 2 of 5
+        <h2 className="text-2xl font-bold tracking-tight text-white">What is your primary role?</h2>
+        <p className="mt-1 text-xs text-slate-400">
+          We&apos;ll tailor summaries, prompt templates, and insights to your workflow.
         </p>
-        <h1 className="mt-3 text-3xl font-bold">What is your role?</h1>
-        <p className="mt-2 text-zinc-500">
-          We&apos;ll tailor MeetMind to how you work.
-        </p>
-        <div className="mt-8 grid grid-cols-2 gap-4">
+        <div className="mt-6 grid grid-cols-2 gap-3">
           {roles.map((item) => (
             <Card
-              key={item}
-              selected={role === item}
-              onClick={() => setRole(item)}
+              key={item.id}
+              selected={role === item.id}
+              onClick={() => setRole(item.id)}
             >
-              <p className="font-semibold">{item}</p>
+              <p className="text-xs font-bold text-white">{item.label}</p>
+              <p className="mt-0.5 text-[11px] text-slate-400">{item.description}</p>
             </Card>
           ))}
         </div>
@@ -94,61 +101,54 @@ export default function OnboardingPage() {
     ),
     3: (
       <div>
-        <p className="text-sm font-bold uppercase tracking-widest text-indigo-600">
-          Step 3 of 5
+        <h2 className="text-2xl font-bold tracking-tight text-white">Select your meeting platform</h2>
+        <p className="mt-1 text-xs text-slate-400">
+          Where do most of your team conversations happen?
         </p>
-        <h1 className="mt-3 text-3xl font-bold">Where do you meet?</h1>
-        <p className="mt-2 text-zinc-500">
-          Choose your primary meeting platform.
-        </p>
-        <div className="mt-8 grid gap-4">
-          {platforms.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Card
-                key={item.id}
-                selected={platform === item.id}
-                onClick={() => setPlatform(item.id)}
-              >
-                <span
-                  className={`flex size-10 items-center justify-center rounded-xl ${item.color}`}
-                >
-                  <Icon className="size-5" />
-                </span>
-                <p className="mt-3 font-semibold">{item.name}</p>
-              </Card>
-            );
-          })}
+        <div className="mt-6 grid grid-cols-2 gap-3">
+          {platforms.map((item) => (
+            <Card
+              key={item.id}
+              selected={platform === item.id}
+              onClick={() => setPlatform(item.id)}
+            >
+              <p className="text-xs font-bold text-white">{item.name}</p>
+              <p className="mt-0.5 text-[11px] text-slate-400">{item.description}</p>
+            </Card>
+          ))}
         </div>
       </div>
     ),
     4: (
       <div>
-        <p className="text-sm font-bold uppercase tracking-widest text-indigo-600">
-          Step 4 of 5
+        <h2 className="text-2xl font-bold tracking-tight text-white">Connect workspace apps</h2>
+        <p className="mt-1 text-xs text-slate-400">
+          Sync action items, transcripts, and dossiers directly to your productivity stack.
         </p>
-        <h1 className="mt-3 text-3xl font-bold">Connect your apps.</h1>
-        <p className="mt-2 text-zinc-500">
-          Bring your work context into MeetMind. You can change this later.
-        </p>
-        <div className="mt-8 grid gap-4">
+        <div className="mt-6 space-y-2.5">
           {apps.map((item) => {
-            const Icon = item.icon;
+            const isConnected = connected.includes(item.id);
             return (
-              <Card
+              <div
                 key={item.id}
-                selected={connected.includes(item.id)}
-                onClick={() => toggle(item.id)}
+                className="flex items-center justify-between rounded-2xl border border-white/[0.08] bg-slate-900/50 p-3.5"
               >
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`flex size-10 items-center justify-center rounded-xl ${item.color}`}
-                  >
-                    <Icon className="size-5" />
-                  </span>
-                  <p className="font-semibold">{item.name}</p>
+                <div>
+                  <p className="text-xs font-bold text-white">{item.name}</p>
+                  <p className="mt-0.5 text-[11px] text-slate-400">{item.description}</p>
                 </div>
-              </Card>
+                <button
+                  type="button"
+                  onClick={() => toggle(item.id)}
+                  className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                    isConnected
+                      ? "border border-emerald-500/30 bg-emerald-500/15 text-emerald-300"
+                      : "bg-indigo-600 text-white hover:bg-indigo-500"
+                  }`}
+                >
+                  {isConnected ? "Connected" : "Connect"}
+                </button>
+              </div>
             );
           })}
         </div>
@@ -156,20 +156,17 @@ export default function OnboardingPage() {
     ),
     5: (
       <div className="text-center">
-        <p className="text-sm font-bold uppercase tracking-widest text-indigo-600">
-          Step 5 of 5
+        <h2 className="text-2xl font-bold tracking-tight text-white">Upload your first recording</h2>
+        <p className="mt-1 text-xs text-slate-400">
+          Upload an audio or video file to test transcription & AI summary generation.
         </p>
-        <h1 className="mt-3 text-3xl font-bold">Upload your first meeting.</h1>
-        <p className="mx-auto mt-2 max-w-md text-zinc-500">
-          Start with a recording and discover what MeetMind can do.
-        </p>
-        <label className="mt-8 flex cursor-pointer flex-col items-center rounded-2xl border-2 border-dashed border-indigo-200 bg-indigo-50/50 p-10 transition hover:border-indigo-400">
-          <CloudUpload className="size-9 text-indigo-600" />
-          <span className="mt-3 font-semibold text-zinc-800">
-            {file || "Drop a file here or browse"}
+        <label className="mt-6 flex cursor-pointer flex-col items-center justify-center rounded-[2rem] border-2 border-dashed border-white/15 bg-slate-900/40 p-8 transition hover:border-indigo-500/40 hover:bg-slate-900/70">
+          <CloudUpload className="size-10 text-indigo-400 animate-bounce" />
+          <span className="mt-3 text-xs font-bold text-white">
+            {file || "Choose an audio or video file"}
           </span>
-          <span className="mt-1 text-sm text-zinc-500">
-            MP3, MP4, WAV or M4A
+          <span className="mt-0.5 font-mono text-[10px] text-slate-500">
+            MP3, MP4, WAV or M4A • Up to 500MB
           </span>
           <input
             type="file"
@@ -180,17 +177,25 @@ export default function OnboardingPage() {
       </div>
     ),
   };
+
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-violet-50 p-6">
-      <div className="w-full max-w-xl rounded-3xl border border-zinc-200 bg-white p-7 shadow-2xl shadow-indigo-100 sm:p-10">
-        <div className="mb-10 flex gap-2">
+    <main className="relative flex min-h-screen items-center justify-center bg-[#080c14] p-4 sm:p-6 overflow-hidden">
+      {/* Ambient lighting auras */}
+      <div className="pointer-events-none absolute -top-40 left-1/4 h-96 w-96 rounded-full bg-indigo-600/15 blur-[120px]" />
+      <div className="pointer-events-none absolute -bottom-40 right-1/4 h-96 w-96 rounded-full bg-violet-600/15 blur-[120px]" />
+
+      <div className="relative z-10 w-full max-w-xl rounded-[2.5rem] border border-white/[0.08] bg-slate-950/70 p-6 shadow-2xl backdrop-blur-2xl sm:p-10">
+        <div className="mb-8 flex gap-1.5">
           {[1, 2, 3, 4, 5].map((item) => (
             <span
               key={item}
-              className={`h-1.5 flex-1 rounded-full ${item <= step ? "bg-indigo-600" : "bg-zinc-200"}`}
+              className={`h-1 flex-1 rounded-full transition-all duration-300 ${
+                item <= step ? "bg-gradient-to-r from-indigo-500 to-cyan-400" : "bg-white/10"
+              }`}
             />
           ))}
         </div>
+
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
@@ -202,34 +207,38 @@ export default function OnboardingPage() {
             {screens[step]}
           </motion.div>
         </AnimatePresence>
-        <div className="mt-10 flex items-center justify-between">
+
+        <div className="mt-8 flex items-center justify-between border-t border-white/[0.06] pt-5">
           <button
             onClick={() => step > 1 && setStep((current) => current - 1)}
-            className={`inline-flex items-center gap-2 text-sm font-semibold text-zinc-600 ${step === 1 ? "invisible" : ""}`}
+            className={`inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-white ${
+              step === 1 ? "invisible" : ""
+            }`}
           >
-            <ArrowLeft className="size-4" />
-            Back
+            <ArrowLeft className="size-3.5" />
+            <span>Back</span>
           </button>
-          <div className="flex gap-3">
+
+          <div className="flex gap-2.5">
             {(step === 4 || step === 5) && (
               <button
                 onClick={() =>
                   step === 5 ? router.push("/dashboard") : setStep(5)
                 }
-                className="px-3 text-sm font-semibold text-zinc-500"
+                className="px-3 text-xs font-semibold text-slate-400 hover:text-white"
               >
                 Skip
               </button>
             )}
             <button
               onClick={next}
-              className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white hover:bg-indigo-700"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-indigo-600/25 transition hover:shadow-indigo-600/40 active:scale-95 cursor-pointer"
             >
-              {step === 5 ? "Finish" : "Continue"}
+              <span>{step === 5 ? "Finish Setup" : "Continue"}</span>
               {step === 5 ? (
-                <CheckCircle2 className="size-4" />
+                <CheckCircle2 className="size-3.5" />
               ) : (
-                <ArrowRight className="size-4" />
+                <ArrowRight className="size-3.5" />
               )}
             </button>
           </div>

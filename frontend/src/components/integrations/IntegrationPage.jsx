@@ -12,6 +12,7 @@ const IntegrationPage = () => {
   const [query, setQuery] = useState("");
   const [sections, setSections] = useState(integrationSections);
   const [selected, setSelected] = useState(null);
+
   const visibleSections = useMemo(
     () =>
       sections
@@ -26,6 +27,7 @@ const IntegrationPage = () => {
         .filter((section) => section.integrations.length),
     [query, sections],
   );
+
   const connect = (integration) => {
     if (integration.connected)
       return toast.info(`${integration.name} is already connected.`);
@@ -46,11 +48,12 @@ const IntegrationPage = () => {
     });
     toast.success(`${integration.name} connected successfully.`);
   };
+
   return (
-    <div className="mx-auto max-w-6xl space-y-10 pb-10">
+    <div className="mx-auto max-w-6xl space-y-8 pb-10">
       <IntegrationHeader />
       <IntegrationSearch value={query} onChange={setQuery} />
-      <div className="space-y-10">
+      <div className="space-y-8">
         {visibleSections.map((section) => (
           <IntegrationSection
             key={section.name}
@@ -59,7 +62,7 @@ const IntegrationPage = () => {
           />
         ))}
         {!visibleSections.length && (
-          <div className="rounded-2xl border border-dashed border-zinc-300 py-16 text-center text-zinc-500">
+          <div className="rounded-[2rem] border border-dashed border-white/10 bg-slate-950/60 py-16 text-center text-xs text-slate-400">
             No integrations match “{query}”.
           </div>
         )}
@@ -72,4 +75,5 @@ const IntegrationPage = () => {
     </div>
   );
 };
+
 export default IntegrationPage;
