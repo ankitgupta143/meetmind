@@ -119,7 +119,11 @@ export function errorHandler(err, req, res, next) {
     });
   }
 
-  if (err.code === "INSIGHTS_NOT_FOUND" || err.code === "ACTION_ITEM_NOT_FOUND") {
+  if (
+    err.code === "INSIGHTS_NOT_FOUND" ||
+    err.code === "ACTION_ITEM_NOT_FOUND" ||
+    err.code === "DECISION_NOT_FOUND"
+  ) {
     return res.status(404).json({
       success: false,
       message: err.message,
