@@ -8,11 +8,14 @@ import {
   LoaderCircle,
   Pencil,
   X,
+  Sparkles,
+  Clock,
 } from "lucide-react";
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 
 import api from "@/lib/api";
 
@@ -29,11 +32,8 @@ export default function ActionItems({ insights }) {
   );
 
   const [updatingIndex, setUpdatingIndex] = useState(null);
-
   const [statusFilter, setStatusFilter] = useState("all");
-
   const [priorityFilter, setPriorityFilter] = useState("all");
-
   const [editingIndex, setEditingIndex] = useState(null);
 
   const [editForm, setEditForm] = useState({
@@ -47,12 +47,6 @@ export default function ActionItems({ insights }) {
 
   const [isSaving, setIsSaving] = useState(false);
 
-  /*
-   * Keep the original array index.
-   *
-   * Important because the backend currently identifies
-   * action items using their array index.
-   */
   const filteredItems = actionItems
     .map((item, index) => ({
       item,
@@ -70,9 +64,6 @@ export default function ActionItems({ insights }) {
       return matchesStatus && matchesPriority;
     });
 
-  /*
-   * Counts
-   */
   const totalCount = actionItems.length;
 
   const pendingCount = actionItems.filter(
@@ -87,51 +78,33 @@ export default function ActionItems({ insights }) {
     (item) => item.status === "completed"
   ).length;
 
-  /*
-   * Get next status
-   *
-   * pending → in-progress
-   * in-progress → completed
-   * completed → pending
-   */
   const getNextStatus = (status) => {
     if (status === "pending") {
       return "in-progress";
     }
-
     if (status === "in-progress") {
       return "completed";
     }
-
     return "pending";
   };
 
-  /*
-   * Format status for UI
-   */
   const formatStatus = (status) => {
     switch (status) {
       case "in-progress":
         return "In Progress";
-
       case "completed":
         return "Completed";
-
       default:
         return "Pending";
     }
   };
 
-  /*
-   * Format due date
-   */
   const formatDueDate = (dueDate) => {
     if (!dueDate) {
       return "No due date";
     }
 
     const date = new Date(dueDate);
-
     if (Number.isNaN(date.getTime())) {
       return "No due date";
     }
@@ -139,9 +112,6 @@ export default function ActionItems({ insights }) {
     return date.toLocaleDateString();
   };
 
-  /*
-   * Update status
-   */
   const updateStatus = async (index, status) => {
     if (!meetingId || updatingIndex !== null) {
       return;
@@ -149,7 +119,6 @@ export default function ActionItems({ insights }) {
 
     const previousItems = [...actionItems];
 
-    // Optimistic update
     setActionItems((prev) =>
       prev.map((item, itemIndex) =>
         itemIndex === index
@@ -188,25 +157,17 @@ export default function ActionItems({ insights }) {
         "Failed to update action item:",
         error
       );
-
       setActionItems(previousItems);
     } finally {
       setUpdatingIndex(null);
     }
   };
 
-  /*
-   * Start editing
-   */
   const startEditing = (index) => {
     const item = actionItems[index];
-
-    if (!item) {
-      return;
-    }
+    if (!item) return;
 
     setEditingIndex(index);
-
     setEditForm({
       title: item.title || "",
       description: item.description || "",
@@ -221,16 +182,9 @@ export default function ActionItems({ insights }) {
     });
   };
 
-  /*
-   * Cancel editing
-   */
   const cancelEditing = () => {
-    if (isSaving) {
-      return;
-    }
-
+    if (isSaving) return;
     setEditingIndex(null);
-
     setEditForm({
       title: "",
       description: "",
@@ -241,57 +195,33 @@ export default function ActionItems({ insights }) {
     });
   };
 
-  /*
-   * Form changes
-   */
   const handleEditChange = (event) => {
     const { name, value } = event.target;
-
     setEditForm((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  /*
-   * Save edited action item
-   */
   const saveEdit = async () => {
     if (
       editingIndex === null ||
-      !meetingId ||
-      isSaving
+      !editForm.title.trim() ||
+      !meetingId
     ) {
       return;
     }
 
-    if (!editForm.title.trim()) {
-      return;
-    }
-
     const previousItems = [...actionItems];
-
     const updates = {
       title: editForm.title.trim(),
-
-      description:
-        editForm.description.trim(),
-
-      assignee:
-        editForm.assignee.trim()
-          ? editForm.assignee.trim()
-          : null,
-
-      dueDate: editForm.dueDate
-        ? editForm.dueDate
-        : null,
-
+      description: editForm.description.trim(),
+      assignee: editForm.assignee.trim(),
+      dueDate: editForm.dueDate || null,
       priority: editForm.priority,
-
       status: editForm.status,
     };
 
-    // Optimistic update
     setActionItems((prev) =>
       prev.map((item, index) =>
         index === editingIndex
@@ -323,499 +253,341 @@ export default function ActionItems({ insights }) {
           )
         );
       }
-
       setEditingIndex(null);
     } catch (error) {
       console.error(
         "Failed to update action item:",
         error
       );
-
-      // Rollback
       setActionItems(previousItems);
     } finally {
       setIsSaving(false);
     }
   };
 
-  const priorityClasses = {
-    high: "bg-red-100 text-red-700",
-    medium: "bg-amber-100 text-amber-700",
-    low: "bg-emerald-100 text-emerald-700",
+  const priorityBadgeClasses = {
+    high: "bg-rose-500/20 text-rose-300 border-rose-500/30",
+    medium: "bg-amber-500/20 text-amber-300 border-amber-500/30",
+    low: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
   };
 
   return (
     <>
-      <div className="rounded-3xl border border-zinc-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-[2rem] border border-white/[0.08] bg-slate-950/60 shadow-xl backdrop-blur-2xl">
         {/* Header */}
-        <div className="border-b border-zinc-200 p-6">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-            {/* Title */}
+        <div className="border-b border-white/[0.08] p-5 sm:p-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h2 className="text-2xl font-bold">
+              <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
                 Action Items
+                <Sparkles size={16} className="text-emerald-400" />
               </h2>
-
-              <p className="mt-1 text-zinc-500">
-                AI-extracted tasks from this meeting.
+              <p className="mt-1 text-xs text-slate-400">
+                AI-extracted tasks, deliverables and follow-ups.
               </p>
 
-              {/* Counts */}
-              <div className="mt-4 flex flex-wrap gap-2">
-                <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-600">
+              {/* Status Count Pills */}
+              <div className="mt-3 flex flex-wrap gap-2">
+                <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2.5 py-0.5 text-xs font-medium text-slate-300">
                   {totalCount} Total
                 </span>
-
-                <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
+                <span className="rounded-full border border-amber-500/30 bg-amber-500/15 px-2.5 py-0.5 text-xs font-semibold text-amber-300">
                   {pendingCount} Pending
                 </span>
-
-                <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700">
+                <span className="rounded-full border border-indigo-500/30 bg-indigo-500/15 px-2.5 py-0.5 text-xs font-semibold text-indigo-300">
                   {inProgressCount} In Progress
                 </span>
-
-                <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+                <span className="rounded-full border border-emerald-500/30 bg-emerald-500/15 px-2.5 py-0.5 text-xs font-semibold text-emerald-300">
                   {completedCount} Completed
                 </span>
               </div>
             </div>
 
             {/* Filters */}
-            <div className="flex flex-wrap gap-3">
-              {/* Status */}
+            <div className="flex flex-wrap gap-2.5">
               <select
                 value={statusFilter}
-                onChange={(e) =>
-                  setStatusFilter(e.target.value)
-                }
-                className="rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="rounded-xl border border-white/[0.08] bg-slate-900/80 px-3 py-2 text-xs font-medium text-slate-300 outline-none transition focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 cursor-pointer"
               >
-                <option value="all">
-                  All Status
-                </option>
-
-                <option value="pending">
-                  Pending
-                </option>
-
-                <option value="in-progress">
-                  In Progress
-                </option>
-
-                <option value="completed">
-                  Completed
-                </option>
+                <option value="all" className="bg-slate-900 text-slate-200">All Status</option>
+                <option value="pending" className="bg-slate-900 text-slate-200">Pending</option>
+                <option value="in-progress" className="bg-slate-900 text-slate-200">In Progress</option>
+                <option value="completed" className="bg-slate-900 text-slate-200">Completed</option>
               </select>
 
-              {/* Priority */}
               <select
                 value={priorityFilter}
-                onChange={(e) =>
-                  setPriorityFilter(e.target.value)
-                }
-                className="rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                onChange={(e) => setPriorityFilter(e.target.value)}
+                className="rounded-xl border border-white/[0.08] bg-slate-900/80 px-3 py-2 text-xs font-medium text-slate-300 outline-none transition focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 cursor-pointer"
               >
-                <option value="all">
-                  All Priority
-                </option>
-
-                <option value="high">
-                  High
-                </option>
-
-                <option value="medium">
-                  Medium
-                </option>
-
-                <option value="low">
-                  Low
-                </option>
+                <option value="all" className="bg-slate-900 text-slate-200">All Priority</option>
+                <option value="high" className="bg-slate-900 text-slate-200">High</option>
+                <option value="medium" className="bg-slate-900 text-slate-200">Medium</option>
+                <option value="low" className="bg-slate-900 text-slate-200">Low</option>
               </select>
             </div>
           </div>
         </div>
 
-        {/* No action items */}
+        {/* List Content */}
         {actionItems.length === 0 ? (
           <div className="p-10 text-center">
-            <CheckCircle2
-              size={40}
-              className="mx-auto text-zinc-300"
-            />
-
-            <h3 className="mt-4 font-semibold text-zinc-900">
-              No action items
-            </h3>
-
-            <p className="mt-1 text-sm text-zinc-500">
-              No action items were identified in this
-              meeting.
+            <CheckCircle2 size={36} className="mx-auto text-slate-600" />
+            <h3 className="mt-3 text-sm font-semibold text-slate-200">No action items</h3>
+            <p className="mt-1 text-xs text-slate-400">
+              No action items were identified in this meeting.
             </p>
           </div>
         ) : filteredItems.length === 0 ? (
-          /* No filtered results */
           <div className="p-10 text-center">
-            <CheckCircle2
-              size={40}
-              className="mx-auto text-zinc-300"
-            />
-
-            <h3 className="mt-4 font-semibold text-zinc-900">
-              No matching action items
-            </h3>
-
-            <p className="mt-1 text-sm text-zinc-500">
-              Try changing your filters.
-            </p>
-
+            <p className="text-sm font-semibold text-slate-300">No matching action items</p>
+            <p className="mt-1 text-xs text-slate-400">Try changing your active filters.</p>
             <button
               type="button"
               onClick={() => {
                 setStatusFilter("all");
                 setPriorityFilter("all");
               }}
-              className="mt-5 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
+              className="mt-3 rounded-xl bg-indigo-600 px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-500"
             >
               Clear Filters
             </button>
           </div>
         ) : (
-          /* Action Items */
-          <div className="divide-y divide-zinc-100">
-            {filteredItems.map(
-              ({ item: task, index }) => {
-                const isUpdating =
-                  updatingIndex === index;
+          <div className="divide-y divide-white/[0.05]">
+            {filteredItems.map(({ item: task, index }) => {
+              const isUpdating = updatingIndex === index;
+              const isCompleted = task.status === "completed";
+              const isInProgress = task.status === "in-progress";
 
-                const isCompleted =
-                  task.status === "completed";
+              return (
+                <div
+                  key={`${task.title}-${index}`}
+                  className="group flex items-start justify-between gap-4 p-5 transition-all duration-200 hover:bg-white/[0.03]"
+                >
+                  <div className="flex items-start gap-3.5">
+                    <button
+                      type="button"
+                      disabled={isUpdating}
+                      onClick={() =>
+                        updateStatus(index, getNextStatus(task.status))
+                      }
+                      title={`Toggle status (${formatStatus(task.status)})`}
+                      className="mt-0.5 rounded-full transition hover:scale-110 disabled:opacity-50"
+                    >
+                      {isUpdating ? (
+                        <LoaderCircle size={20} className="animate-spin text-indigo-400" />
+                      ) : isCompleted ? (
+                        <CheckCircle2 size={20} className="text-emerald-400 drop-shadow-sm" />
+                      ) : isInProgress ? (
+                        <Circle size={20} className="fill-indigo-500/20 text-indigo-400" />
+                      ) : (
+                        <Circle size={20} className="text-slate-500 hover:text-slate-300" />
+                      )}
+                    </button>
 
-                const isInProgress =
-                  task.status === "in-progress";
-
-                return (
-                  <div
-                    key={`${task.title}-${index}`}
-                    className="flex items-start justify-between gap-6 p-6 transition hover:bg-zinc-50"
-                  >
-                    {/* Left */}
-                    <div className="flex gap-4">
-                      {/* Status */}
-                      <button
-                        type="button"
-                        disabled={isUpdating}
-                        onClick={() =>
-                          updateStatus(
-                            index,
-                            getNextStatus(
-                              task.status
-                            )
-                          )
-                        }
-                        title={`Change status from ${formatStatus(
-                          task.status
-                        )}`}
-                        className="mt-1 rounded-full transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50"
+                    <div>
+                      <h3
+                        className={`text-sm font-semibold tracking-tight transition-colors ${
+                          isCompleted
+                            ? "text-slate-500 line-through"
+                            : "text-slate-100 group-hover:text-white"
+                        }`}
                       >
-                        {isUpdating ? (
-                          <LoaderCircle
-                            size={22}
-                            className="animate-spin text-indigo-600"
-                          />
-                        ) : isCompleted ? (
-                          <CheckCircle2
-                            size={22}
-                            className="text-emerald-600"
-                          />
-                        ) : isInProgress ? (
-                          <Circle
-                            size={22}
-                            className="fill-indigo-100 text-indigo-600"
-                          />
-                        ) : (
-                          <Circle
-                            size={22}
-                            className="text-zinc-400"
-                          />
-                        )}
-                      </button>
+                        {task.title}
+                      </h3>
 
-                      {/* Content */}
-                      <div>
-                        <h3
-                          className={`font-semibold ${
-                            isCompleted
-                              ? "text-zinc-400 line-through"
-                              : "text-zinc-900"
-                          }`}
-                        >
-                          {task.title}
-                        </h3>
+                      {task.description && (
+                        <p className="mt-1 text-xs leading-relaxed text-slate-400 max-w-2xl">
+                          {task.description}
+                        </p>
+                      )}
 
-                        {task.description && (
-                          <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-500">
-                            {task.description}
-                          </p>
-                        )}
-
-                        <div className="mt-3 flex flex-wrap gap-5 text-sm text-zinc-500">
-                          {task.assignee && (
-                            <span className="flex items-center gap-1">
-                              <User size={14} />
-                              {task.assignee}
-                            </span>
-                          )}
-
-                          <span className="flex items-center gap-1">
-                            <CalendarDays
-                              size={14}
-                            />
-                            {formatDueDate(
-                              task.dueDate
-                            )}
+                      <div className="mt-2.5 flex flex-wrap gap-4 text-xs text-slate-400">
+                        {task.assignee && (
+                          <span className="flex items-center gap-1.5 text-[11px] text-slate-300">
+                            <User size={13} className="text-indigo-400" />
+                            {task.assignee}
                           </span>
-                        </div>
+                        )}
+
+                        <span className="flex items-center gap-1.5 text-[11px] text-slate-400">
+                          <CalendarDays size={13} className="text-slate-400" />
+                          {formatDueDate(task.dueDate)}
+                        </span>
                       </div>
                     </div>
+                  </div>
 
-                    {/* Right */}
-                    <div className="flex shrink-0 flex-col items-end gap-2">
-                      {/* Edit */}
-                      <button
-                        type="button"
-                        disabled={
-                          isUpdating ||
-                          isSaving
-                        }
-                        onClick={() =>
-                          startEditing(index)
-                        }
-                        className="rounded-xl border border-zinc-200 p-2 text-zinc-500 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 disabled:cursor-not-allowed disabled:opacity-50"
-                        title="Edit action item"
-                      >
-                        <Pencil size={16} />
-                      </button>
-
-                      {/* Priority */}
+                  <div className="flex shrink-0 flex-col items-end gap-2">
+                    <div className="flex items-center gap-2">
                       <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                          priorityClasses[
-                            task.priority
-                          ] ||
-                          "bg-zinc-100 text-zinc-600"
+                        className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                          priorityBadgeClasses[task.priority] || "bg-white/[0.06] text-slate-300"
                         }`}
                       >
-                        {task.priority ||
-                          "medium"}
+                        {task.priority || "medium"}
                       </span>
 
-                      {/* Status */}
                       <button
                         type="button"
-                        disabled={isUpdating}
-                        onClick={() =>
-                          updateStatus(
-                            index,
-                            getNextStatus(
-                              task.status
-                            )
-                          )
-                        }
-                        className={`text-sm transition hover:underline ${
-                          isCompleted
-                            ? "text-emerald-600"
-                            : isInProgress
-                            ? "text-indigo-600"
-                            : "text-zinc-500"
-                        }`}
+                        disabled={isUpdating || isSaving}
+                        onClick={() => startEditing(index)}
+                        className="rounded-lg border border-white/[0.08] bg-white/[0.04] p-1.5 text-slate-400 transition hover:border-indigo-500/30 hover:bg-white/10 hover:text-indigo-300 disabled:opacity-50"
+                        title="Edit action item"
                       >
-                        {formatStatus(
-                          task.status
-                        )}
+                        <Pencil size={13} />
                       </button>
                     </div>
+
+                    <button
+                      type="button"
+                      disabled={isUpdating}
+                      onClick={() =>
+                        updateStatus(index, getNextStatus(task.status))
+                      }
+                      className={`text-xs font-medium transition hover:underline ${
+                        isCompleted
+                          ? "text-emerald-400"
+                          : isInProgress
+                          ? "text-indigo-400"
+                          : "text-amber-400"
+                      }`}
+                    >
+                      {formatStatus(task.status)}
+                    </button>
                   </div>
-                );
-              }
-            )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* =====================================================
-          EDIT ACTION ITEM MODAL (Rendered via Portal to escape parent container)
-      ====================================================== */}
-
+      {/* Edit Modal */}
       {editingIndex !== null &&
         mounted &&
         createPortal(
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-            {/* Backdrop */}
             <div
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+              className="fixed inset-0 bg-black/80 backdrop-blur-md"
               onClick={cancelEditing}
             />
 
-            {/* Modal Box */}
             <div
-              className="relative z-10 w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl border border-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 animate-in fade-in zoom-in-95 duration-150"
+              className="relative z-10 w-full max-w-xl overflow-hidden rounded-[2rem] border border-white/10 bg-slate-950 p-6 shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Modal Header */}
-              <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 p-6">
+              <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
                 <div>
-                  <h2 className="text-xl font-bold text-zinc-900 dark:text-white">
-                    Edit Action Item
-                  </h2>
-
-                  <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                    Update the task details below.
-                  </p>
+                  <h2 className="text-lg font-bold text-white">Edit Action Item</h2>
+                  <p className="text-xs text-slate-400">Update task details and assignments.</p>
                 </div>
-
                 <button
                   type="button"
                   onClick={cancelEditing}
                   disabled={isSaving}
-                  className="rounded-xl p-2 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 disabled:opacity-50"
+                  className="rounded-xl p-2 text-slate-400 transition hover:bg-white/10 hover:text-white"
                 >
-                  <X size={20} />
+                  <X size={18} />
                 </button>
               </div>
 
-              {/* Modal Body */}
-              <div className="max-h-[calc(85vh-160px)] overflow-y-auto p-6">
-                <div className="space-y-5">
-                  {/* Title */}
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                      Title
-                    </label>
+              <div className="mt-4 space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold text-slate-300">Title</label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={editForm.title}
+                    onChange={handleEditChange}
+                    className="w-full rounded-xl border border-white/[0.08] bg-slate-900 px-3.5 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                  />
+                </div>
 
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold text-slate-300">Description</label>
+                  <textarea
+                    name="description"
+                    value={editForm.description}
+                    onChange={handleEditChange}
+                    rows={3}
+                    className="w-full rounded-xl border border-white/[0.08] bg-slate-900 px-3.5 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                  />
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1.5 block text-xs font-semibold text-slate-300">Assignee</label>
                     <input
                       type="text"
-                      name="title"
-                      value={editForm.title}
+                      name="assignee"
+                      value={editForm.assignee}
                       onChange={handleEditChange}
-                      placeholder="Enter action item title"
-                      maxLength={300}
-                      className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white px-4 py-3 text-sm outline-none transition placeholder:text-zinc-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900/40"
+                      className="w-full rounded-xl border border-white/[0.08] bg-slate-900 px-3.5 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-indigo-500"
                     />
                   </div>
 
-                  {/* Description */}
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                      Description
-                    </label>
-
-                    <textarea
-                      name="description"
-                      value={editForm.description}
+                    <label className="mb-1.5 block text-xs font-semibold text-slate-300">Due Date</label>
+                    <input
+                      type="date"
+                      name="dueDate"
+                      value={editForm.dueDate}
                       onChange={handleEditChange}
-                      placeholder="Add more details..."
-                      rows={4}
-                      maxLength={2000}
-                      className="w-full resize-none rounded-xl border border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white px-4 py-3 text-sm outline-none transition placeholder:text-zinc-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900/40"
+                      className="w-full rounded-xl border border-white/[0.08] bg-slate-900 px-3.5 py-2 text-xs text-white outline-none focus:border-indigo-500"
                     />
                   </div>
+                </div>
 
-                  {/* Assignee + Due Date */}
-                  <div className="grid gap-5 md:grid-cols-2">
-                    {/* Assignee */}
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                        Assignee
-                      </label>
-
-                      <input
-                        type="text"
-                        name="assignee"
-                        value={editForm.assignee}
-                        onChange={handleEditChange}
-                        placeholder="e.g. John Doe"
-                        maxLength={100}
-                        className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white px-4 py-3 text-sm outline-none transition placeholder:text-zinc-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900/40"
-                      />
-                    </div>
-
-                    {/* Due Date */}
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                        Due Date
-                      </label>
-
-                      <input
-                        type="date"
-                        name="dueDate"
-                        value={editForm.dueDate}
-                        onChange={handleEditChange}
-                        className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white px-4 py-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900/40"
-                      />
-                    </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1.5 block text-xs font-semibold text-slate-300">Priority</label>
+                    <select
+                      name="priority"
+                      value={editForm.priority}
+                      onChange={handleEditChange}
+                      className="w-full rounded-xl border border-white/[0.08] bg-slate-900 px-3.5 py-2 text-xs text-white outline-none focus:border-indigo-500"
+                    >
+                      <option value="low" className="bg-slate-900">Low</option>
+                      <option value="medium" className="bg-slate-900">Medium</option>
+                      <option value="high" className="bg-slate-900">High</option>
+                    </select>
                   </div>
 
-                  {/* Priority + Status */}
-                  <div className="grid gap-5 md:grid-cols-2">
-                    {/* Priority */}
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                        Priority
-                      </label>
-
-                      <select
-                        name="priority"
-                        value={editForm.priority}
-                        onChange={handleEditChange}
-                        className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white px-4 py-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900/40"
-                      >
-                        <option value="low">Low</option>
-                        <option value="medium">Medium</option>
-                        <option value="high">High</option>
-                      </select>
-                    </div>
-
-                    {/* Status */}
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                        Status
-                      </label>
-
-                      <select
-                        name="status"
-                        value={editForm.status}
-                        onChange={handleEditChange}
-                        className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white px-4 py-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900/40"
-                      >
-                        <option value="pending">Pending</option>
-                        <option value="in-progress">In Progress</option>
-                        <option value="completed">Completed</option>
-                      </select>
-                    </div>
+                  <div>
+                    <label className="mb-1.5 block text-xs font-semibold text-slate-300">Status</label>
+                    <select
+                      name="status"
+                      value={editForm.status}
+                      onChange={handleEditChange}
+                      className="w-full rounded-xl border border-white/[0.08] bg-slate-900 px-3.5 py-2 text-xs text-white outline-none focus:border-indigo-500"
+                    >
+                      <option value="pending" className="bg-slate-900">Pending</option>
+                      <option value="in-progress" className="bg-slate-900">In Progress</option>
+                      <option value="completed" className="bg-slate-900">Completed</option>
+                    </select>
                   </div>
                 </div>
               </div>
 
-              {/* Modal Footer */}
-              <div className="flex justify-end gap-3 border-t border-zinc-200 dark:border-zinc-800 p-6">
+              <div className="mt-6 flex justify-end gap-2.5 border-t border-white/[0.08] pt-4">
                 <button
                   type="button"
                   onClick={cancelEditing}
                   disabled={isSaving}
-                  className="rounded-xl border border-zinc-200 dark:border-zinc-700 px-5 py-2.5 text-sm font-medium text-zinc-700 dark:text-zinc-300 transition hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-xl border border-white/10 px-4 py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/10"
                 >
                   Cancel
                 </button>
-
                 <button
                   type="button"
                   onClick={saveEdit}
                   disabled={isSaving || !editForm.title.trim()}
-                  className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-indigo-500"
                 >
-                  {isSaving && (
-                    <LoaderCircle size={16} className="animate-spin" />
-                  )}
+                  {isSaving && <LoaderCircle size={14} className="animate-spin" />}
                   {isSaving ? "Saving..." : "Save Changes"}
                 </button>
               </div>

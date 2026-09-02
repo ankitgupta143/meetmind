@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowUp, Bot, ChevronDown, Clock3, Menu, Plus } from "lucide-react";
+import { ArrowUp, Bot, ChevronDown, Clock3, Menu, Plus, Sparkles, User, Copy, Check } from "lucide-react";
 import TextareaAutosize from "react-textarea-autosize";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { GLOBAL_ASSISTANT_PROMPTS } from "./data/assistantData";
 import useGlobalAssistant from "./hooks/useGlobalAssistant";
 import Sidebar from "./Sidebar";
+import MarkdownRenderer from "@/components/ai-assistant/MarkdownRenderer";
 
 export default function GlobalAIAssistant() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -48,12 +49,12 @@ export default function GlobalAIAssistant() {
   );
 
   return (
-    <div className="relative h-[calc(100vh-176px)] min-h-[620px] overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
+    <div className="relative h-[calc(100vh-176px)] min-h-[620px] overflow-hidden rounded-[2.5rem] border border-white/[0.08] bg-slate-950/60 shadow-2xl backdrop-blur-2xl">
       <div className="flex h-full">
         <div className="hidden lg:flex">{history}</div>
         {sidebarOpen && (
-          <div className="absolute inset-0 z-20 flex bg-zinc-950/20 lg:hidden">
-            <div className="h-full shadow-xl">{history}</div>
+          <div className="absolute inset-0 z-40 flex bg-black/80 backdrop-blur-sm lg:hidden">
+            <div className="h-full shadow-2xl">{history}</div>
             <button
               aria-label="Close sidebar"
               className="flex-1"
@@ -62,63 +63,65 @@ export default function GlobalAIAssistant() {
           </div>
         )}
         <section className="flex min-w-0 flex-1 flex-col">
-          <header className="flex items-center justify-between border-b border-zinc-200 px-5 py-4 sm:px-7">
+          <header className="flex items-center justify-between border-b border-white/[0.08] px-5 py-4 sm:px-7">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="rounded-lg p-2 text-zinc-500 hover:bg-zinc-100 lg:hidden"
+                className="rounded-xl p-2 text-slate-400 hover:bg-white/10 hover:text-white lg:hidden"
               >
-                <Menu size={20} />
+                <Menu size={18} />
               </button>
               <div>
-                <h1 className="font-semibold text-zinc-950">
-                  Global AI Assistant
+                <h1 className="text-base font-bold text-white flex items-center gap-2">
+                  Global AI Intelligence
+                  <Sparkles size={14} className="text-cyan-400" />
                 </h1>
-                <p className="mt-0.5 text-sm text-zinc-500">
-                  Ask anything across all your meetings
+                <p className="text-xs text-slate-400">
+                  Ask anything across all archived meetings & transcripts
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button className="hidden items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-2 text-xs font-medium text-zinc-600 sm:flex">
-                <Clock3 size={14} /> All meetings <ChevronDown size={14} />
+              <button className="hidden items-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-slate-300 sm:flex">
+                <Clock3 size={13} className="text-indigo-400" /> All workspace meetings <ChevronDown size={13} />
               </button>
               <button
                 onClick={startChat}
-                className="rounded-lg p-2 text-zinc-500 hover:bg-zinc-100"
+                className="rounded-xl p-2 text-slate-400 hover:bg-white/10 hover:text-white"
+                title="Start new conversation"
               >
                 <Plus size={18} />
               </button>
             </div>
           </header>
+
           {messages.length === 0 ? (
-            <div className="flex flex-1 flex-col overflow-y-auto px-5 py-10 sm:px-10">
+            <div className="flex flex-1 flex-col overflow-y-auto px-5 py-8 sm:px-10">
               <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center">
-                <div className="mb-7 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-lg">
-                  <Bot size={27} />
+                <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-600 text-white shadow-xl shadow-indigo-600/30">
+                  <Bot size={28} />
                 </div>
-                <h2 className="text-3xl font-semibold tracking-tight text-zinc-950">
-                  Your meeting workspace, at a glance.
+                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+                  Your entire meeting memory, connected.
                 </h2>
-                <p className="mt-3 max-w-xl text-base leading-7 text-zinc-500">
-                  Ask MeetMind to connect the dots across every conversation,
-                  decision, and action item.
+                <p className="mt-2 max-w-xl text-xs sm:text-sm leading-relaxed text-slate-400">
+                  Ask MeetMind to connect the dots across conversations, decisions, speaker sentiment, and cross-team commitments.
                 </p>
-                <div className="mt-9 grid gap-3 sm:grid-cols-2">
+                <div className="mt-8 grid gap-3 sm:grid-cols-2">
                   {GLOBAL_ASSISTANT_PROMPTS.map(
                     ({ icon: Icon, title, subtitle }) => (
                       <button
                         key={title}
                         onClick={() => sendMessage(title)}
-                        className="group rounded-xl border border-zinc-200 p-4 text-left transition hover:border-indigo-200 hover:bg-indigo-50/40"
+                        className="group rounded-2xl border border-white/[0.08] bg-slate-900/40 p-4 text-left transition-all duration-300 hover:border-indigo-500/40 hover:bg-slate-900/80 hover:-translate-y-0.5 cursor-pointer shadow-sm"
                       >
                         <div className="flex items-start gap-3">
-                          <div className="rounded-lg bg-indigo-50 p-2 text-indigo-600">
-                            <Icon size={18} />
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                            <Icon size={16} />
                           </div>
                           <div>
-                            <p className="font-medium text-zinc-800">{title}</p>
-                            <p className="mt-1 text-sm text-zinc-500">
+                            <p className="text-xs font-bold text-slate-200 group-hover:text-white">{title}</p>
+                            <p className="mt-0.5 text-[11px] text-slate-400">
                               {subtitle}
                             </p>
                           </div>
@@ -131,56 +134,54 @@ export default function GlobalAIAssistant() {
             </div>
           ) : (
             <div className="flex-1 overflow-y-auto px-5 py-6 sm:px-10">
-              <div className="mx-auto max-w-3xl space-y-7">
+              <div className="mx-auto max-w-3xl space-y-6">
                 {messages.map((message) => (
                   <div
                     key={message.id}
-                    className={`flex gap-3 ${message.role === "user" ? "justify-end" : ""}`}
+                    className={`flex gap-3.5 ${message.role === "user" ? "justify-end" : ""}`}
                   >
                     <div
-                      className={`mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${message.role === "user" ? "order-2 bg-zinc-900 text-white" : "bg-indigo-600 text-white"}`}
+                      className={`mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${message.role === "user" ? "order-2 bg-indigo-500/20 border border-indigo-500/30 text-indigo-400" : "bg-gradient-to-tr from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-600/20"}`}
                     >
                       {message.role === "user" ? (
-                        <span className="text-xs font-semibold">You</span>
+                        <User size={15} />
                       ) : (
-                        <Bot size={17} />
+                        <Bot size={16} />
                       )}
                     </div>
                     <div
-                      className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-6 ${message.role === "user" ? "order-1 rounded-tr-sm bg-zinc-900 text-white" : "rounded-tl-sm border border-zinc-200 bg-white text-zinc-700"}`}
+                      className={`max-w-[85%] rounded-2xl px-4 py-3 text-xs sm:text-sm leading-relaxed shadow-md ${message.role === "user" ? "order-1 rounded-tr-none bg-gradient-to-r from-indigo-600 to-violet-600 text-white" : "rounded-tl-none border border-white/[0.08] bg-slate-900/80 text-slate-200"}`}
                     >
                       {message.role === "user" ? (
                         message.content
                       ) : (
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {message.content}
-                        </ReactMarkdown>
+                        <MarkdownRenderer content={message.content} />
                       )}
                     </div>
                   </div>
                 ))}
                 {responsePhase === "searching" && (
-                  <div className="flex items-center gap-3 text-sm text-zinc-500">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white">
-                      <Bot size={17} />
+                  <div className="flex items-center gap-3 text-xs text-slate-400">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-white">
+                      <Bot size={15} />
                     </div>
-                    <span>Searching your meeting workspace</span>
+                    <span>Scanning transcript database</span>
                     <span className="flex gap-1" aria-label="Searching">
-                      <i className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-400" />
-                      <i className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-400 [animation-delay:150ms]" />
-                      <i className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-400 [animation-delay:300ms]" />
+                      <i className="h-1.5 w-1.5 animate-bounce rounded-full bg-indigo-400" />
+                      <i className="h-1.5 w-1.5 animate-bounce rounded-full bg-indigo-400 [animation-delay:150ms]" />
+                      <i className="h-1.5 w-1.5 animate-bounce rounded-full bg-indigo-400 [animation-delay:300ms]" />
                     </span>
                   </div>
                 )}
                 {responsePhase === "streaming" && (
-                  <p className="-mt-4 pl-11 text-xs font-medium text-indigo-600">Streaming…</p>
+                  <p className="-mt-4 pl-10 text-xs font-semibold text-indigo-400">Synthesizing insights…</p>
                 )}
                 <div ref={bottomRef} />
               </div>
             </div>
           )}
-          <div className="border-t border-zinc-200 bg-white px-5 py-4 sm:px-7">
-            <div className="mx-auto flex max-w-3xl items-end rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 focus-within:border-indigo-400">
+          <div className="border-t border-white/[0.08] bg-slate-950/80 p-4 sm:px-7 sm:py-4 backdrop-blur-xl">
+            <div className="mx-auto flex max-w-3xl items-end rounded-2xl border border-white/[0.08] bg-slate-900/90 px-3.5 py-2.5 transition-all duration-200 focus-within:border-indigo-500/50 focus-within:ring-2 focus-within:ring-indigo-500/20">
               <TextareaAutosize
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
@@ -192,20 +193,19 @@ export default function GlobalAIAssistant() {
                 }}
                 disabled={isLoading}
                 maxRows={5}
-                placeholder="Ask about all your meetings..."
-                className="max-h-32 flex-1 resize-none bg-transparent px-1 py-1 text-sm outline-none"
+                placeholder="Ask about discussions, decisions or deliverables across all meetings..."
+                className="max-h-32 flex-1 resize-none bg-transparent px-1 py-1 text-xs sm:text-sm text-slate-100 placeholder-slate-500 outline-none"
               />
               <button
                 onClick={() => sendMessage()}
                 disabled={!input.trim() || isLoading}
-                className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-600 text-white disabled:bg-zinc-200"
+                className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white disabled:opacity-40 shadow-md transition hover:scale-105"
               >
-                <ArrowUp size={17} />
+                <ArrowUp size={16} />
               </button>
             </div>
-            <p className="mx-auto mt-2 max-w-3xl text-center text-[11px] text-zinc-400">
-              MeetMind may make mistakes. Check important information in the
-              source meeting.
+            <p className="mx-auto mt-2 max-w-3xl text-center text-[10px] text-slate-500">
+              MeetMind AI parses transcripts with semantic context. Verify mission-critical details with source recordings.
             </p>
           </div>
         </section>

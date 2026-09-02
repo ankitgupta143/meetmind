@@ -1,6 +1,6 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { Search, Sparkles } from "lucide-react";
 
 export default function SearchInput({
   value,
@@ -9,15 +9,15 @@ export default function SearchInput({
   return (
     <div className="relative">
       <Search
-        className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400"
+        className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400"
         size={20}
       />
 
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="Search anything..."
-        className="h-16 w-full rounded-3xl border border-zinc-200 bg-white pl-14 pr-6 text-lg shadow-sm outline-none transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500"
+        placeholder="Type keywords, speaker names, action items or topics..."
+        className="h-14 w-full rounded-2xl border border-white/[0.08] bg-slate-900/80 pl-14 pr-6 text-sm text-slate-100 placeholder-slate-500 shadow-xl outline-none transition-all focus:border-indigo-500/50 focus:bg-slate-900 focus:ring-2 focus:ring-indigo-500/20"
       />
     </div>
   );

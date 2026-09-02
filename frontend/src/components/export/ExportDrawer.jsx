@@ -67,7 +67,7 @@ export default function ExportDrawer() {
         settings,
       });
       setIsComplete(true);
-      toast.success("Your export is ready", {
+      toast.success("Your export dossier is ready!", {
         action: exportResult.downloadUrl ? {
           label: "Download",
           onClick: () => triggerExportDownload(exportResult.downloadUrl, exportResult.filename),
@@ -84,8 +84,8 @@ export default function ExportDrawer() {
     <AnimatePresence>
       {open && (
         <>
-          <motion.div aria-hidden="true" className="fixed inset-0 z-40 bg-zinc-950/35 backdrop-blur-[2px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closeDrawer} />
-          <motion.aside aria-labelledby="export-meeting-title" aria-modal="true" className="fixed inset-y-0 right-0 z-50 flex w-full max-w-[420px] flex-col border-l border-zinc-200 bg-white shadow-2xl shadow-zinc-950/15" initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", stiffness: 360, damping: 34 }} role="dialog">
+          <motion.div aria-hidden="true" className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closeDrawer} />
+          <motion.aside aria-labelledby="export-meeting-title" aria-modal="true" className="fixed inset-y-0 right-0 z-50 flex w-full max-w-[420px] flex-col border-l border-white/10 bg-slate-950/95 text-slate-100 shadow-2xl backdrop-blur-2xl" initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", stiffness: 360, damping: 34 }} role="dialog">
             <ExportHeader onClose={closeDrawer} />
             <div className="flex-1 overflow-y-auto">
               <ExportFormats format={format} onChange={setFormat} />

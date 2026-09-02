@@ -1,24 +1,33 @@
-import { ArrowUpRight, Check } from "lucide-react";
+"use client";
 
-const ConnectButton = ({ connected, onClick, compact = false }) => (
-  <button
-    onClick={(event) => {
-      event.stopPropagation();
-      onClick();
-    }}
-    className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition ${connected ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100" : "bg-indigo-600 text-white shadow-sm shadow-indigo-600/25 hover:bg-indigo-700"}`}
-  >
-    {connected ? (
-      <>
-        <Check className="size-4" />
-        {compact ? "Connected" : "Manage"}
-      </>
-    ) : (
-      <>
-        Connect
-        <ArrowUpRight className="size-4" />
-      </>
-    )}
-  </button>
-);
+import { Check, Plus } from "lucide-react";
+
+const ConnectButton = ({ connected, onClick, compact = false }) => {
+  if (connected) {
+    return (
+      <button
+        onClick={onClick}
+        className={`flex items-center justify-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/15 font-semibold text-emerald-300 transition hover:bg-emerald-500/25 cursor-pointer ${
+          compact ? "w-full py-2.5 text-xs" : "px-3.5 py-1.5 text-xs"
+        }`}
+      >
+        <Check className="size-3.5" />
+        Connected
+      </button>
+    );
+  }
+
+  return (
+    <button
+      onClick={onClick}
+      className={`flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 font-semibold text-white shadow-md shadow-indigo-600/25 transition hover:shadow-indigo-600/40 active:scale-95 cursor-pointer ${
+        compact ? "w-full py-2.5 text-xs" : "px-4 py-2 text-xs"
+      }`}
+    >
+      <Plus className="size-3.5" />
+      Connect Service
+    </button>
+  );
+};
+
 export default ConnectButton;

@@ -10,6 +10,7 @@ import PasswordInput from "./PasswordInput";
 import PasswordStrength from "./PasswordStrength";
 import AuthDivider from "./AuthDivider";
 import OAuthButtons from "./OAuthButtons";
+import { Sparkles, ArrowRight } from "lucide-react";
 
 export default function RegisterForm() {
   const [form, setForm] = useState({
@@ -27,7 +28,8 @@ export default function RegisterForm() {
   const router = useRouter();
 
   const update = (key, value) => {
-    setForm((current) => ({ ...current, [key]: value }));
+    const rawVal = value?.target ? value.target.value : value;
+    setForm((current) => ({ ...current, [key]: rawVal }));
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: null }));
   };
 
@@ -67,54 +69,59 @@ export default function RegisterForm() {
   };
 
   const fieldClass = (hasError) =>
-    `h-11 w-full rounded-xl border px-3 text-sm outline-none transition focus:ring-4 disabled:opacity-50 ${
+    `h-10 w-full rounded-xl border px-3.5 text-xs text-white placeholder-slate-500 outline-none transition disabled:opacity-50 ${
       hasError
-        ? "border-red-400 focus:border-red-400 focus:ring-red-100"
-        : "border-zinc-200 focus:border-indigo-400 focus:ring-indigo-100"
+        ? "border-rose-500 bg-slate-900 focus:ring-2 focus:ring-rose-500/20"
+        : "border-white/[0.08] bg-slate-900 focus:border-indigo-500/60 focus:ring-2 focus:ring-indigo-500/20"
     }`;
 
   return (
-    <div className="w-full max-w-md">
-      <p className="text-sm font-semibold text-indigo-600">GET STARTED FREE</p>
-      <h1 className="mt-2 text-3xl font-bold">Create your account</h1>
-      <p className="mt-2 text-sm text-zinc-500">
-        Turn your next meeting into useful knowledge.
+    <div className="w-full max-w-sm">
+      <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/15 px-2.5 py-0.5 text-[10px] font-bold text-indigo-300">
+        <Sparkles size={12} className="text-cyan-400" />
+        <span>START FREE</span>
+      </div>
+
+      <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+        Create account
+      </h1>
+      <p className="mt-1 text-xs text-slate-400">
+        Transform meeting recordings into structured workspace intelligence.
       </p>
 
-      <form onSubmit={submit} className="mt-7 space-y-4" noValidate>
-        {/* First Name */}
-        <div className="space-y-1">
-          <label className="block text-sm font-semibold">First Name</label>
-          <input
-            disabled={submitting}
-            value={form.firstName}
-            onChange={(e) => update("firstName", e.target.value)}
-            placeholder="Ankit"
-            className={fieldClass(errors.firstName)}
-          />
-          {errors.firstName && (
-            <p className="text-xs text-red-500">{errors.firstName}</p>
-          )}
+      <form onSubmit={submit} className="mt-5 space-y-3" noValidate>
+        <div className="grid grid-cols-2 gap-2.5">
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-slate-300">First Name</label>
+            <input
+              disabled={submitting}
+              value={form.firstName}
+              onChange={(e) => update("firstName", e.target.value)}
+              placeholder="Ankit"
+              className={fieldClass(errors.firstName)}
+            />
+            {errors.firstName && (
+              <p className="mt-0.5 text-[10px] text-rose-400">{errors.firstName}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-slate-300">Last Name</label>
+            <input
+              disabled={submitting}
+              value={form.lastName}
+              onChange={(e) => update("lastName", e.target.value)}
+              placeholder="Gupta"
+              className={fieldClass(errors.lastName)}
+            />
+            {errors.lastName && (
+              <p className="mt-0.5 text-[10px] text-rose-400">{errors.lastName}</p>
+            )}
+          </div>
         </div>
 
-        {/* Last Name */}
-        <div className="space-y-1">
-          <label className="block text-sm font-semibold">Last Name</label>
-          <input
-            disabled={submitting}
-            value={form.lastName}
-            onChange={(e) => update("lastName", e.target.value)}
-            placeholder="Gupta"
-            className={fieldClass(errors.lastName)}
-          />
-          {errors.lastName && (
-            <p className="text-xs text-red-500">{errors.lastName}</p>
-          )}
-        </div>
-
-        {/* Email */}
-        <div className="space-y-1">
-          <label className="block text-sm font-semibold">Email</label>
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-slate-300">Email Address</label>
           <input
             disabled={submitting}
             type="email"
@@ -124,70 +131,69 @@ export default function RegisterForm() {
             className={fieldClass(errors.email)}
           />
           {errors.email && (
-            <p className="text-xs text-red-500">{errors.email}</p>
+            <p className="mt-0.5 text-[10px] text-rose-400">{errors.email}</p>
           )}
         </div>
 
-        {/* Password + Strength */}
-        <div className="space-y-1">
+        <div>
           <PasswordInput
             disabled={submitting}
+            label="Password"
             value={form.password}
             onChange={(val) => update("password", val)}
-            hasError={!!errors.password}
+            error={errors.password}
           />
-          {errors.password && (
-            <p className="text-xs text-red-500">{errors.password}</p>
-          )}
           <PasswordStrength password={form.password} />
         </div>
 
-        {/* Confirm Password */}
-        <div className="space-y-1">
+        <div>
           <PasswordInput
             disabled={submitting}
             label="Confirm Password"
             value={form.confirm}
             onChange={(val) => update("confirm", val)}
-            placeholder="Confirm your password"
-            hasError={!!errors.confirm}
+            placeholder="Repeat password"
+            error={errors.confirm}
           />
-          {errors.confirm && (
-            <p className="text-xs text-red-500">{errors.confirm}</p>
-          )}
         </div>
 
-        {/* Terms */}
-        <label className="flex items-start gap-2 text-sm text-zinc-600">
+        <label className="flex items-start gap-2 text-xs text-slate-400 pt-1">
           <input
             type="checkbox"
             disabled={submitting}
             checked={form.terms}
             onChange={(e) => update("terms", e.target.checked)}
-            className="mt-0.5 size-4 accent-indigo-600"
+            className="mt-0.5 size-3.5 accent-indigo-600 rounded"
           />
-          I agree to the{" "}
-          <a href="#terms" className="font-semibold text-indigo-600">
-            Terms of Service
-          </a>{" "}
-          and Privacy Policy.
+          <span>
+            I agree to the{" "}
+            <a href="#terms" className="font-semibold text-indigo-400 hover:text-indigo-300">
+              Terms
+            </a>{" "}
+            and Privacy Policy.
+          </span>
         </label>
 
         <button
           type="submit"
           disabled={submitting}
-          className="h-11 w-full rounded-xl bg-indigo-600 text-sm font-bold text-white hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed transition-colors"
+          className="flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-xs font-semibold text-white shadow-lg shadow-indigo-600/25 transition hover:shadow-indigo-600/40 active:scale-95 disabled:opacity-50 cursor-pointer"
         >
-          {submitting ? "Creating Account..." : "Create Account"}
+          <span>{submitting ? "Creating Account..." : "Create Free Account"}</span>
+          <ArrowRight size={14} />
         </button>
       </form>
 
-      <AuthDivider />
-      <OAuthButtons />
+      <div className="mt-4">
+        <AuthDivider />
+        <div className="mt-3">
+          <OAuthButtons />
+        </div>
+      </div>
 
-      <p className="mt-7 text-center text-sm text-zinc-500">
+      <p className="mt-4 text-center text-xs text-slate-400">
         Already have an account?{" "}
-        <Link href="/login" className="font-semibold text-indigo-600">
+        <Link href="/login" className="font-semibold text-indigo-400 hover:text-indigo-300">
           Sign in
         </Link>
       </p>

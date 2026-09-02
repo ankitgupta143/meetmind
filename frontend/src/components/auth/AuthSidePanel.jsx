@@ -1,2 +1,68 @@
-import Link from "next/link"; import { BarChart3, CheckCircle2, Sparkles } from "lucide-react";
-export default function AuthSidePanel(){return <aside className="order-first hidden bg-gradient-to-br from-indigo-700 via-indigo-600 to-violet-700 p-10 text-white lg:flex lg:flex-col"><Link href="/" className="flex items-center gap-2 text-xl font-bold"><span className="flex size-9 items-center justify-center rounded-xl bg-white/15"><Sparkles className="size-5"/></span>MeetMind</Link><div className="my-auto"><p className="text-sm font-semibold uppercase tracking-widest text-indigo-200">AI Meeting Intelligence</p><h1 className="mt-4 max-w-md text-5xl font-bold tracking-tight">Every meeting becomes momentum.</h1><p className="mt-5 max-w-md leading-7 text-indigo-100">Capture ideas, decisions, and action items without ever losing the conversation.</p><div className="mt-10 rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur"><div className="flex items-center justify-between"><p className="font-semibold">Weekly overview</p><BarChart3 className="size-5 text-indigo-200"/></div><div className="mt-5 grid grid-cols-3 gap-3">{[['42','Meetings'],['138','AI chats'],['62','Exports']].map(([value,label])=><div key={label} className="rounded-xl bg-white/10 p-3"><p className="text-xl font-bold">{value}</p><p className="text-xs text-indigo-200">{label}</p></div>)}</div></div><div className="mt-7 space-y-3 text-sm">{['Never miss a decision', 'Search every conversation', 'Move from talk to action'].map(item=><p key={item} className="flex items-center gap-2"><CheckCircle2 className="size-4 text-indigo-200"/>{item}</p>)}</div></div><p className="text-xs text-indigo-200">© 2026 MeetMind. Built for better meetings.</p></aside>}
+import Link from "next/link";
+import { BarChart3, CheckCircle2, Sparkles, BrainCircuit } from "lucide-react";
+
+export default function AuthSidePanel() {
+  return (
+    <aside className="order-first hidden bg-gradient-to-br from-indigo-950/80 via-slate-950 to-violet-950/80 p-10 lg:p-14 text-white lg:flex lg:flex-col border-r border-white/[0.08] relative overflow-hidden">
+      <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-indigo-500/20 blur-3xl" />
+
+      <Link href="/" className="flex items-center gap-2.5 text-lg font-bold tracking-tight">
+        <span className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 shadow-md shadow-indigo-600/30">
+          <Sparkles className="size-4 text-white" />
+        </span>
+        <span className="text-white">MeetMind <span className="text-cyan-400">AI</span></span>
+      </Link>
+
+      <div className="my-auto">
+        <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-indigo-400">
+          <BrainCircuit size={14} className="text-cyan-400" /> Continuous Intelligence
+        </p>
+
+        <h1 className="mt-3 max-w-md text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
+          Every conversation turns into execution.
+        </h1>
+
+        <p className="mt-3 max-w-md text-xs sm:text-sm leading-relaxed text-slate-400">
+          Capture audio diarization, executive summaries, decisions, and action items with automated AI agents.
+        </p>
+
+        <div className="mt-8 rounded-2xl border border-white/[0.08] bg-white/[0.04] p-5 backdrop-blur-xl">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold text-slate-200">Weekly Intelligence Pulse</p>
+            <BarChart3 className="size-4 text-indigo-400" />
+          </div>
+
+          <div className="mt-4 grid grid-cols-3 gap-2.5">
+            {[
+              ["42", "Meetings"],
+              ["138", "AI Chats"],
+              ["62", "Dossiers"],
+            ].map(([value, label]) => (
+              <div key={label} className="rounded-xl border border-white/[0.04] bg-slate-900/60 p-2.5 text-center">
+                <p className="text-lg font-extrabold text-white">{value}</p>
+                <p className="text-[10px] font-semibold text-slate-400">{label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-6 space-y-2 text-xs text-slate-300">
+          {[
+            "Zero-loss transcript diarization",
+            "OmniSearch across all past discussions",
+            "Automatic task assignment & sync",
+          ].map((item) => (
+            <p key={item} className="flex items-center gap-2">
+              <CheckCircle2 className="size-3.5 text-emerald-400" />
+              <span>{item}</span>
+            </p>
+          ))}
+        </div>
+      </div>
+
+      <p className="text-[11px] text-slate-500 font-mono">
+        © 2026 MeetMind AI Corp • High-speed meeting intelligence
+      </p>
+    </aside>
+  );
+}

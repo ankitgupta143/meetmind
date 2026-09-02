@@ -1,25 +1,21 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
-
+import { ArrowRight, Sparkles } from "lucide-react";
 import { PROMPTS } from "./constants/prompts";
 
 export default function PromptSuggestions({
   onSuggestionClick,
 }) {
   return (
-    <div className="mx-auto mt-14 w-full max-w-5xl">
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold text-zinc-900">
-          Suggested Questions
+    <div className="mx-auto mt-6 w-full max-w-4xl">
+      <div className="mb-4">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+          <Sparkles size={13} className="text-indigo-400" />
+          Suggested Prompts
         </h3>
-
-        <p className="mt-1 text-sm text-zinc-500">
-          Start with one of these prompts or ask your own question.
-        </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {PROMPTS.map(
           ({
             id,
@@ -30,24 +26,24 @@ export default function PromptSuggestions({
             <button
               key={id}
               onClick={() => onSuggestionClick(title)}
-              className="group rounded-2xl border border-zinc-200 bg-white p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-indigo-300 hover:shadow-xl"
+              className="group rounded-2xl border border-white/[0.08] bg-slate-900/40 p-4 text-left transition-all duration-300 hover:border-indigo-500/40 hover:bg-slate-900/80 hover:-translate-y-0.5 cursor-pointer shadow-sm"
             >
               <div className="flex items-start justify-between">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 transition group-hover:bg-indigo-600 group-hover:text-white">
-                  <Icon size={20} />
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 transition-colors group-hover:bg-indigo-600 group-hover:text-white">
+                  <Icon size={16} />
                 </div>
 
                 <ArrowRight
-                  size={18}
-                  className="text-zinc-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-indigo-600"
+                  size={14}
+                  className="text-slate-500 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-indigo-400"
                 />
               </div>
 
-              <h4 className="mt-5 text-base font-semibold text-zinc-900">
+              <h4 className="mt-3 text-xs font-bold text-slate-100 group-hover:text-white">
                 {title}
               </h4>
 
-              <p className="mt-2 text-sm leading-6 text-zinc-500">
+              <p className="mt-1 text-[11px] leading-relaxed text-slate-400">
                 {description}
               </p>
             </button>

@@ -1,1 +1,9 @@
-export default function AuthDivider(){return <div className="my-6 flex items-center gap-3 text-xs text-zinc-400"><span className="h-px flex-1 bg-zinc-200"/>OR CONTINUE WITH<span className="h-px flex-1 bg-zinc-200"/></div>}
+export default function AuthDivider() {
+  return (
+    <div className="my-5 flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+      <span className="h-px flex-1 bg-white/[0.08]" />
+      <span>OR CONTINUE WITH</span>
+      <span className="h-px flex-1 bg-white/[0.08]" />
+    </div>
+  );
+}

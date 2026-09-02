@@ -1,15 +1,10 @@
 "use client";
 
 import useAssistantChat from "./hooks/useAssistantChat";
-
 import ChatHeader from "./ChatHeader";
-
 import ChatInput from "./ChatInput";
-
 import ChatMessages from "./ChatMessages";
-
 import EmptyConversation from "./EmptyConversation";
-
 import PromptSuggestions from "./PromptSuggestions";
 
 export default function AIAssistant() {
@@ -24,16 +19,13 @@ export default function AIAssistant() {
   } = useAssistantChat();
 
   return (
-    <div className="flex h-[calc(100vh-240px)] min-h-[700px] flex-col overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
+    <div className="flex h-[calc(100vh-240px)] min-h-[620px] flex-col overflow-hidden rounded-[2rem] border border-white/[0.08] bg-slate-950/60 shadow-xl backdrop-blur-2xl">
       <ChatHeader onNewChat={clearConversation} />
 
       {messages.length === 0 ? (
-        <div className="flex flex-1 flex-col overflow-y-auto px-8 py-6">
+        <div className="flex flex-1 flex-col overflow-y-auto px-6 py-6 sm:px-8">
           <EmptyConversation />
-
-          <PromptSuggestions
-            onSuggestionClick={sendMessage}
-          />
+          <PromptSuggestions onSuggestionClick={sendMessage} />
         </div>
       ) : (
         <ChatMessages

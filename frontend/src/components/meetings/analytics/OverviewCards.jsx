@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import {
   BrainCircuit,
   Clock3,
@@ -7,6 +8,8 @@ import {
   Smile,
   Meh,
   Frown,
+  Sparkles,
+  TrendingUp,
 } from "lucide-react";
 
 function formatTalkTime(seconds = 0) {
@@ -39,32 +42,29 @@ function getSentimentConfig(label, score = 0) {
   if (normalized === "positive") {
     return {
       icon: Smile,
-      color: "emerald",
-      bgClass: "bg-emerald-50 text-emerald-600",
-      badgeClass: "bg-emerald-100/80 text-emerald-700",
-      borderHover: "hover:border-emerald-300",
-      accentDot: "bg-emerald-500",
+      bgClass: "from-emerald-500/20 to-teal-500/20 border-emerald-500/30 text-emerald-400 shadow-emerald-500/20",
+      badgeClass: "bg-emerald-500/15 border-emerald-500/30 text-emerald-300",
+      hoverGlow: "group-hover:border-emerald-500/40 group-hover:shadow-[0_15px_35px_-10px_rgba(16,185,129,0.25)]",
+      glowSpot: "bg-emerald-500/15",
     };
   }
 
   if (normalized === "negative") {
     return {
       icon: Frown,
-      color: "rose",
-      bgClass: "bg-rose-50 text-rose-600",
-      badgeClass: "bg-rose-100/80 text-rose-700",
-      borderHover: "hover:border-rose-300",
-      accentDot: "bg-rose-500",
+      bgClass: "from-rose-500/20 to-red-500/20 border-rose-500/30 text-rose-400 shadow-rose-500/20",
+      badgeClass: "bg-rose-500/15 border-rose-500/30 text-rose-300",
+      hoverGlow: "group-hover:border-rose-500/40 group-hover:shadow-[0_15px_35px_-10px_rgba(244,63,94,0.25)]",
+      glowSpot: "bg-rose-500/15",
     };
   }
 
   return {
     icon: Meh,
-    color: "sky",
-    bgClass: "bg-sky-50 text-sky-600",
-    badgeClass: "bg-sky-100/80 text-sky-700",
-    borderHover: "hover:border-sky-300",
-    accentDot: "bg-sky-500",
+    bgClass: "from-sky-500/20 to-cyan-500/20 border-sky-500/30 text-sky-400 shadow-sky-500/20",
+    badgeClass: "bg-sky-500/15 border-sky-500/30 text-sky-300",
+    hoverGlow: "group-hover:border-sky-500/40 group-hover:shadow-[0_15px_35px_-10px_rgba(56,189,248,0.25)]",
+    glowSpot: "bg-sky-500/15",
   };
 }
 
@@ -89,7 +89,8 @@ export default function OverviewCards({ analytics }) {
       badge: "Analyzed",
       bgClass: sentimentConfig.bgClass,
       badgeClass: sentimentConfig.badgeClass,
-      borderHover: sentimentConfig.borderHover,
+      hoverGlow: sentimentConfig.hoverGlow,
+      glowSpot: sentimentConfig.glowSpot,
       description: "Overall emotional tone detected during the meeting.",
     },
     {
@@ -98,9 +99,10 @@ export default function OverviewCards({ analytics }) {
       title: "Messages",
       value: (analytics?.messageCount ?? 0).toLocaleString(),
       badge: "Segments",
-      bgClass: "bg-indigo-50 text-indigo-600",
-      badgeClass: "bg-indigo-100/80 text-indigo-700",
-      borderHover: "hover:border-indigo-300",
+      bgClass: "from-indigo-500/20 to-violet-500/20 border-indigo-500/30 text-indigo-400 shadow-indigo-500/20",
+      badgeClass: "bg-indigo-500/15 border-indigo-500/30 text-indigo-300",
+      hoverGlow: "group-hover:border-indigo-500/40 group-hover:shadow-[0_15px_35px_-10px_rgba(99,102,241,0.25)]",
+      glowSpot: "bg-indigo-500/15",
       description: "Transcript segments identified in the conversation.",
     },
     {
@@ -109,9 +111,10 @@ export default function OverviewCards({ analytics }) {
       title: "Talk Time",
       value: formatTalkTime(analytics?.totalTalkTimeSeconds ?? 0),
       badge: "Duration",
-      bgClass: "bg-amber-50 text-amber-600",
-      badgeClass: "bg-amber-100/80 text-amber-700",
-      borderHover: "hover:border-amber-300",
+      bgClass: "from-amber-500/20 to-orange-500/20 border-amber-500/30 text-amber-400 shadow-amber-500/20",
+      badgeClass: "bg-amber-500/15 border-amber-500/30 text-amber-300",
+      hoverGlow: "group-hover:border-amber-500/40 group-hover:shadow-[0_15px_35px_-10px_rgba(245,158,11,0.25)]",
+      glowSpot: "bg-amber-500/15",
       description: "Combined speaking time across all participants.",
     },
     {
@@ -120,63 +123,75 @@ export default function OverviewCards({ analytics }) {
       title: "Words",
       value: (analytics?.wordCount ?? 0).toLocaleString(),
       badge: "Spoken",
-      bgClass: "bg-purple-50 text-purple-600",
-      badgeClass: "bg-purple-100/80 text-purple-700",
-      borderHover: "hover:border-purple-300",
+      bgClass: "from-purple-500/20 to-fuchsia-500/20 border-purple-500/30 text-purple-400 shadow-purple-500/20",
+      badgeClass: "bg-purple-500/15 border-purple-500/30 text-purple-300",
+      hoverGlow: "group-hover:border-purple-500/40 group-hover:shadow-[0_15px_35px_-10px_rgba(168,85,247,0.25)]",
+      glowSpot: "bg-purple-500/15",
       description: "Total number of words detected in the transcript.",
     },
   ];
 
   return (
     <section className="space-y-4">
-      <div>
-        <h2 className="text-xl font-bold text-zinc-900">
-          Overview
-        </h2>
-        <p className="mt-1 text-sm text-zinc-500">
-          Quick AI-generated metrics from this meeting.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            Overview
+            <Sparkles size={16} className="text-indigo-400" />
+          </h2>
+          <p className="mt-1 text-xs text-slate-400">
+            Quick AI-generated metrics from this meeting.
+          </p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        {cards.map((item) => {
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {cards.map((item, index) => {
           const Icon = item.icon;
 
           return (
-            <div
+            <motion.div
               key={item.id}
-              className={`group relative flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${item.borderHover}`}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+              className={`group relative overflow-hidden rounded-2xl border border-white/[0.08] bg-slate-950/60 p-5 shadow-lg backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 ${item.hoverGlow}`}
             >
-              <div>
-                <div className="flex items-center justify-between">
-                  <div
-                    className={`flex h-12 w-12 items-center justify-center rounded-xl transition duration-300 group-hover:scale-105 ${item.bgClass}`}
-                  >
-                    <Icon size={22} />
+              {/* Subtle ambient light glow spot */}
+              <div className={`pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full blur-2xl transition-opacity duration-300 group-hover:opacity-100 opacity-60 ${item.glowSpot}`} />
+
+              <div className="relative z-10 flex flex-col justify-between h-full">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <div
+                      className={`flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br border shadow-md transition-transform duration-300 group-hover:scale-105 ${item.bgClass}`}
+                    >
+                      <Icon size={20} />
+                    </div>
+
+                    <span
+                      className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold tracking-wide ${item.badgeClass}`}
+                    >
+                      {item.badge}
+                    </span>
                   </div>
 
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${item.badgeClass}`}
-                  >
-                    {item.badge}
-                  </span>
+                  <div className="mt-4">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                      {item.title}
+                    </p>
+
+                    <h3 className="mt-1 text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+                      {item.value}
+                    </h3>
+                  </div>
                 </div>
 
-                <div className="mt-5">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-                    {item.title}
-                  </p>
-
-                  <h3 className="mt-1.5 text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl">
-                    {item.value}
-                  </h3>
-                </div>
+                <p className="mt-3 text-xs leading-relaxed text-slate-400">
+                  {item.description}
+                </p>
               </div>
-
-              <p className="mt-4 text-sm leading-relaxed text-zinc-500">
-                {item.description}
-              </p>
-            </div>
+            </motion.div>
           );
         })}
       </div>

@@ -36,17 +36,24 @@ export default function NotificationDrawer() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<button aria-label="Open notifications" className="relative rounded-xl p-3 text-zinc-700 transition hover:bg-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-zinc-200 dark:hover:bg-zinc-800" type="button" />}>
-        <Bell size={20} />
-        {unreadCount > 0 && <span aria-label={`${unreadCount} unread notifications`} className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-indigo-600 ring-2 ring-white dark:ring-zinc-900" />}
+      <DropdownMenuTrigger render={<button aria-label="Open notifications" className="relative rounded-xl p-2.5 text-slate-400 transition hover:bg-white/10 hover:text-white focus:outline-none" type="button" />}>
+        <Bell size={18} />
+        {unreadCount > 0 && (
+          <span className="absolute right-2 top-2 flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-400 opacity-75"></span>
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-indigo-500"></span>
+          </span>
+        )}
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[380px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl bg-white p-0 shadow-xl ring-1 ring-zinc-950/10 dark:bg-zinc-900">
+      <DropdownMenuContent align="end" className="w-[380px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-white/10 bg-slate-950/95 p-0 shadow-2xl backdrop-blur-2xl text-slate-100">
         <NotificationHeader hasUnread={unreadCount > 0} onMarkAllRead={markAllAsRead} />
         <NotificationFilters activeFilter={filter} onChange={setFilter} />
-        <div className="max-h-[420px] overflow-y-auto">
+        <div className="max-h-[400px] overflow-y-auto divide-y divide-white/[0.05]">
           {visibleNotifications.length ? visibleNotifications.map((notification) => <NotificationItem key={notification.id} notification={notification} onRead={markAsRead} />) : <NotificationEmpty isUnreadFilter={filter === "unread"} />}
         </div>
-        <button className="w-full border-t border-zinc-200 px-5 py-3 text-center text-sm font-medium text-indigo-600 transition hover:bg-indigo-50 hover:text-indigo-700" type="button">View all notifications</button>
+        <button className="w-full border-t border-white/[0.08] px-5 py-3 text-center text-xs font-semibold text-indigo-400 transition hover:bg-white/[0.04] hover:text-indigo-300" type="button">
+          View all notifications
+        </button>
       </DropdownMenuContent>
     </DropdownMenu>
   );

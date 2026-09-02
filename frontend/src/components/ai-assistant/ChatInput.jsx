@@ -1,7 +1,6 @@
 "use client";
 
-import { useRef } from "react";
-import { ArrowUp } from "lucide-react";
+import { ArrowUp, Sparkles } from "lucide-react";
 import TextareaAutosize from "react-textarea-autosize";
 
 export default function ChatInput({ value, onChange, onSubmit, isLoading }) {
@@ -15,21 +14,21 @@ export default function ChatInput({ value, onChange, onSubmit, isLoading }) {
   };
 
   return (
-    <div className="border-t border-zinc-200 bg-white p-6">
-      <div className="relative flex items-center rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-all duration-200">
+    <div className="border-t border-white/[0.08] bg-slate-950/80 p-4 sm:p-5 backdrop-blur-xl">
+      <div className="relative flex items-center rounded-2xl border border-white/[0.08] bg-slate-900/90 px-4 py-2.5 transition-all duration-200 focus-within:border-indigo-500/50 focus-within:ring-2 focus-within:ring-indigo-500/20">
         <TextareaAutosize
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Ask a question about this meeting..."
-          className="flex-1 resize-none bg-transparent py-1 text-sm text-zinc-900 placeholder-zinc-400 outline-none max-h-40"
-          maxRows={6}
+          placeholder="Ask a question about this meeting (e.g., 'What deadlines were set?')..."
+          className="flex-1 resize-none bg-transparent py-1 text-xs sm:text-sm text-slate-100 placeholder-slate-500 outline-none max-h-36"
+          maxRows={5}
           disabled={isLoading}
         />
         <button
           onClick={onSubmit}
           disabled={!value.trim() || isLoading}
-          className="ml-3 flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600 text-white transition-all hover:bg-indigo-700 disabled:bg-zinc-200 disabled:text-zinc-400 cursor-pointer disabled:cursor-not-allowed"
+          className="ml-3 flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white shadow-md transition-all hover:shadow-indigo-600/30 hover:scale-105 disabled:opacity-40 disabled:hover:scale-100 cursor-pointer disabled:cursor-not-allowed"
         >
           <ArrowUp size={16} />
         </button>

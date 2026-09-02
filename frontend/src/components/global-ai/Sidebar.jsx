@@ -10,38 +10,45 @@ export default function Sidebar({
   onSelect,
 }) {
   return (
-    <aside className="flex h-full w-72 shrink-0 flex-col border-r border-zinc-200 bg-zinc-50/80 p-4">
-      <div className="mb-6 flex items-center justify-between px-2">
-        <div className="flex items-center gap-2 font-semibold text-zinc-900">
-          <Sparkles size={18} className="text-indigo-600" /> MeetMind AI
+    <aside className="flex h-full w-72 shrink-0 flex-col border-r border-white/[0.08] bg-slate-950/80 p-4">
+      <div className="mb-5 flex items-center justify-between px-2">
+        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-300">
+          <Sparkles size={16} className="text-indigo-400" />
+          <span>Chat History</span>
         </div>
         <button
           onClick={onClose}
-          className="rounded-lg p-1.5 text-zinc-500 hover:bg-zinc-200 lg:hidden"
+          className="rounded-xl p-1.5 text-slate-400 hover:bg-white/10 hover:text-white lg:hidden"
         >
-          <X size={18} />
+          <X size={16} />
         </button>
       </div>
+
       <button
         onClick={onNewChat}
-        className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-indigo-700"
+        className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2.5 text-xs font-semibold text-white shadow-lg shadow-indigo-600/25 transition hover:shadow-indigo-600/40 active:scale-95 cursor-pointer"
       >
-        <Plus size={17} /> New chat
+        <Plus size={15} /> <span>New Chat</span>
       </button>
-      <div className="mt-7 flex-1 space-y-6 overflow-y-auto">
+
+      <div className="mt-5 flex-1 space-y-5 overflow-y-auto">
         {chatGroups.map((group) => (
           <div key={group.id}>
-            <p className="px-2 text-xs font-medium uppercase tracking-wider text-zinc-400">
+            <p className="px-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
               {group.label}
             </p>
-            <div className="mt-2 space-y-1">
+            <div className="mt-1.5 space-y-1">
               {group.items.map((chat) => (
                 <button
                   key={chat.id}
                   onClick={() => onSelect(chat.id)}
-                  className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition ${activeChatId === chat.id ? "bg-white text-zinc-950 shadow-sm" : "text-zinc-600 hover:bg-white/70"}`}
+                  className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs transition ${
+                    activeChatId === chat.id
+                      ? "bg-white/10 text-white font-semibold border border-white/10"
+                      : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-200"
+                  }`}
                 >
-                  <MessageSquare size={16} className="shrink-0 text-zinc-400" />
+                  <MessageSquare size={14} className="shrink-0 text-slate-400" />
                   <span className="truncate">{chat.title}</span>
                 </button>
               ))}
@@ -49,10 +56,11 @@ export default function Sidebar({
           </div>
         ))}
       </div>
-      <div className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50 p-3 text-xs leading-5 text-indigo-800">
-        <b>Workspace AI</b>
+
+      <div className="mt-4 rounded-2xl border border-indigo-500/20 bg-indigo-950/30 p-3 text-[11px] leading-relaxed text-indigo-300">
+        <strong className="text-white">Workspace AI Active</strong>
         <br />
-        Answers use insights from all your meetings.
+        Answers index content from all recorded meetings.
       </div>
     </aside>
   );

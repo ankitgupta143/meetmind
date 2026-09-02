@@ -1,11 +1,9 @@
 "use client";
 
 import { useState } from "react";
-
 import { AnimatePresence, motion } from "framer-motion";
 import { UPLOAD_STEPS } from "@/constants/upload";
 import { X } from "lucide-react";
-
 import { useUploadModal } from "@/context/UploadModalContext";
 
 import UploadDropzone from "./UploadDropzone";
@@ -22,8 +20,6 @@ export default function UploadMeetingModal() {
 
   const handleClose = () => {
     setOpen(false);
-
-    // Reset modal state for the next upload
     setTimeout(() => {
       setStep(UPLOAD_STEPS.IDLE);
       setSelectedFile(null);
@@ -36,7 +32,7 @@ export default function UploadMeetingModal() {
   return (
     <AnimatePresence mode="wait">
       <motion.div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -46,7 +42,7 @@ export default function UploadMeetingModal() {
           initial={{
             opacity: 0,
             y: 20,
-            scale: 0.98,
+            scale: 0.96,
           }}
           animate={{
             opacity: 1,
@@ -56,21 +52,22 @@ export default function UploadMeetingModal() {
           exit={{
             opacity: 0,
             y: -20,
-            scale: 0.98,
+            scale: 0.96,
           }}
           transition={{
-            duration: 0.3,
+            duration: 0.25,
+            ease: [0.16, 1, 0.3, 1],
           }}
-          className="relative mx-4 w-full max-w-4xl overflow-hidden rounded-3xl bg-white shadow-2xl"
+          className="relative mx-auto w-full max-w-3xl overflow-hidden rounded-[2.5rem] border border-white/10 bg-slate-950/95 shadow-[0_25px_70px_-15px_rgba(0,0,0,0.8)] backdrop-blur-2xl"
         >
           <button
             onClick={handleClose}
-            className="absolute right-6 top-6 z-10 rounded-xl p-2 hover:bg-zinc-100"
+            className="absolute right-6 top-6 z-20 rounded-xl p-2 text-slate-400 transition hover:bg-white/10 hover:text-white"
           >
-            <X />
+            <X size={18} />
           </button>
 
-          <div className="max-h-[90vh] overflow-y-auto">
+          <div className="max-h-[85vh] overflow-y-auto">
             {step === UPLOAD_STEPS.IDLE && (
               <UploadDropzone
                 setStep={setStep}

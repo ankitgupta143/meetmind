@@ -7,75 +7,84 @@ import {
   Clock3,
   TrendingUp,
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 const stats = [
   {
-    title: "Meetings",
+    title: "Meetings Analyzed",
     value: "24",
     subtitle: "+3 this week",
     icon: CalendarDays,
-    color: "bg-blue-50 text-blue-600",
+    bgClass: "from-blue-500/20 to-indigo-500/20 border-blue-500/30 text-blue-400",
+    hoverGlow: "group-hover:border-blue-500/40 group-hover:shadow-[0_15px_35px_-10px_rgba(59,130,246,0.25)]",
   },
   {
     title: "Action Items",
     value: "127",
-    subtitle: "91 Completed",
+    subtitle: "91 Completed (72%)",
     icon: CheckCircle2,
-    color: "bg-emerald-50 text-emerald-600",
+    bgClass: "from-emerald-500/20 to-teal-500/20 border-emerald-500/30 text-emerald-400",
+    hoverGlow: "group-hover:border-emerald-500/40 group-hover:shadow-[0_15px_35px_-10px_rgba(16,185,129,0.25)]",
   },
   {
     title: "AI Summaries",
     value: "98%",
-    subtitle: "Ready",
+    subtitle: "Accuracy Index",
     icon: BrainCircuit,
-    color: "bg-violet-50 text-violet-600",
+    bgClass: "from-violet-500/20 to-purple-500/20 border-violet-500/30 text-violet-400",
+    hoverGlow: "group-hover:border-violet-500/40 group-hover:shadow-[0_15px_35px_-10px_rgba(139,92,246,0.25)]",
   },
   {
     title: "Time Saved",
-    value: "18 hrs",
-    subtitle: "This Month",
+    value: "18h",
+    subtitle: "+4.2 hrs this month",
     icon: Clock3,
-    color: "bg-amber-50 text-amber-600",
+    bgClass: "from-amber-500/20 to-orange-500/20 border-amber-500/30 text-amber-400",
+    hoverGlow: "group-hover:border-amber-500/40 group-hover:shadow-[0_15px_35px_-10px_rgba(245,158,11,0.25)]",
   },
 ];
 
 const QuickStats = () => {
   return (
-    <section className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-      {stats.map((stat) => {
+    <section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {stats.map((stat, index) => {
         const Icon = stat.icon;
 
         return (
-          <div
+          <motion.div
             key={stat.title}
-            className="group rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl dark:border-zinc-800 dark:bg-zinc-900"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: index * 0.05 }}
+            className={`group relative overflow-hidden rounded-[2rem] border border-white/[0.08] bg-slate-950/60 p-6 shadow-xl backdrop-blur-2xl transition-all duration-300 hover:-translate-y-1 ${stat.hoverGlow}`}
           >
-            {/* Icon */}
-            <div
-              className={`flex h-12 w-12 items-center justify-center rounded-2xl ${stat.color}`}
-            >
-              <Icon
-                size={22}
-                className="transition-transform duration-300 group-hover:scale-110"
-              />
+            <div className="flex items-center justify-between">
+              <div
+                className={`flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br border shadow-md transition-transform duration-300 group-hover:scale-110 ${stat.bgClass}`}
+              >
+                <Icon size={20} />
+              </div>
+
+              <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                <TrendingUp size={12} />
+                <span>Active</span>
+              </div>
             </div>
 
-            {/* Value */}
-            <h2 className="mt-8 text-5xl font-bold tracking-tight text-zinc-900 dark:text-white">
-              {stat.value}
-            </h2>
+            <div className="mt-6">
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+                {stat.value}
+              </h2>
 
-            {/* Title */}
-            <p className="mt-2 text-base font-semibold text-zinc-800 dark:text-zinc-200">
-              {stat.title}
-            </p>
+              <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                {stat.title}
+              </p>
+            </div>
 
-            {/* Footer */}
-            <div className="mt-6 flex items-center gap-2 text-sm text-zinc-500">
-              <TrendingUp size={16} />
+            <div className="mt-4 pt-3 border-t border-white/[0.06] text-xs text-slate-400">
               <span>{stat.subtitle}</span>
             </div>
-          </div>
+          </motion.div>
         );
       })}
     </section>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 import MeetingSidebar from "./MeetingSidebar";
 import AISummary from "./AISummary";
@@ -16,7 +17,7 @@ export default function MeetingWorkspace({
   insights,
 }) {
   const [activeTab, setActiveTab] = useState(
-    WORKSPACE_TABS.ASSISTANT
+    WORKSPACE_TABS.SUMMARY || "summary"
   );
 
   const workspaceViews = {
@@ -62,14 +63,25 @@ export default function MeetingWorkspace({
       <MeetingSidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+        insights={insights}
       />
 
       <section className="min-w-0">
-        {workspaceViews[activeTab] ?? (
-          <AISummary
-            insights={insights}
-          />
-        )}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+          >
+            {workspaceViews[activeTab] ?? (
+              <AISummary
+                insights={insights}
+              />
+            )}
+          </motion.div>
+        </AnimatePresence>
       </section>
     </div>
   );

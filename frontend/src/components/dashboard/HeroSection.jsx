@@ -1,13 +1,17 @@
 "use client";
 
-import { Upload, Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import { Upload, Search, Sparkles, ArrowRight, Zap, Bot } from "lucide-react";
+import { useUploadModal } from "@/context/UploadModalContext";
 import { dashboardData } from "@/constants/mockData";
 import { useAuth } from "@/context/AuthContext";
+import { motion } from "framer-motion";
 
 const HeroSection = () => {
+  const router = useRouter();
+  const { setOpen } = useUploadModal();
   const { user } = useAuth();
-  
+
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",
     day: "numeric",
@@ -15,43 +19,76 @@ const HeroSection = () => {
   });
 
   const hour = new Date().getHours();
-
   const greeting =
     hour < 12 ? "Good Morning" : hour < 18 ? "Good Afternoon" : "Good Evening";
 
-  const userName = user ? `${user.firstName} ${user.lastName}` : dashboardData.user.name;
+  const userName = user?.firstName
+    ? `${user.firstName} ${user.lastName || ""}`.trim()
+    : dashboardData.user.name;
 
   return (
-    <section className="relative overflow-hidden rounded-[2rem] border border-indigo-100/70 bg-gradient-to-br from-white via-indigo-50/50 to-violet-50/70 p-7 shadow-[0_18px_45px_-30px_rgba(79,70,229,0.4)] sm:p-10 dark:border-zinc-800 dark:from-zinc-900 dark:via-zinc-900 dark:to-indigo-950/40">
-      <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-indigo-500/20 blur-3xl" />
-      <div className="absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-violet-500/10 blur-3xl" />
-      
-      <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
-        <div className="relative z-10">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-wider text-indigo-600">
-              {today}
-            </p>
+    <section className="relative overflow-hidden rounded-[2.5rem] border border-white/[0.08] bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/50 p-6 sm:p-9 md:p-10 shadow-2xl backdrop-blur-2xl">
+      {/* Aurora light spots */}
+      <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-indigo-500/20 blur-[100px]" />
+      <div className="pointer-events-none absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-violet-600/15 blur-[100px]" />
+      <div className="pointer-events-none absolute right-1/3 bottom-0 h-40 w-40 rounded-full bg-cyan-500/15 blur-[80px]" />
 
-            <h1 className="mt-3 text-5xl lg:text-6xl font-bold tracking-[-0.03em] text-zinc-900 dark:text-white">
-              {greeting}, {userName} 👋
-            </h1>
-
-            <p className="mt-3 max-w-2xl text-xl leading-8 text-zinc-500 dark:text-zinc-400">
-              {dashboardData.hero.description}
-            </p>
+      <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="max-w-2xl">
+          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/15 px-3 py-1 text-xs font-bold text-indigo-300 shadow-sm">
+            <Sparkles size={13} className="text-cyan-400 animate-pulse" />
+            <span>{today}</span>
           </div>
 
-          <div className="mt-8 flex flex-wrap gap-4">
-            <Button className="h-12 rounded-2xl px-6 shadow-lg shadow-indigo-600/20">
-              <Upload className="mr-2 h-4 w-4" />
-              Upload Meeting
-            </Button>
+          <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-white sm:text-4xl lg:text-5xl">
+            {greeting},{" "}
+            <span className="bg-gradient-to-r from-indigo-300 via-violet-200 to-cyan-300 bg-clip-text text-transparent">
+              {userName}
+            </span>{" "}
+            👋
+          </h1>
 
-            <Button variant="outline" className="h-12 rounded-2xl px-6">
-              <Search className="mr-2 h-4 w-4" />
-              Search
-            </Button>
+          <p className="mt-3 text-xs leading-relaxed text-slate-300 sm:text-sm md:text-base">
+            Your AI assistant has analyzed recent transcripts, extracted 12 action items, and prepared decision dossiers for your review.
+          </p>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <button
+              onClick={() => setOpen(true)}
+              className="group relative flex items-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 px-5 py-3 text-xs sm:text-sm font-semibold text-white shadow-lg shadow-indigo-600/25 transition-all duration-300 hover:shadow-indigo-600/40 hover:-translate-y-0.5 active:scale-95"
+            >
+              <Upload size={16} className="transition-transform group-hover:scale-110" />
+              <span>Upload Meeting</span>
+            </button>
+
+            <button
+              onClick={() => router.push("/meetings")}
+              className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-5 py-3 text-xs sm:text-sm font-semibold text-slate-200 backdrop-blur-md transition-all duration-200 hover:bg-white/10 hover:text-white active:scale-95"
+            >
+              <Search size={16} />
+              <span>Browse Meetings</span>
+            </button>
+          </div>
+        </div>
+
+        {/* AI Pulse Badge Card */}
+        <div className="relative rounded-2xl border border-white/[0.08] bg-slate-900/60 p-5 backdrop-blur-xl shadow-lg lg:w-72">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-400">AI Status</span>
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+            </span>
+          </div>
+
+          <div className="mt-3 flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-cyan-500/20 to-indigo-500/20 border border-cyan-500/30 text-cyan-400">
+              <Bot size={20} />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-white">Gemini Engine</p>
+              <p className="text-[11px] text-slate-400">Audio Diarization Ready</p>
+            </div>
           </div>
         </div>
       </div>

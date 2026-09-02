@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { UploadCloud, FileAudio, Sparkles, FileVideo } from "lucide-react";
+import { UploadCloud, FileAudio, Sparkles, FileVideo, ShieldCheck } from "lucide-react";
 
 import {
   MAX_UPLOAD_SIZE,
@@ -11,14 +11,15 @@ import {
 
 export default function UploadDropzone({ setStep, setSelectedFile }) {
   const inputRef = useRef(null);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
 
   const handleFile = (file) => {
     if (!file) return;
 
     if (!SUPPORTED_FILE_TYPES.includes(file.type)) {
       setError(
-        "Unsupported file type. Please upload MP3, WAV, M4A, MP4 or MOV.",
+        "Unsupported file format. Please upload MP3, WAV, M4A, MP4 or MOV."
       );
       return;
     }
@@ -29,10 +30,7 @@ export default function UploadDropzone({ setStep, setSelectedFile }) {
     }
 
     setError("");
-
     setSelectedFile(file);
-
-    // Move to uploading state
     setStep(UPLOAD_STEPS.UPLOADING);
   };
 
@@ -43,34 +41,40 @@ export default function UploadDropzone({ setStep, setSelectedFile }) {
 
   const handleDrop = (e) => {
     e.preventDefault();
-
+    setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
     handleFile(file);
   };
 
   return (
-    <div className="p-10">
+    <div className="p-6 sm:p-10">
       {/* Header */}
       <div className="text-center">
-        <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-600">
-          <Sparkles size={16} />
-          AI Meeting Intelligence
+        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/15 px-3 py-1 text-xs font-bold text-indigo-300">
+          <Sparkles size={13} className="text-cyan-400" />
+          <span>AI Audio & Video Ingestion</span>
         </div>
 
-        <h2 className="text-3xl font-bold">Upload Meeting</h2>
+        <h2 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+          Upload Meeting Recording
+        </h2>
 
-        <p className="mt-3 text-zinc-500">
-          Turn your meeting recording into transcripts, summaries, action items
-          and AI insights.
+        <p className="mt-2 text-xs sm:text-sm text-slate-400 max-w-lg mx-auto">
+          MeetMind automatically extracts transcripts, speaker diarization, executive summaries, decisions, and action items.
         </p>
       </div>
 
-      {/* Benefits */}
-      <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
-        {["Transcript", "Summary", "Action Items", "Analytics"].map((item) => (
+      {/* Feature highlights */}
+      <div className="mt-6 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+        {[
+          "Automated Diarization",
+          "Executive Summary",
+          "Action Items & Tasks",
+          "Acoustic Sentiment",
+        ].map((item) => (
           <div
             key={item}
-            className="rounded-2xl border bg-zinc-50 p-4 text-center text-sm font-medium"
+            className="rounded-xl border border-white/[0.06] bg-slate-900/40 p-2.5 text-center text-[11px] font-semibold text-slate-300"
           >
             ✓ {item}
           </div>
@@ -79,31 +83,39 @@ export default function UploadDropzone({ setStep, setSelectedFile }) {
 
       {/* Dropzone */}
       <div
-        onDragOver={(e) => e.preventDefault()}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setIsDragging(true);
+        }}
+        onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
-        className="mt-8 rounded-3xl border-2 border-dashed border-indigo-300 bg-indigo-50/30 p-14 text-center transition hover:border-indigo-500 hover:bg-indigo-50"
+        className={`mt-6 rounded-[2rem] border-2 border-dashed p-8 sm:p-12 text-center transition-all duration-300 ${
+          isDragging
+            ? "border-indigo-400 bg-indigo-500/10 scale-[0.99]"
+            : "border-white/10 bg-slate-900/30 hover:border-indigo-500/40 hover:bg-slate-900/60"
+        }`}
       >
-        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-indigo-100">
-          <UploadCloud className="text-indigo-600" size={38} />
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-600/30">
+          <UploadCloud size={30} className="animate-bounce" />
         </div>
 
-        <h3 className="mt-6 text-xl font-semibold">
-          Drag & Drop your recording
+        <h3 className="mt-5 text-base font-bold text-white sm:text-lg">
+          Drag & Drop recording here
         </h3>
 
-        <p className="mt-2 text-zinc-500">
-          or click below to browse your computer
+        <p className="mt-1 text-xs text-slate-400">
+          or click below to choose a file from your device
         </p>
 
         <button
-          onClick={() => inputRef.current.click()}
-          className="mt-8 rounded-xl bg-indigo-600 px-6 py-3 font-medium text-white transition hover:bg-indigo-700"
+          onClick={() => inputRef.current?.click()}
+          className="mt-5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-2.5 text-xs font-semibold text-white shadow-lg shadow-indigo-600/25 transition hover:shadow-indigo-600/40 active:scale-95"
         >
           Browse Files
         </button>
 
         {error && (
-          <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+          <div className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-2 text-xs font-medium text-rose-300">
             {error}
           </div>
         )}
@@ -116,20 +128,20 @@ export default function UploadDropzone({ setStep, setSelectedFile }) {
           onChange={handleBrowse}
         />
 
-        <div className="mt-8 flex justify-center gap-6 text-sm text-zinc-500">
-          <div className="flex items-center gap-2">
-            <FileAudio size={18} />
-            MP3 / WAV / M4A
+        <div className="mt-6 flex flex-wrap justify-center gap-5 text-xs text-slate-400">
+          <div className="flex items-center gap-1.5 font-mono text-[11px]">
+            <FileAudio size={14} className="text-cyan-400" />
+            <span>MP3 / WAV / M4A</span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <FileVideo size={18} />
-            MP4 / MOV
+          <div className="flex items-center gap-1.5 font-mono text-[11px]">
+            <FileVideo size={14} className="text-indigo-400" />
+            <span>MP4 / MOV</span>
           </div>
         </div>
 
-        <p className="mt-6 text-sm text-zinc-400">
-          Maximum upload size: <strong>500 MB</strong>
+        <p className="mt-4 text-[11px] text-slate-500">
+          Maximum file size: <strong className="text-slate-400">500 MB</strong> • Privacy preserved
         </p>
       </div>
     </div>

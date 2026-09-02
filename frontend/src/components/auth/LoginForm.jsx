@@ -7,14 +7,13 @@ import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { validateEmail, validatePassword } from "@/lib/validation";
 import PasswordInput from "./PasswordInput";
-import RememberMe from "./RememberMe";
 import AuthDivider from "./AuthDivider";
 import OAuthButtons from "./OAuthButtons";
+import { Sparkles, ArrowRight } from "lucide-react";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [remember, setRemember] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -37,87 +36,98 @@ export default function LoginForm() {
     setSubmitting(true);
     try {
       const result = await login(email, password);
-      toast.success(result.message || "Welcome back!");
+      toast.success(result.message || "Welcome back to MeetMind!");
       router.push("/dashboard");
     } catch (error) {
-      toast.error(error.message || "Failed to sign in. Please try again.");
+      toast.error(error.message || "Failed to sign in. Please check credentials.");
     } finally {
       setSubmitting(false);
     }
   };
 
   const fieldClass = (hasError) =>
-    `h-11 w-full rounded-xl border px-3 text-sm outline-none transition focus:ring-4 disabled:opacity-50 ${
+    `h-10 w-full rounded-xl border px-3.5 text-xs text-white placeholder-slate-500 outline-none transition disabled:opacity-50 ${
       hasError
-        ? "border-red-400 focus:border-red-400 focus:ring-red-100"
-        : "border-zinc-200 focus:border-indigo-400 focus:ring-indigo-100"
+        ? "border-rose-500 bg-slate-900 focus:ring-2 focus:ring-rose-500/20"
+        : "border-white/[0.08] bg-slate-900 focus:border-indigo-500/60 focus:ring-2 focus:ring-indigo-500/20"
     }`;
 
   return (
-    <div className="w-full max-w-md">
-      <p className="text-sm font-semibold text-indigo-600">WELCOME BACK</p>
-      <h1 className="mt-2 text-3xl font-bold">Sign in to MeetMind</h1>
-      <p className="mt-2 text-sm text-zinc-500">Continue where your meetings left off.</p>
+    <div className="w-full max-w-sm">
+      <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/15 px-2.5 py-0.5 text-[10px] font-bold text-indigo-300">
+        <Sparkles size={12} className="text-cyan-400" />
+        <span>AUTHENTICATION</span>
+      </div>
 
-      <form onSubmit={submit} className="mt-8 space-y-5" noValidate>
-        {/* Email */}
-        <div className="space-y-1">
-          <label className="block text-sm font-semibold text-zinc-700">Email</label>
+      <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+        Sign in to MeetMind
+      </h1>
+      <p className="mt-1 text-xs text-slate-400">
+        Enter your credentials to access your meeting intelligence.
+      </p>
+
+      <form onSubmit={submit} className="mt-6 space-y-4">
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold text-slate-300">
+            Email address
+          </label>
           <input
             type="email"
             value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              if (errors.email) setErrors((prev) => ({ ...prev, email: null }));
-            }}
+            onChange={(e) => setEmail(e?.target ? e.target.value : e)}
             placeholder="you@company.com"
-            disabled={submitting}
             className={fieldClass(errors.email)}
+            disabled={submitting}
           />
           {errors.email && (
-            <p className="text-xs text-red-500">{errors.email}</p>
+            <p className="mt-1 text-[11px] text-rose-400">{errors.email}</p>
           )}
         </div>
 
-        {/* Password */}
-        <div className="space-y-1">
+        <div>
+          <div className="mb-1.5 flex items-center justify-between">
+            <label className="text-xs font-semibold text-slate-300">
+              Password
+            </label>
+            <Link
+              href="/forgot-password"
+              className="text-xs font-semibold text-indigo-400 hover:text-indigo-300"
+            >
+              Forgot?
+            </Link>
+          </div>
           <PasswordInput
             value={password}
-            onChange={(val) => {
-              setPassword(val);
-              if (errors.password) setErrors((prev) => ({ ...prev, password: null }));
-            }}
+            onChange={(e) => setPassword(e?.target ? e.target.value : e)}
+            error={errors.password}
             disabled={submitting}
-            hasError={!!errors.password}
           />
-          {errors.password && (
-            <p className="text-xs text-red-500">{errors.password}</p>
-          )}
-        </div>
-
-        <div className="flex items-center justify-between">
-          <RememberMe checked={remember} onChange={setRemember} />
-          <Link href="/forgot-password" className="text-sm font-semibold text-indigo-600">
-            Forgot password?
-          </Link>
         </div>
 
         <button
           type="submit"
           disabled={submitting}
-          className="h-11 w-full rounded-xl bg-indigo-600 text-sm font-bold text-white hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed transition-colors"
+          className="flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-xs font-semibold text-white shadow-lg shadow-indigo-600/25 transition hover:shadow-indigo-600/40 active:scale-95 disabled:opacity-50 cursor-pointer"
         >
-          {submitting ? "Signing In..." : "Sign In"}
+          <span>{submitting ? "Signing in..." : "Sign in to Workspace"}</span>
+          <ArrowRight size={14} />
         </button>
       </form>
 
-      <AuthDivider />
-      <OAuthButtons />
+      <div className="mt-6">
+        <AuthDivider />
+        <div className="mt-4">
+          <OAuthButtons />
+        </div>
+      </div>
 
-      <p className="mt-7 text-center text-sm text-zinc-500">
-        New to MeetMind?{" "}
-        <Link href="/register" className="font-semibold text-indigo-600">
-          Create an account
+      <p className="mt-6 text-center text-xs text-slate-400">
+        Don&apos;t have an account?{" "}
+        <Link
+          href="/register"
+          className="font-semibold text-indigo-400 hover:text-indigo-300"
+        >
+          Create account
         </Link>
       </p>
     </div>

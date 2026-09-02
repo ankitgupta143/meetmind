@@ -1,8 +1,8 @@
 "use client";
 
-import { Bot, Copy, RotateCcw, User } from "lucide-react";
+import { Bot, Copy, RotateCcw, User, Check } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
-
 import MarkdownRenderer from "./MarkdownRenderer";
 
 export default function MessageBubble({
@@ -10,6 +10,7 @@ export default function MessageBubble({
   onRegenerate,
 }) {
   const isUser = message.role === "user";
+  const [copied, setCopied] = useState(false);
 
   const formattedTime = new Date(
     message.createdAt || Date.now()
@@ -21,8 +22,9 @@ export default function MessageBubble({
   const copyMessage = async () => {
     try {
       await navigator.clipboard.writeText(message.content);
-
-      toast.success("Copied to clipboard");
+      setCopied(true);
+      toast.success("Copied message to clipboard");
+      setTimeout(() => setCopied(false), 2000);
     } catch {
       toast.error("Unable to copy");
     }
@@ -30,86 +32,82 @@ export default function MessageBubble({
 
   return (
     <div
-      className={`mb-8 flex gap-4 ${
+      className={`mb-6 flex gap-3.5 ${
         isUser ? "flex-row-reverse" : ""
       }`}
     >
       {/* Avatar */}
-
       <div
-        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-sm ${
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-sm ${
           isUser
-            ? "bg-indigo-50 text-indigo-600"
-            : "bg-gradient-to-br from-indigo-500 to-violet-600 text-white"
+            ? "bg-indigo-500/20 border border-indigo-500/30 text-indigo-400"
+            : "bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-indigo-600/20"
         }`}
       >
-        {isUser ? (
-          <User size={18} />
-        ) : (
-          <Bot size={18} />
-        )}
+        {isUser ? <User size={16} /> : <Bot size={16} />}
       </div>
 
       {/* Message */}
-
       <div
-        className={`max-w-[82%] ${
+        className={`max-w-[85%] sm:max-w-[78%] ${
           isUser ? "items-end" : ""
         } flex flex-col`}
       >
         {/* Header */}
-
-        <div className="mb-2 flex items-center gap-2 text-xs text-zinc-500">
-          <span className="font-medium">
-            {isUser ? "You" : "MeetMind AI"}
+        <div className="mb-1.5 flex items-center gap-2 text-[11px] text-slate-400">
+          <span className="font-semibold text-slate-300">
+            {isUser ? "You" : "MeetMind Copilot"}
           </span>
-
           <span>•</span>
-
-          <span>{formattedTime}</span>
+          <span className="font-mono">{formattedTime}</span>
         </div>
 
         {/* Bubble */}
-
         <div
-          className={`rounded-2xl px-5 py-4 shadow-sm ${
+          className={`rounded-2xl px-4 py-3.5 shadow-md ${
             isUser
-              ? "rounded-tr-none bg-indigo-600 text-white"
-              : "rounded-tl-none border border-zinc-200 bg-white"
+              ? "rounded-tr-none bg-gradient-to-r from-indigo-600 to-violet-600 text-white"
+              : "rounded-tl-none border border-white/[0.08] bg-slate-900/80 text-slate-100"
           }`}
         >
           {isUser ? (
-            <p className="whitespace-pre-wrap text-sm leading-7">
+            <p className="whitespace-pre-wrap text-xs sm:text-sm leading-relaxed">
               {message.content}
             </p>
           ) : (
-            <MarkdownRenderer
-              content={message.content}
-            />
+            <MarkdownRenderer content={message.content} />
           )}
         </div>
 
         {/* Actions */}
-
         {!isUser && (
-          <div className="mt-3 flex items-center gap-3">
+          <div className="mt-2 flex items-center gap-2">
             <button
               onClick={copyMessage}
-              className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900"
+              className="flex items-center gap-1 rounded-lg border border-white/[0.06] bg-white/[0.03] px-2 py-1 text-[11px] font-medium text-slate-400 transition hover:bg-white/10 hover:text-white"
             >
-              <Copy size={14} />
-
-              Copy
+              {copied ? (
+                <>
+                  <Check size={12} className="text-emerald-400" />
+                  <span className="text-emerald-400">Copied</span>
+                </>
+              ) : (
+                <>
+                  <Copy size={12} />
+                  <span>Copy</span>
+                </>
+              )}
             </button>
 
-            <button
-              onClick={onRegenerate}
-              className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900"
-            >
-              <RotateCcw size={14} />
-
-              Regenerate
-            </button>
+            {onRegenerate && (
+              <button
+                onClick={onRegenerate}
+                className="flex items-center gap-1 rounded-lg border border-white/[0.06] bg-white/[0.03] px-2 py-1 text-[11px] font-medium text-slate-400 transition hover:bg-white/10 hover:text-white"
+              >
+                <RotateCcw size={12} />
+                <span>Retry</span>
+              </button>
+            )}
           </div>
         )}
       </div>
