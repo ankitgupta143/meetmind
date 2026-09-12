@@ -15,7 +15,8 @@ const stats = [
     value: "24",
     subtitle: "+3 this week",
     icon: CalendarDays,
-    bgClass: "from-blue-500/20 to-indigo-500/20 border-blue-500/30 text-blue-400",
+    bgClass: "from-blue-500/20 via-indigo-500/15 to-transparent border-blue-500/30 text-blue-400",
+    topLine: "group-hover:via-blue-400/60",
     hoverGlow: "group-hover:border-blue-500/40 group-hover:shadow-[0_15px_35px_-10px_rgba(59,130,246,0.25)]",
   },
   {
@@ -23,7 +24,8 @@ const stats = [
     value: "127",
     subtitle: "91 Completed (72%)",
     icon: CheckCircle2,
-    bgClass: "from-emerald-500/20 to-teal-500/20 border-emerald-500/30 text-emerald-400",
+    bgClass: "from-emerald-500/20 via-teal-500/15 to-transparent border-emerald-500/30 text-emerald-400",
+    topLine: "group-hover:via-emerald-400/60",
     hoverGlow: "group-hover:border-emerald-500/40 group-hover:shadow-[0_15px_35px_-10px_rgba(16,185,129,0.25)]",
   },
   {
@@ -31,7 +33,8 @@ const stats = [
     value: "98%",
     subtitle: "Accuracy Index",
     icon: BrainCircuit,
-    bgClass: "from-violet-500/20 to-purple-500/20 border-violet-500/30 text-violet-400",
+    bgClass: "from-violet-500/20 via-purple-500/15 to-transparent border-violet-500/30 text-violet-400",
+    topLine: "group-hover:via-violet-400/60",
     hoverGlow: "group-hover:border-violet-500/40 group-hover:shadow-[0_15px_35px_-10px_rgba(139,92,246,0.25)]",
   },
   {
@@ -39,7 +42,8 @@ const stats = [
     value: "18h",
     subtitle: "+4.2 hrs this month",
     icon: Clock3,
-    bgClass: "from-amber-500/20 to-orange-500/20 border-amber-500/30 text-amber-400",
+    bgClass: "from-amber-500/20 via-orange-500/15 to-transparent border-amber-500/30 text-amber-400",
+    topLine: "group-hover:via-amber-400/60",
     hoverGlow: "group-hover:border-amber-500/40 group-hover:shadow-[0_15px_35px_-10px_rgba(245,158,11,0.25)]",
   },
 ];
@@ -56,16 +60,19 @@ const QuickStats = () => {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: index * 0.05 }}
-            className={`group relative overflow-hidden rounded-[2rem] border border-white/[0.08] bg-slate-950/60 p-6 shadow-xl backdrop-blur-2xl transition-all duration-300 hover:-translate-y-1 ${stat.hoverGlow}`}
+            className={`group relative overflow-hidden rounded-[2rem] border border-white/[0.08] bg-gradient-to-b from-slate-900/70 via-slate-900/40 to-slate-950/80 p-6 shadow-xl backdrop-blur-2xl transition-all duration-300 hover:-translate-y-1 ${stat.hoverGlow}`}
           >
+            {/* Top specular highlight line with linear gradient */}
+            <div className={`pointer-events-none absolute inset-x-6 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/15 to-transparent transition-opacity duration-300 ${stat.topLine}`} />
+
             <div className="flex items-center justify-between">
               <div
-                className={`flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br border shadow-md transition-transform duration-300 group-hover:scale-110 ${stat.bgClass}`}
+                className={`flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br border shadow-md transition-transform duration-300 group-hover:scale-110 ${stat.bgClass}`}
               >
                 <Icon size={20} />
               </div>
 
-              <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+              <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">
                 <TrendingUp size={12} />
                 <span>Active</span>
               </div>
@@ -91,4 +98,4 @@ const QuickStats = () => {
   );
 };
 
-export default QuickStats;
+export default QuickStats;
