@@ -101,6 +101,7 @@ export default function MeetingDetailsPage() {
       <div className="space-y-8">
         <MeetingDetailsHeader
           meeting={meeting}
+          insights={insights}
         />
 
         <MeetingWorkspace

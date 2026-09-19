@@ -18,6 +18,7 @@ import { useExportDrawer } from "@/context/ExportDrawerContext";
 
 export default function MeetingDetailsHeader({
   meeting,
+  insights,
 }) {
   const router = useRouter();
   const { setOpen } = useExportDrawer();
@@ -65,7 +66,9 @@ export default function MeetingDetailsHeader({
   };
 
   const participantCount =
-    meeting?.participants?.length || 0;
+    meeting?.participants?.length ||
+    insights?.analytics?.speakerStats?.length ||
+    0;
 
   const handleShare = () => {
     if (typeof window !== "undefined") {

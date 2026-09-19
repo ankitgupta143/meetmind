@@ -90,6 +90,27 @@ export async function applyTranscriptDiarization({ meetingId, userId }) {
 
   await transcript.save();
 
+  const uniqueSpeakers = Array.from(
+    new Set(mergedSegments.map((s) => s.speaker).filter(Boolean)),
+  );
+
+  if (uniqueSpeakers.length > 0) {
+    await Meeting.updateOne(
+      {
+        _id: meeting._id,
+        $or: [
+          { participants: { $exists: false } },
+          { participants: { $size: 0 } },
+        ],
+      },
+      {
+        $set: {
+          participants: uniqueSpeakers.map((name) => ({ name })),
+        },
+      },
+    );
+  }
+
   await MeetingInsights.findOneAndUpdate(
     {
       meetingId: meeting._id,
