@@ -59,6 +59,7 @@ const transcriptSchema = new Schema(
     provider: {
       type: String,
       enum: [
+        "whisper",
         "groq-whisper",
         "openai-whisper",
         "assemblyai",

@@ -1,6 +1,7 @@
 import Meeting from "../models/Meeting.js";
 import { generateMeetingInsights } from "./meetingInsights.service.js";
 import { transcribeMeeting } from "./transcription.service.js";
+import { applyTranscriptDiarization } from "./transcriptDiarization.service.js";
 
 export async function processMeeting({ meetingId, userId }) {
   try {
@@ -18,24 +19,41 @@ export async function processMeeting({ meetingId, userId }) {
     console.log(`[Meeting Processing] Transcription completed: ${meetingId}`);
 
     // ----------------------------------------
-    // 2. AI Insights
+    // 2. Speaker Diarization
+    // ----------------------------------------
+
+    const diarizationResult = await applyTranscriptDiarization({
+      meetingId,
+      userId,
+    });
+
+    console.log(
+      `[Meeting Processing] Speaker diarization completed: ${meetingId}`,
+    );
+
+    // ----------------------------------------
+    // 3. AI Insights
     // ----------------------------------------
 
     // Wait for Groq token bucket to refill (free tier: 8000 tokens/min).
     // Transcription consumes ~2700 tokens; insights needs ~2048 output tokens.
     // A 30s pause ensures the bucket has enough headroom.
-    console.log(`[Meeting Processing] Waiting 30s for Groq rate limit to reset...`);
+    console.log(
+      `[Meeting Processing] Waiting 30s for Groq rate limit to reset...`,
+    );
+
     await new Promise((resolve) => setTimeout(resolve, 30_000));
 
     await generateMeetingInsights({
       meetingId,
       userId,
+      speakerStats: diarizationResult.speakerStats,
     });
 
     console.log(`[Meeting Processing] AI insights completed: ${meetingId}`);
 
     // ----------------------------------------
-    // 3. Final meeting status
+    // 4. Final meeting status
     // ----------------------------------------
 
     await Meeting.findOneAndUpdate(

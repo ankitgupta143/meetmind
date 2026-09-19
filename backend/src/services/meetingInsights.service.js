@@ -2,6 +2,7 @@ import Groq from "groq-sdk";
 import Meeting from "../models/Meeting.js";
 import Transcript from "../models/Transcript.js";
 import MeetingInsights from "../models/MeetingInsights.js";
+import { calculateSpeakerStats } from "../utils/calculateSpeakerStats.js";
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
@@ -13,7 +14,7 @@ const groq = new Groq({
 const AI_MODEL = "openai/gpt-oss-20b";
 console.log(`[MeetingInsights] Using model: ${AI_MODEL}`);
 
-export async function generateMeetingInsights({ meetingId, userId }) {
+export async function generateMeetingInsights({ meetingId, userId, speakerStats=[], }) {
   const meeting = await Meeting.findOne({
     _id: meetingId,
     ownerId: userId,
@@ -40,6 +41,11 @@ export async function generateMeetingInsights({ meetingId, userId }) {
   }
 
   const segments = transcript.segments || [];
+
+  const resolvedSpeakerStats =
+    Array.isArray(speakerStats) && speakerStats.length > 0
+      ? speakerStats
+      : calculateSpeakerStats(segments);
 
   const messageCount = segments.length;
 
@@ -236,7 +242,7 @@ ${transcript.rawText.slice(0, 6000)}
 
           totalTalkTimeSeconds,
 
-          speakerStats: [],
+          speakerStats: resolvedSpeakerStats,
 
           sentiment: {
             overall: insights.analytics?.sentiment?.overall || "neutral",

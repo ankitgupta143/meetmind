@@ -91,7 +91,7 @@ export async function transcribeMeeting({
 
           status: "completed",
 
-          provider: "whisper",
+          provider: "groq-whisper",
 
           rawText: transcription.text || "",
 

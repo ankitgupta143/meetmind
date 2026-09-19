@@ -17,6 +17,8 @@ import {
   getMeetingDecisionsController,
   updateMeetingDecisionController,
 } from "../controllers/decision.controller.js";
+import { diarizeMeetingController } from "../controllers/diarization.controller.js";
+import { applyTranscriptDiarizationController, previewTranscriptDiarizationController } from "../controllers/transcriptDiarization.controller.js";
 
 const router = express.Router();
 
@@ -50,4 +52,10 @@ router.patch(
 );
 
 router.delete("/:meetingId/decisions/:index", authenticate, deleteMeetingDecisionController);
+
+router.post("/:meetingId/diarize", authenticate, diarizeMeetingController);
+
+router.post("/:meetingId/diarize-preview", authenticate, previewTranscriptDiarizationController);
+
+router.post("/:meetingId/diarize-apply", authenticate, applyTranscriptDiarizationController);
 export default router;
