@@ -31,41 +31,79 @@ export default function MeetingDetailsPage() {
       return;
     }
 
+    let isMounted = true;
+    let pollTimer = null;
+
     const fetchMeetingData = async () => {
       try {
         setLoading(true);
         setError("");
 
-        const [meetingResponse, insightsResponse] =
-          await Promise.all([
-            api.get(`/meetings/${meetingId}`),
-            api.get(`/meetings/${meetingId}/insights`),
-          ]);
+        const meetingResponse = await api.get(`/meetings/${meetingId}`);
+        const meetingData = meetingResponse.data?.data?.meeting;
 
-        const meetingData =
-          meetingResponse.data?.data?.meeting;
+        if (!meetingData) {
+          throw new Error("Meeting not found.");
+        }
 
-        const insightsData =
-          insightsResponse.data?.data?.insights;
+        if (isMounted) {
+          setMeeting(meetingData);
+        }
 
-        setMeeting(meetingData);
-        setInsights(insightsData);
+        try {
+          const insightsResponse = await api.get(`/meetings/${meetingId}/insights`);
+          const insightsData = insightsResponse.data?.data?.insights;
+          if (isMounted) {
+            setInsights(insightsData);
+          }
+        } catch (insightsErr) {
+          console.log("Insights still processing, will poll for updates...");
+          // Poll every 4 seconds if insights are not ready yet
+          const pollInsights = async () => {
+            if (!isMounted) return;
+            try {
+              const res = await api.get(`/meetings/${meetingId}/insights`);
+              if (res.data?.data?.insights && isMounted) {
+                setInsights(res.data.data.insights);
+                return;
+              }
+            } catch {
+              // still processing
+            }
+            if (isMounted) {
+              pollTimer = setTimeout(pollInsights, 4000);
+            }
+          };
+
+          pollTimer = setTimeout(pollInsights, 4000);
+        }
       } catch (error) {
         console.error(
           "Failed to load meeting workspace:",
           error
         );
 
-        setError(
-          error.response?.data?.message ||
-          "Failed to load meeting."
-        );
+        if (isMounted) {
+          setError(
+            error.response?.data?.message ||
+            "Failed to load meeting."
+          );
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchMeetingData();
+
+    return () => {
+      isMounted = false;
+      if (pollTimer) {
+        clearTimeout(pollTimer);
+      }
+    };
   }, [
     authLoading,
     isAuthenticated,
