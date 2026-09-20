@@ -1,22 +1,32 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { toast } from "sonner";
 import api, { setAccessToken, refreshSession } from "@/lib/api";
 
 const AuthContext = createContext();
 
+const PUBLIC_ROUTES = [
+  "/",
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/verify-email",
+];
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
 
   // Check user session on mount
   useEffect(() => {
     async function checkSession() {
       try {
-        await refreshSession();
+        await refreshSession(false);
         const response = await api.get("/users/me");
         if (response.data?.success) {
           setUser(response.data.data.user);
@@ -37,7 +47,13 @@ export function AuthProvider({ children }) {
     const handleGlobalLogout = () => {
       setUser(null);
       setAccessToken("");
-      router.push("/login");
+      const isPublic =
+        PUBLIC_ROUTES.includes(pathname) ||
+        pathname?.startsWith("/reset-password") ||
+        pathname?.startsWith("/verify-email");
+      if (!isPublic) {
+        router.push("/login");
+      }
     };
 
     if (typeof window !== "undefined") {
@@ -48,7 +64,7 @@ export function AuthProvider({ children }) {
         window.removeEventListener("auth:logout", handleGlobalLogout);
       }
     };
-  }, [router]);
+  }, [pathname, router]);
 
   // Login handler
   const login = async (email, password) => {
@@ -89,7 +105,7 @@ export function AuthProvider({ children }) {
       setUser(null);
       setAccessToken("");
       toast.success("Logged out successfully");
-      router.push("/login");
+      router.push("/");
     }
   };
 

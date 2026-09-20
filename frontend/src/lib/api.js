@@ -34,7 +34,7 @@ api.interceptors.request.use(
 
 let refreshTokenPromise = null;
 
-export const refreshSession = async () => {
+export const refreshSession = async (dispatchLogoutOnFail = true) => {
   if (!refreshTokenPromise) {
     refreshTokenPromise = axios
       .post(
@@ -52,7 +52,7 @@ export const refreshSession = async () => {
       })
       .catch((refreshError) => {
         setAccessToken("");
-        if (typeof window !== "undefined") {
+        if (dispatchLogoutOnFail && typeof window !== "undefined") {
           window.dispatchEvent(new Event("auth:logout"));
         }
         return Promise.reject(refreshError);

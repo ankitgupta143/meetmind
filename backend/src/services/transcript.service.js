@@ -80,6 +80,7 @@ export async function getMeetingTranscript({
     },
     pagination: {
       totalSegments,
+      totalUnfilteredSegments: (transcript.segments ?? []).length,
       totalPages,
       page: safePage,
       limit,

@@ -139,11 +139,15 @@ export default function Transcript({ meetingId }) {
   }, [searchQuery, selectedSpeaker]);
 
   const visibleSegments = transcript?.segments ?? [];
-  const totalSegments = pagination?.totalSegments ?? visibleSegments.length;
+  const totalMatchingSegments = pagination?.totalSegments ?? visibleSegments.length;
+  const totalAllSegments = pagination?.totalUnfilteredSegments ?? totalMatchingSegments;
   const hasMore = pagination?.hasNextPage ?? false;
 
   const hasActiveFilters =
     rawSearch.trim() !== "" || selectedSpeaker !== ALL_SPEAKERS;
+
+  // Has transcript content in this meeting
+  const hasTranscriptContent = totalAllSegments > 0 || (transcript?.rawText && transcript.rawText.length > 0);
 
   function clearFilters() {
     setRawSearch("");
@@ -189,17 +193,17 @@ export default function Transcript({ meetingId }) {
             </p>
           </div>
 
-          {totalSegments > 0 && (
+          {totalAllSegments > 0 && (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1 text-xs font-semibold text-slate-300">
               {hasActiveFilters
-                ? `${visibleSegments.length} of ${totalSegments} segments`
-                : `${totalSegments} segments`}
+                ? `${totalMatchingSegments} of ${totalAllSegments} segments`
+                : `${totalAllSegments} segments`}
             </span>
           )}
         </div>
 
-        {/* Controls */}
-        {totalSegments > 0 && (
+        {/* Controls: Always visible if transcript has content or active filters */}
+        {(hasTranscriptContent || hasActiveFilters) && (
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <div className="relative min-w-[220px] flex-1">
               <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
@@ -249,8 +253,8 @@ export default function Transcript({ meetingId }) {
         )}
       </div>
 
-      {/* Body */}
-      {totalSegments === 0 && (
+      {/* Body: No transcript available at all in this meeting */}
+      {!hasTranscriptContent && !hasActiveFilters && (
         <div className="p-10 text-center">
           <p className="text-xs text-slate-400">
             No transcript segments are available yet.
@@ -258,15 +262,21 @@ export default function Transcript({ meetingId }) {
         </div>
       )}
 
-      {totalSegments > 0 && visibleSegments.length === 0 && (
+      {/* Body: Active filters with 0 matching results */}
+      {hasActiveFilters && visibleSegments.length === 0 && (
         <div className="flex flex-col items-center gap-3 p-10 text-center">
-          <p className="font-semibold text-sm text-slate-300">No matching dialogue found</p>
+          <p className="font-semibold text-sm text-slate-300">
+            No matching dialogue found
+            {searchQuery && (
+              <span className="text-indigo-400"> for &ldquo;{searchQuery}&rdquo;</span>
+            )}
+          </p>
           <p className="text-xs text-slate-400">
             Try adjusting your search query or speaker filter.
           </p>
           <button
             onClick={clearFilters}
-            className="mt-2 rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/10"
+            className="mt-2 rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"
           >
             Clear filters
           </button>

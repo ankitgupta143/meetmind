@@ -59,7 +59,7 @@ export default function PricingSection() {
                 </div>
 
                 <Link
-                  href="/dashboard"
+                  href="/register"
                   className={`mt-8 block w-full rounded-2xl py-3.5 text-center text-sm font-bold transition-all duration-300 active:scale-95 ${
                     plan.popular
                       ? "bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 hover:brightness-110"

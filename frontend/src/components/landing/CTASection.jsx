@@ -32,7 +32,7 @@ export default function CTASection() {
 
           <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
             <Link
-              href="/dashboard"
+              href="/register"
               className="group inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 px-7 py-4 text-sm sm:text-base font-bold text-white shadow-xl shadow-indigo-600/35 transition-all duration-300 hover:shadow-indigo-600/55 hover:-translate-y-0.5 active:scale-95"
             >
               <span>Get Started Now</span>
