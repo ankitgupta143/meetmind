@@ -66,23 +66,43 @@ export default function useGlobalAssistant() {
     setResponsePhase("searching");
     try {
       const answer = await askGlobalAssistant(text);
+
       const assistantMessage = createMessage("assistant", "");
+
       updateActiveChat((chat) => ({
         ...chat,
         messages: [...chat.messages, assistantMessage],
       }));
+
       setResponsePhase("streaming");
 
       for (let index = 1; index <= answer.length; index += 3) {
         await new Promise((resolve) => window.setTimeout(resolve, 9));
+
         const content = answer.slice(0, index);
+
         updateActiveChat((chat) => ({
           ...chat,
           messages: chat.messages.map((message) =>
-            message.id === assistantMessage.id ? { ...message, content } : message,
+            message.id === assistantMessage.id
+              ? { ...message, content }
+              : message,
           ),
         }));
       }
+    } catch (error) {
+      console.error("Global Assistant error:", error);
+
+      updateActiveChat((chat) => ({
+        ...chat,
+        messages: [
+          ...chat.messages,
+          createMessage(
+            "assistant",
+            error.message || "Something went wrong. Please try again.",
+          ),
+        ],
+      }));
     } finally {
       setResponsePhase(null);
       setIsLoading(false);

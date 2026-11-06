@@ -1,5 +1,7 @@
 export function errorHandler(err, req, res, next) {
-  console.error(err);
+  if (err.code !== "REFRESH_TOKEN_REQUIRED") {
+    console.error(err);
+  }
 
   if (err.name === "MulterError") {
     if (err.code === "LIMIT_FILE_SIZE") {
@@ -27,6 +29,13 @@ export function errorHandler(err, req, res, next) {
     return res.status(400).json({
       success: false,
       message: "Recording is too large for transcription (Groq limit: 25 MB). Please re-upload as MP3 or M4A.",
+    });
+  }
+
+  if (err.code === "AI_SERVICE_ERROR") {
+    return res.status(503).json({
+      success: false,
+      message: err.message,
     });
   }
 
