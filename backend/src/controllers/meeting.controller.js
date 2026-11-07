@@ -7,6 +7,7 @@ import {
 import { generateMeetingInsights, getUserMeetingInsights } from "../services/meetingInsights.service.js";
 import { processMeeting } from "../services/meetingProcessing.service.js";
 import { getDashboardOverview } from "../services/dashboard.service.js";
+import { transcribeMeeting } from "../services/transcription.service.js";
 
 export async function getDashboardStatsController(req, res, next) {
   try {
@@ -32,10 +33,21 @@ export async function getMeetingsController(req, res, next) {
       50,
     );
 
+    const {
+      search = "",
+      status = "all",
+      sortBy = "date",
+      sortOrder = "desc",
+    } = req.query;
+
     const result = await getUserMeetings({
       userId: req.user.id,
       page,
       limit,
+      search,
+      status,
+      sortBy,
+      sortOrder,
     });
 
     return res.status(200).json({
@@ -100,8 +112,6 @@ export async function createMeetingController(req, res, next) {
   }
 }
 
-import { transcribeMeeting } from "../services/transcription.service.js";
-
 export async function testTranscriptionController(req, res, next) {
   try {
     const transcription = await transcribeMeeting({
@@ -140,15 +150,14 @@ export async function testMeetingInsightsController(req, res, next) {
   }
 }
 
-
-export async function getMeetingInsightsController(req, res, next){
+export async function getMeetingInsightsController(req, res, next) {
   try {
     const insights = await getUserMeetingInsights({
       meetingId: req.params.id,
       userId: req.user.id,
     });
 
-    if(!insights){
+    if (!insights) {
       return res.status(404).json({
         success: false,
         message: "Meeting insights not found.",
@@ -159,19 +168,14 @@ export async function getMeetingInsightsController(req, res, next){
       success: true,
       data: {
         insights,
-      }
-    })
+      },
+    });
   } catch (error) {
     next(error);
   }
 }
 
-
-export async function meetingAssistantController(
-  req,
-  res,
-  next,
-) {
+export async function meetingAssistantController(req, res, next) {
   try {
     const { message } = req.body;
 

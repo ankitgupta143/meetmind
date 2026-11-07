@@ -2,17 +2,62 @@ import mongoose from "mongoose";
 import Meeting from "../models/Meeting.js";
 import { deleteMeetingFromCloudinary, uploadMeetingToCloudinary } from "./cloudinary.service.js";
 
-export async function getUserMeetings({ userId, page = 1, limit = 10 }) {
+function escapeRegex(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+export async function getUserMeetings({
+  userId,
+  page = 1,
+  limit = 10,
+  search = "",
+  status = "all",
+  sortBy = "date",
+  sortOrder = "desc",
+}) {
   const skip = (page - 1) * limit;
 
   const filter = {
-    ownerId: userId,
+    ownerId: new mongoose.Types.ObjectId(userId),
     status: { $ne: "deleted" },
   };
 
+  // Status Filter
+  if (status && status !== "all") {
+    const normalizedStatus = String(status).toLowerCase();
+    if (normalizedStatus === "completed" || normalizedStatus === "ready") {
+      filter.processingStatus = "completed";
+    } else if (normalizedStatus === "processing") {
+      filter.processingStatus = { $in: ["processing", "pending"] };
+    } else if (normalizedStatus === "failed") {
+      filter.processingStatus = "failed";
+    }
+  }
+
+  // Keyword / Search Filter
+  const trimmedSearch = (search || "").trim();
+  if (trimmedSearch) {
+    const searchRegex = new RegExp(escapeRegex(trimmedSearch), "i");
+    filter.$or = [
+      { title: searchRegex },
+      { description: searchRegex },
+      { "participants.name": searchRegex },
+    ];
+  }
+
+  // Sorting
+  const order = sortOrder === "asc" ? 1 : -1;
+  let sortCriteria = { meetingDate: order, createdAt: order };
+
+  if (sortBy === "title") {
+    sortCriteria = { title: order };
+  } else if (sortBy === "duration") {
+    sortCriteria = { durationSeconds: order };
+  }
+
   const [meetings, total] = await Promise.all([
     Meeting.find(filter)
-      .sort({ meetingDate: -1 })
+      .sort(sortCriteria)
       .skip(skip)
       .limit(limit)
       .lean(),
@@ -20,7 +65,7 @@ export async function getUserMeetings({ userId, page = 1, limit = 10 }) {
     Meeting.countDocuments(filter),
   ]);
 
-  const totalPages = Math.ceil(total / limit);
+  const totalPages = Math.ceil(total / limit) || 1;
 
   return {
     meetings,
@@ -88,7 +133,7 @@ export async function createMeeting({ userId, file }) {
         mimeType: file.mimetype,
         durationSeconds: result.duration || null,
       }
-    })
+    });
     return meeting;
   } catch (error) {
     // If MongoDB creation fails after Cloudinary succeeds,
