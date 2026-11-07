@@ -4,6 +4,7 @@ import {
   getConversations,
   getConversationById,
   sendConversationMessage,
+  streamConversationMessage,
   deleteConversation,
   updateConversationTitle,
 } from "../services/globalConversation.service.js";
@@ -99,11 +100,27 @@ export async function getConversationByIdController(req, res, next) {
 /**
  * POST /api/v1/global-assistant/conversations/:conversationId/messages
  * Send a user message and receive AI response with persistence.
+ * Supports both SSE streaming (stream=true or Accept: text/event-stream) and standard JSON.
  */
 export async function sendConversationMessageController(req, res, next) {
   try {
     const { conversationId } = req.params;
     const { message } = req.body || {};
+
+    const isStream =
+      req.query.stream === "true" ||
+      req.body.stream === true ||
+      req.headers.accept === "text/event-stream";
+
+    if (isStream) {
+      return await streamConversationMessage({
+        userId: req.user.id,
+        conversationId,
+        message,
+        req,
+        res,
+      });
+    }
 
     const result = await sendConversationMessage({
       userId: req.user.id,

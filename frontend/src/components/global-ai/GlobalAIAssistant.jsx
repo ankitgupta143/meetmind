@@ -250,9 +250,24 @@ export default function GlobalAIAssistant() {
                       >
                         {message.role === "user" ? (
                           message.content
+                        ) : !message.content ? (
+                          <div className="flex items-center gap-2.5 py-1 text-slate-300">
+                            <span className="flex gap-1" aria-label="Analyzing">
+                              <i className="h-1.5 w-1.5 animate-bounce rounded-full bg-indigo-400 [animation-delay:-0.3s]" />
+                              <i className="h-1.5 w-1.5 animate-bounce rounded-full bg-indigo-400 [animation-delay:-0.15s]" />
+                              <i className="h-1.5 w-1.5 animate-bounce rounded-full bg-indigo-400" />
+                            </span>
+                            <span className="text-xs font-medium text-slate-400 animate-pulse">
+                              Searching meeting knowledge across workspace...
+                            </span>
+                          </div>
                         ) : (
                           <>
                             <MarkdownRenderer content={message.content} />
+                            {responsePhase === "streaming" &&
+                              index === messages.length - 1 && (
+                                <span className="inline-block h-3.5 w-1.5 ml-1 bg-indigo-400 animate-pulse align-middle" />
+                              )}
                             <SourceCitations sources={message.sources} />
 
                             {/* Copy Message Action */}
@@ -295,25 +310,6 @@ export default function GlobalAIAssistant() {
                     </div>
                   );
                 })}
-
-                {responsePhase === "searching" && (
-                  <div className="flex items-center gap-3 text-xs text-slate-400">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-white">
-                      <Bot size={15} />
-                    </div>
-                    <span>Searching meeting knowledge across workspace</span>
-                    <span className="flex gap-1" aria-label="Searching">
-                      <i className="h-1.5 w-1.5 animate-bounce rounded-full bg-indigo-400" />
-                      <i className="h-1.5 w-1.5 animate-bounce rounded-full bg-indigo-400 [animation-delay:150ms]" />
-                      <i className="h-1.5 w-1.5 animate-bounce rounded-full bg-indigo-400 [animation-delay:300ms]" />
-                    </span>
-                  </div>
-                )}
-                {responsePhase === "streaming" && (
-                  <p className="-mt-4 pl-10 text-xs font-semibold text-indigo-400">
-                    Synthesizing insights…
-                  </p>
-                )}
                 <div ref={bottomRef} />
               </div>
             </div>

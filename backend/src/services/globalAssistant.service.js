@@ -19,12 +19,14 @@ const MAX_SOURCES_RETURNED = 5;
  */
 function getCandidateSegments(segments = [], maxSegments = 6) {
   if (!Array.isArray(segments) || segments.length === 0) return [];
-  // Return the first segments or evenly sampled segments if long
   if (segments.length <= maxSegments) return segments;
   return segments.slice(0, maxSegments);
 }
 
-export async function askGlobalAssistant({ userId, message }) {
+/**
+ * Prepares the grounded meeting context, prompt, and source registry
+ */
+export async function prepareGlobalAssistantContext({ userId, message }) {
   if (typeof message !== "string" || !message.trim()) {
     const error = new Error("Message is required.");
     error.code = "MESSAGE_REQUIRED";
@@ -55,9 +57,11 @@ export async function askGlobalAssistant({ userId, message }) {
 
   if (meetings.length === 0) {
     return {
-      message:
-        "You don't have any meetings available yet. Upload a meeting first, and I'll help you explore its discussions and decisions.",
-      sources: [],
+      earlyReturn: {
+        message:
+          "You don't have any meetings available yet. Upload a meeting first, and I'll help you explore its discussions and decisions.",
+        sources: [],
+      },
     };
   }
 
@@ -192,6 +196,103 @@ If no meeting transcripts or excerpts directly support the answer, output:
 5. Provide a helpful, clean markdown response.
 `;
 
+  return {
+    question,
+    prompt,
+    meetings,
+    sourceRegistry,
+    readyTranscriptCount,
+  };
+}
+
+/**
+ * Parses source tags and cleans raw output from Groq
+ */
+export function parseAndVerifySources({ rawContent, meetings, sourceRegistry }) {
+  if (!rawContent) return { cleanMessage: "", verifiedSources: [] };
+
+  const citedTags = new Set();
+
+  // Check for ```sources [...] ``` or ```json [...] ``` block
+  const sourcesBlockRegex = /```(?:sources|json)?\s*(\[[^\]]*\])\s*```/i;
+  const match = rawContent.match(sourcesBlockRegex);
+
+  let cleanMessage = rawContent;
+
+  if (match) {
+    try {
+      const parsed = JSON.parse(match[1]);
+      if (Array.isArray(parsed)) {
+        parsed.forEach((tag) => {
+          if (typeof tag === "string" && tag.startsWith("SRC-")) {
+            citedTags.add(tag);
+          }
+        });
+      }
+    } catch (_) {}
+    // Strip trailing sources code block from user-visible message
+    cleanMessage = rawContent.replace(sourcesBlockRegex, "").trim();
+  }
+
+  // Also regex scan text for inline [SRC-X] tags
+  const inlineTagRegex = /\[(SRC-\d+)\]/g;
+  let inlineMatch;
+  while ((inlineMatch = inlineTagRegex.exec(cleanMessage)) !== null) {
+    citedTags.add(inlineMatch[1]);
+  }
+
+  // Also clean up any unclosed trailing backticks
+  cleanMessage = cleanMessage.replace(/```(?:sources|json)?\s*$/i, "").trim();
+
+  // Map cited tags to verified database records
+  const verifiedSources = [];
+  const addedExcerpts = new Set();
+
+  for (const tag of citedTags) {
+    if (sourceRegistry.has(tag)) {
+      const sourceData = sourceRegistry.get(tag);
+      const dedupeKey = `${sourceData.meetingId}-${sourceData.startTime}-${sourceData.excerpt.slice(0, 30)}`;
+      if (!addedExcerpts.has(dedupeKey)) {
+        addedExcerpts.add(dedupeKey);
+        verifiedSources.push(sourceData);
+        if (verifiedSources.length >= MAX_SOURCES_RETURNED) break;
+      }
+    }
+  }
+
+  // Fallback: If AI referenced a meeting by title in cleanMessage but missed tags
+  if (verifiedSources.length === 0 && Array.isArray(meetings)) {
+    for (const meeting of meetings) {
+      if (cleanMessage.toLowerCase().includes(meeting.title.toLowerCase())) {
+        for (const [, sourceData] of sourceRegistry.entries()) {
+          if (sourceData.meetingId === String(meeting._id)) {
+            verifiedSources.push(sourceData);
+            break;
+          }
+        }
+        if (verifiedSources.length >= 2) break;
+      }
+    }
+  }
+
+  return {
+    cleanMessage,
+    verifiedSources,
+  };
+}
+
+/**
+ * Synchronous / Non-streaming AI completion (Preserved for backwards compatibility)
+ */
+export async function askGlobalAssistant({ userId, message }) {
+  const contextData = await prepareGlobalAssistantContext({ userId, message });
+
+  if (contextData.earlyReturn) {
+    return contextData.earlyReturn;
+  }
+
+  const { prompt, meetings, readyTranscriptCount, sourceRegistry } = contextData;
+
   try {
     const completion = await groq.chat.completions.create({
       model: AI_MODEL,
@@ -216,70 +317,11 @@ If no meeting transcripts or excerpts directly support the answer, output:
       throw new Error("AI returned an empty response.");
     }
 
-    // 5. Parse cited sources and clean answer text
-    const citedTags = new Set();
-
-    // Check for ```sources [...] ``` or ```json [...] ``` block
-    const sourcesBlockRegex = /```(?:sources|json)?\s*(\[[^\]]*\])\s*```/i;
-    const match = rawContent.match(sourcesBlockRegex);
-
-    let cleanMessage = rawContent;
-
-    if (match) {
-      try {
-        const parsed = JSON.parse(match[1]);
-        if (Array.isArray(parsed)) {
-          parsed.forEach((tag) => {
-            if (typeof tag === "string" && tag.startsWith("SRC-")) {
-              citedTags.add(tag);
-            }
-          });
-        }
-      } catch (_) {}
-      // Strip the trailing sources code block from user-visible message
-      cleanMessage = rawContent.replace(sourcesBlockRegex, "").trim();
-    }
-
-    // Also regex scan text for inline [SRC-X] tags
-    const inlineTagRegex = /\[(SRC-\d+)\]/g;
-    let inlineMatch;
-    while ((inlineMatch = inlineTagRegex.exec(cleanMessage)) !== null) {
-      citedTags.add(inlineMatch[1]);
-    }
-
-    // 6. Map cited tags to verified database records
-    const verifiedSources = [];
-    const addedExcerpts = new Set();
-
-    for (const tag of citedTags) {
-      if (sourceRegistry.has(tag)) {
-        const sourceData = sourceRegistry.get(tag);
-        const dedupeKey = `${sourceData.meetingId}-${sourceData.startTime}-${sourceData.excerpt.slice(0, 30)}`;
-        if (!addedExcerpts.has(dedupeKey)) {
-          addedExcerpts.add(dedupeKey);
-          verifiedSources.push(sourceData);
-          if (verifiedSources.length >= MAX_SOURCES_RETURNED) break;
-        }
-      }
-    }
-
-    // 7. Fallback: If AI referenced a meeting by title in cleanMessage but missed tags
-    if (verifiedSources.length === 0) {
-      for (const meeting of meetings) {
-        if (
-          cleanMessage.toLowerCase().includes(meeting.title.toLowerCase())
-        ) {
-          // Find the first registered source for this meeting
-          for (const [, sourceData] of sourceRegistry.entries()) {
-            if (sourceData.meetingId === String(meeting._id)) {
-              verifiedSources.push(sourceData);
-              break;
-            }
-          }
-          if (verifiedSources.length >= 2) break;
-        }
-      }
-    }
+    const { cleanMessage, verifiedSources } = parseAndVerifySources({
+      rawContent,
+      meetings,
+      sourceRegistry,
+    });
 
     return {
       message: cleanMessage,
@@ -292,11 +334,110 @@ If no meeting transcripts or excerpts directly support the answer, output:
   } catch (error) {
     console.error("[Global Assistant] AI request failed:", error);
 
-    const message =
+    const errorMsg =
       error?.status === 413 || error?.error?.code === "rate_limit_exceeded"
         ? "AI service rate limit exceeded. Please wait a few seconds and try again."
         : "Failed to generate a global assistant response.";
-    const err = new Error(message);
+    const err = new Error(errorMsg);
+    err.code = "AI_SERVICE_ERROR";
+    throw err;
+  }
+}
+
+/**
+ * Real-time SSE streaming AI completion with automatic source suppression
+ */
+export async function askGlobalAssistantStream({
+  userId,
+  message,
+  onToken,
+  isAbortedRef,
+}) {
+  const contextData = await prepareGlobalAssistantContext({ userId, message });
+
+  if (contextData.earlyReturn) {
+    onToken?.({
+      delta: contextData.earlyReturn.message,
+      accumulated: contextData.earlyReturn.message,
+    });
+    return contextData.earlyReturn;
+  }
+
+  const { prompt, meetings, readyTranscriptCount, sourceRegistry } = contextData;
+
+  try {
+    const stream = await groq.chat.completions.create({
+      model: AI_MODEL,
+      temperature: 0.2,
+      max_tokens: 1200,
+      stream: true,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a reliable meeting intelligence assistant. Ground answers strictly in the workspace data and cite sources accurately.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    });
+
+    let rawContent = "";
+    let inSourcesBlock = false;
+
+    for await (const chunk of stream) {
+      if (isAbortedRef?.current) {
+        break;
+      }
+
+      const delta = chunk.choices?.[0]?.delta?.content || "";
+      if (!delta) continue;
+
+      rawContent += delta;
+
+      // Check if we entered the trailing ```sources or ```json block
+      if (!inSourcesBlock) {
+        const match = rawContent.match(/```(?:sources|json)?\s*\[/i);
+        if (match && match.index !== undefined) {
+          inSourcesBlock = true;
+        }
+      }
+
+      // Only emit user-visible tokens outside the sources block
+      if (!inSourcesBlock) {
+        // Strip any trailing partial backticks before the code fence
+        const cleanSoFar = rawContent.replace(/```(?:sources|json)?$/i, "");
+        onToken?.({
+          delta,
+          accumulated: cleanSoFar,
+        });
+      }
+    }
+
+    const { cleanMessage, verifiedSources } = parseAndVerifySources({
+      rawContent,
+      meetings,
+      sourceRegistry,
+    });
+
+    return {
+      message: cleanMessage,
+      sources: verifiedSources,
+      context: {
+        meetingsConsidered: meetings.length,
+        transcriptsAvailable: readyTranscriptCount,
+      },
+    };
+  } catch (error) {
+    console.error("[Global Assistant Stream] AI stream request failed:", error);
+
+    const errorMsg =
+      error?.status === 413 || error?.error?.code === "rate_limit_exceeded"
+        ? "AI service rate limit exceeded. Please wait a few seconds and try again."
+        : "Failed to generate a global assistant response.";
+    const err = new Error(errorMsg);
     err.code = "AI_SERVICE_ERROR";
     throw err;
   }

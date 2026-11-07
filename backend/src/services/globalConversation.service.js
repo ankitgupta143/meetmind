@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import GlobalConversation from "../models/GlobalConversation.js";
-import { askGlobalAssistant } from "./globalAssistant.service.js";
+import { askGlobalAssistant, askGlobalAssistantStream } from "./globalAssistant.service.js";
 
 const MAX_TITLE_LENGTH = 100;
 const MAX_MESSAGE_LENGTH = 2000;
@@ -115,7 +115,7 @@ export async function getConversationById({ userId, conversationId }) {
 }
 
 /**
- * Send a message within a conversation:
+ * Send a message within a conversation (Synchronous fallback):
  * 1. Validates ownership and input.
  * 2. Persists the user message immediately so it's not lost.
  * 3. Calls askGlobalAssistant() to generate an AI answer.
@@ -229,6 +229,161 @@ export async function sendConversationMessage({
       updatedAt: conversation.updatedAt,
     },
   };
+}
+
+/**
+ * Stream a message within a conversation via Server-Sent Events (SSE)
+ */
+export async function streamConversationMessage({
+  userId,
+  conversationId,
+  message,
+  req,
+  res,
+}) {
+  validateObjectId(conversationId, "conversation ID");
+
+  if (typeof message !== "string" || !message.trim()) {
+    const error = new Error("Message is required.");
+    error.code = "MESSAGE_REQUIRED";
+    throw error;
+  }
+
+  const trimmedMessage = message.trim();
+  if (trimmedMessage.length > MAX_MESSAGE_LENGTH) {
+    const error = new Error(
+      `Message cannot exceed ${MAX_MESSAGE_LENGTH} characters.`
+    );
+    error.code = "MESSAGE_TOO_LONG";
+    throw error;
+  }
+
+  const conversation = await GlobalConversation.findOne({
+    _id: conversationId,
+    ownerId: userId,
+  });
+
+  if (!conversation) {
+    const error = new Error(
+      "Conversation not found or you do not have permission to access it."
+    );
+    error.code = "CONVERSATION_NOT_FOUND";
+    throw error;
+  }
+
+  // Count existing user messages to know if we should update conversation title
+  const existingUserMessages = conversation.messages.filter(
+    (msg) => msg.role === "user"
+  ).length;
+
+  // 1. Persist user message first
+  const userMessage = {
+    role: "user",
+    content: trimmedMessage,
+    createdAt: new Date(),
+  };
+
+  conversation.messages.push(userMessage);
+  conversation.lastMessageAt = new Date();
+  await conversation.save();
+
+  const savedUserMessage =
+    conversation.messages[conversation.messages.length - 1];
+
+  // 2. Set up SSE stream headers
+  res.writeHead(200, {
+    "Content-Type": "text/event-stream; charset=utf-8",
+    "Cache-Control": "no-cache, no-transform",
+    "Connection": "keep-alive",
+    "X-Accel-Buffering": "no",
+  });
+  res.flushHeaders?.();
+
+  const sendEvent = (event, data) => {
+    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  };
+
+  // Emit metadata immediately so client knows user message was saved
+  sendEvent("metadata", {
+    conversationId: conversation._id,
+    userMessage: savedUserMessage,
+    title: conversation.title,
+  });
+
+  // Client abort detection
+  const isAbortedRef = { current: false };
+  req.on("close", () => {
+    isAbortedRef.current = true;
+  });
+
+  try {
+    let accumulatedText = "";
+
+    const aiResult = await askGlobalAssistantStream({
+      userId,
+      message: trimmedMessage,
+      isAbortedRef,
+      onToken: ({ delta, accumulated }) => {
+        accumulatedText = accumulated;
+        sendEvent("token", { delta, text: accumulated });
+      },
+    });
+
+    // Emit verified source references
+    sendEvent("sources", {
+      sources: aiResult.sources || [],
+    });
+
+    // 3. Persist assistant message in MongoDB
+    const finalContent = aiResult.message || accumulatedText || "";
+    const assistantMessage = {
+      role: "assistant",
+      content: finalContent,
+      sources: aiResult.sources || [],
+      createdAt: new Date(),
+    };
+
+    conversation.messages.push(assistantMessage);
+
+    if (
+      existingUserMessages === 0 &&
+      (!conversation.title || conversation.title === "New conversation")
+    ) {
+      conversation.title =
+        trimmedMessage.length > 40
+          ? `${trimmedMessage.slice(0, 37)}...`
+          : trimmedMessage;
+    }
+
+    conversation.lastMessageAt = new Date();
+    await conversation.save();
+
+    const savedAssistantMessage =
+      conversation.messages[conversation.messages.length - 1];
+
+    sendEvent("done", {
+      assistantMessage: savedAssistantMessage,
+      conversation: {
+        _id: conversation._id,
+        title: conversation.title,
+        lastMessageAt: conversation.lastMessageAt,
+        updatedAt: conversation.updatedAt,
+      },
+    });
+
+    res.end();
+  } catch (error) {
+    console.error("[Stream Conversation] Error during streaming:", error);
+
+    if (res.headersSent) {
+      sendEvent("error", {
+        message: error.message || "Failed to generate AI response.",
+      });
+      res.end();
+    } else {
+      throw error;
+    }
+  }
 }
 
 /**
