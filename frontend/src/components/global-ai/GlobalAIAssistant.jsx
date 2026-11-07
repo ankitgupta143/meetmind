@@ -6,9 +6,12 @@ import {
   Bot,
   ChevronDown,
   Clock3,
+  Copy,
+  Check,
   Menu,
   Plus,
   Sparkles,
+  Square,
   User,
 } from "lucide-react";
 import TextareaAutosize from "react-textarea-autosize";
@@ -18,14 +21,25 @@ import Sidebar from "./Sidebar";
 import MarkdownRenderer from "@/components/ai-assistant/MarkdownRenderer";
 import SourceCitations from "./SourceCitations";
 
+const SCOPE_OPTIONS = [
+  { id: "all", label: "All workspace meetings" },
+  { id: "7days", label: "Past 7 days" },
+  { id: "30days", label: "Past 30 days" },
+];
+
 export default function GlobalAIAssistant() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [scopeDropdownOpen, setScopeDropdownOpen] = useState(false);
+  const [copiedId, setCopiedId] = useState(null);
   const bottomRef = useRef(null);
+
   const {
     activeChatId,
     chatGroups,
     createConversation,
     deleteConversation,
+    renameConversation,
+    stopGeneration,
     input,
     isLoading,
     isInitialLoading,
@@ -36,6 +50,8 @@ export default function GlobalAIAssistant() {
     sendMessage,
     setActiveChatId,
     setInput,
+    scopeFilter,
+    setScopeFilter,
   } = useGlobalAssistant();
 
   useEffect(() => {
@@ -46,6 +62,20 @@ export default function GlobalAIAssistant() {
     createConversation();
     setSidebarOpen(false);
   };
+
+  const handleCopy = async (id, text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
+
+  const activeScopeLabel =
+    SCOPE_OPTIONS.find((opt) => opt.id === scopeFilter)?.label ||
+    "All workspace meetings";
 
   const history = (
     <Sidebar
@@ -58,6 +88,7 @@ export default function GlobalAIAssistant() {
         setSidebarOpen(false);
       }}
       onDelete={deleteConversation}
+      onRename={renameConversation}
       isLoading={isInitialLoading}
       error={historyError}
       onRetry={retryFetchHistory}
@@ -98,13 +129,45 @@ export default function GlobalAIAssistant() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button className="hidden items-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-slate-300 sm:flex">
-                <Clock3 size={13} className="text-indigo-400" /> All workspace
-                meetings <ChevronDown size={13} />
-              </button>
+              {/* Interactive Scope Filter */}
+              <div className="relative hidden sm:block">
+                <button
+                  type="button"
+                  onClick={() => setScopeDropdownOpen((prev) => !prev)}
+                  className="flex items-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.04] hover:bg-white/[0.08] px-3 py-1.5 text-xs font-semibold text-slate-300 transition cursor-pointer"
+                >
+                  <Clock3 size={13} className="text-indigo-400" />
+                  <span>{activeScopeLabel}</span>
+                  <ChevronDown size={13} />
+                </button>
+
+                {scopeDropdownOpen && (
+                  <div className="absolute right-0 mt-1.5 w-48 rounded-xl border border-white/[0.08] bg-slate-900/95 p-1 shadow-xl backdrop-blur-xl z-30 space-y-0.5">
+                    {SCOPE_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => {
+                          setScopeFilter(opt.id);
+                          setScopeDropdownOpen(false);
+                        }}
+                        className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs transition cursor-pointer ${
+                          scopeFilter === opt.id
+                            ? "bg-indigo-600 text-white font-medium"
+                            : "text-slate-300 hover:bg-white/[0.06] hover:text-white"
+                        }`}
+                      >
+                        <span>{opt.label}</span>
+                        {scopeFilter === opt.id && <Check size={12} />}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <button
                 onClick={startChat}
-                className="rounded-xl p-2 text-slate-400 hover:bg-white/10 hover:text-white"
+                className="rounded-xl p-2 text-slate-400 hover:bg-white/10 hover:text-white transition"
                 title="Start new conversation"
               >
                 <Plus size={18} />
@@ -155,50 +218,90 @@ export default function GlobalAIAssistant() {
           ) : (
             <div className="flex-1 overflow-y-auto px-5 py-6 sm:px-10">
               <div className="mx-auto max-w-3xl space-y-6">
-                {messages.map((message, index) => (
-                  <div
-                    key={message.id || message._id || index}
-                    className={`flex gap-3.5 ${
-                      message.role === "user" ? "justify-end" : ""
-                    }`}
-                  >
+                {messages.map((message, index) => {
+                  const isCopied = copiedId === (message.id || message._id);
+
+                  return (
                     <div
-                      className={`mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${
-                        message.role === "user"
-                          ? "order-2 bg-indigo-500/20 border border-indigo-500/30 text-indigo-400"
-                          : "bg-gradient-to-tr from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-600/20"
+                      key={message.id || message._id || index}
+                      className={`group flex gap-3.5 ${
+                        message.role === "user" ? "justify-end" : ""
                       }`}
                     >
-                      {message.role === "user" ? (
-                        <User size={15} />
-                      ) : (
-                        <Bot size={16} />
-                      )}
+                      <div
+                        className={`mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${
+                          message.role === "user"
+                            ? "order-2 bg-indigo-500/20 border border-indigo-500/30 text-indigo-400"
+                            : "bg-gradient-to-tr from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-600/20"
+                        }`}
+                      >
+                        {message.role === "user" ? (
+                          <User size={15} />
+                        ) : (
+                          <Bot size={16} />
+                        )}
+                      </div>
+                      <div
+                        className={`relative max-w-[85%] rounded-2xl px-4 py-3 text-xs sm:text-sm leading-relaxed shadow-md ${
+                          message.role === "user"
+                            ? "order-1 rounded-tr-none bg-gradient-to-r from-indigo-600 to-violet-600 text-white"
+                            : "rounded-tl-none border border-white/[0.08] bg-slate-900/80 text-slate-200"
+                        }`}
+                      >
+                        {message.role === "user" ? (
+                          message.content
+                        ) : (
+                          <>
+                            <MarkdownRenderer content={message.content} />
+                            <SourceCitations sources={message.sources} />
+
+                            {/* Copy Message Action */}
+                            <div className="mt-2.5 pt-2 border-t border-white/[0.06] flex items-center justify-between text-[11px] text-slate-400">
+                              <span className="text-[10px] text-slate-500">
+                                MeetMind Workspace AI
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleCopy(
+                                    message.id || message._id,
+                                    message.content
+                                  )
+                                }
+                                className="inline-flex items-center gap-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] px-2 py-0.5 text-[10px] font-medium text-slate-300 hover:text-white transition cursor-pointer"
+                                title="Copy response to clipboard"
+                              >
+                                {isCopied ? (
+                                  <>
+                                    <Check
+                                      size={11}
+                                      className="text-emerald-400"
+                                    />
+                                    <span className="text-emerald-400">
+                                      Copied!
+                                    </span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy size={11} />
+                                    <span>Copy</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
-                    <div
-                      className={`max-w-[85%] rounded-2xl px-4 py-3 text-xs sm:text-sm leading-relaxed shadow-md ${
-                        message.role === "user"
-                          ? "order-1 rounded-tr-none bg-gradient-to-r from-indigo-600 to-violet-600 text-white"
-                          : "rounded-tl-none border border-white/[0.08] bg-slate-900/80 text-slate-200"
-                      }`}
-                    >
-                      {message.role === "user" ? (
-                        message.content
-                      ) : (
-                        <>
-                          <MarkdownRenderer content={message.content} />
-                          <SourceCitations sources={message.sources} />
-                        </>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
+
                 {responsePhase === "searching" && (
                   <div className="flex items-center gap-3 text-xs text-slate-400">
                     <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-white">
                       <Bot size={15} />
                     </div>
-                    <span>Scanning transcript database</span>
+                    <span>Searching meeting knowledge across workspace</span>
                     <span className="flex gap-1" aria-label="Searching">
                       <i className="h-1.5 w-1.5 animate-bounce rounded-full bg-indigo-400" />
                       <i className="h-1.5 w-1.5 animate-bounce rounded-full bg-indigo-400 [animation-delay:150ms]" />
@@ -231,13 +334,27 @@ export default function GlobalAIAssistant() {
                 placeholder="Ask about discussions, decisions or deliverables across all meetings..."
                 className="max-h-32 flex-1 resize-none bg-transparent px-1 py-1 text-xs sm:text-sm text-slate-100 placeholder-slate-500 outline-none"
               />
-              <button
-                onClick={() => sendMessage()}
-                disabled={!input.trim() || isLoading}
-                className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white disabled:opacity-40 shadow-md transition hover:scale-105"
-              >
-                <ArrowUp size={16} />
-              </button>
+
+              {isLoading ? (
+                <button
+                  type="button"
+                  onClick={stopGeneration}
+                  className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 border border-rose-500/40 shadow-md transition cursor-pointer"
+                  title="Stop generating"
+                >
+                  <Square size={13} className="fill-current" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => sendMessage()}
+                  disabled={!input.trim()}
+                  className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white disabled:opacity-40 shadow-md transition hover:scale-105 cursor-pointer"
+                  title="Send message"
+                >
+                  <ArrowUp size={16} />
+                </button>
+              )}
             </div>
             <p className="mx-auto mt-2 max-w-3xl text-center text-[10px] text-slate-500">
               MeetMind AI parses transcripts with semantic context. Verify

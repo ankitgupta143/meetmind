@@ -5,6 +5,7 @@ import {
   getConversationById,
   sendConversationMessage,
   deleteConversation,
+  updateConversationTitle,
 } from "../services/globalConversation.service.js";
 
 /**
@@ -132,6 +133,32 @@ export async function deleteConversationController(req, res, next) {
     });
 
     return res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * PATCH /api/v1/global-assistant/conversations/:conversationId
+ * Update conversation title.
+ */
+export async function updateConversationTitleController(req, res, next) {
+  try {
+    const { conversationId } = req.params;
+    const { title } = req.body || {};
+
+    const updated = await updateConversationTitle({
+      userId: req.user.id,
+      conversationId,
+      title,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        conversation: updated,
+      },
+    });
   } catch (error) {
     next(error);
   }

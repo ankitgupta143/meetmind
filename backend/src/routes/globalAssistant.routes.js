@@ -7,6 +7,7 @@ import {
   getConversationByIdController,
   sendConversationMessageController,
   deleteConversationController,
+  updateConversationTitleController,
 } from "../controllers/globalAssistant.controller.js";
 
 const router = express.Router();
@@ -31,6 +32,11 @@ router.delete(
   "/conversations/:conversationId",
   authenticate,
   deleteConversationController
+);
+router.patch(
+  "/conversations/:conversationId",
+  authenticate,
+  updateConversationTitleController
 );
 
 export default router;

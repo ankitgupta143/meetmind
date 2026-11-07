@@ -173,7 +173,8 @@ export function errorHandler(err, req, res, next) {
     err.code === "MESSAGE_REQUIRED" ||
     err.code === "Message_REQUIRED" ||
     err.code === "MESSAGE_TOO_LONG" ||
-    err.code === "TITLE_TOO_LONG"
+    err.code === "TITLE_TOO_LONG" ||
+    err.code === "TITLE_REQUIRED"
   ) {
     return res.status(400).json({
       success: false,

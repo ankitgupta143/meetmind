@@ -122,3 +122,23 @@ export async function deleteConversation(conversationId) {
     );
   }
 }
+
+/**
+ * Rename a conversation
+ */
+export async function updateConversationTitle(conversationId, title) {
+  try {
+    const response = await api.patch(
+      `/global-assistant/conversations/${conversationId}`,
+      { title }
+    );
+    return response.data?.data?.conversation;
+  } catch (error) {
+    console.error("[Global Assistant] Failed to update title:", error);
+    throw new Error(
+      error.response?.data?.message ||
+        error.message ||
+        "Failed to update conversation title."
+    );
+  }
+}

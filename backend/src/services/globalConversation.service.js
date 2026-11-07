@@ -255,3 +255,41 @@ export async function deleteConversation({ userId, conversationId }) {
     message: "Conversation deleted successfully.",
   };
 }
+
+/**
+ * Update the title of a conversation owned by the authenticated user.
+ */
+export async function updateConversationTitle({ userId, conversationId, title }) {
+  validateObjectId(conversationId, "conversation ID");
+
+  if (typeof title !== "string" || !title.trim()) {
+    const error = new Error("Conversation title is required.");
+    error.code = "TITLE_REQUIRED";
+    throw error;
+  }
+
+  const cleanTitle = title.trim();
+  if (cleanTitle.length > MAX_TITLE_LENGTH) {
+    const error = new Error(
+      `Conversation title cannot exceed ${MAX_TITLE_LENGTH} characters.`
+    );
+    error.code = "TITLE_TOO_LONG";
+    throw error;
+  }
+
+  const conversation = await GlobalConversation.findOneAndUpdate(
+    { _id: conversationId, ownerId: userId },
+    { title: cleanTitle },
+    { new: true }
+  ).select("_id title lastMessageAt updatedAt");
+
+  if (!conversation) {
+    const error = new Error(
+      "Conversation not found or you do not have permission to update it."
+    );
+    error.code = "CONVERSATION_NOT_FOUND";
+    throw error;
+  }
+
+  return conversation;
+}

@@ -7,6 +7,7 @@ import {
   getConversationById,
   sendConversationMessage,
   deleteConversation as deleteConversationApi,
+  updateConversationTitle as updateConversationTitleApi,
 } from "../services/globalAssistantService";
 import { groupConversationsByDate } from "../data/assistantData";
 
@@ -21,10 +22,12 @@ export default function useGlobalAssistant() {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [historyError, setHistoryError] = useState(null);
   const [responsePhase, setResponsePhase] = useState(null);
+  const [scopeFilter, setScopeFilter] = useState("all"); // "all" | "7days" | "30days"
 
   // Ref to track active request by conversation ID to prevent duplicate requests
   const pendingRequestsRef = useRef(new Set());
   const isMountedRef = useRef(true);
+  const isAbortedRef = useRef(false);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -125,11 +128,10 @@ export default function useGlobalAssistant() {
       }
     } catch (error) {
       console.error("Failed to load conversation history:", error);
-      if (isMountedRef.current) {
-        setHistoryError(
-          error.message || "Failed to load chat history. Please try again."
-        );
-      }
+      if (!isMountedRef.current) return;
+      setHistoryError(
+        error.message || "Failed to load chat history. Please try again."
+      );
     } finally {
       if (isMountedRef.current) {
         setIsInitialLoading(false);
@@ -184,6 +186,32 @@ export default function useGlobalAssistant() {
     }
   }, [isLoading]);
 
+  // Handler for renaming a conversation
+  const handleRenameChat = useCallback(
+    async (conversationId, newTitle) => {
+      const clean = (newTitle || "").trim();
+      if (!conversationId || !clean) return;
+
+      const prevList = [...conversationsList];
+
+      // Optimistic update
+      setConversationsList((prev) =>
+        prev.map((c) =>
+          (c._id || c.id) === conversationId ? { ...c, title: clean } : c
+        )
+      );
+
+      try {
+        await updateConversationTitleApi(conversationId, clean);
+      } catch (err) {
+        console.error("Failed to rename conversation:", err);
+        setConversationsList(prevList);
+        throw err;
+      }
+    },
+    [conversationsList]
+  );
+
   // Handler for deleting a conversation
   const handleDeleteChat = useCallback(
     async (conversationId) => {
@@ -229,12 +257,20 @@ export default function useGlobalAssistant() {
     [activeChatId, conversationsList, loadConversationMessages]
   );
 
+  // Stop generation handler
+  const stopGeneration = useCallback(() => {
+    isAbortedRef.current = true;
+    setIsLoading(false);
+    setResponsePhase(null);
+  }, []);
+
   // Handler for sending a message
   const sendMessage = useCallback(
     async (prompt = input) => {
       const text = prompt.trim();
       if (!text || isLoading) return;
 
+      isAbortedRef.current = false;
       let targetChatId = activeChatId;
 
       // If no active chat exists, create one first in MongoDB
@@ -301,6 +337,8 @@ export default function useGlobalAssistant() {
 
       try {
         const responseData = await sendConversationMessage(targetChatId, text);
+        if (isAbortedRef.current) return;
+
         const { assistantMessage, conversation: updatedConv } =
           responseData || {};
 
@@ -358,7 +396,7 @@ export default function useGlobalAssistant() {
 
         // Simulate streaming chunks
         for (let idx = 1; idx <= fullAnswer.length; idx += 3) {
-          if (!isMountedRef.current) break;
+          if (!isMountedRef.current || isAbortedRef.current) break;
           await new Promise((resolve) => window.setTimeout(resolve, 8));
 
           const streamedContent = fullAnswer.slice(0, idx);
@@ -374,8 +412,8 @@ export default function useGlobalAssistant() {
           }));
         }
 
-        // Ensure full content is set at the end
-        if (isMountedRef.current) {
+        // Ensure full content is set at the end if not aborted
+        if (isMountedRef.current && !isAbortedRef.current) {
           setChatMessagesMap((prev) => ({
             ...prev,
             [targetChatId]: (prev[targetChatId] || []).map((msg) =>
@@ -388,7 +426,7 @@ export default function useGlobalAssistant() {
       } catch (error) {
         console.error("Global Assistant send error:", error);
 
-        if (isMountedRef.current) {
+        if (isMountedRef.current && !isAbortedRef.current) {
           const errorMsg = {
             id: `err-${Date.now()}`,
             role: "assistant",
@@ -420,6 +458,8 @@ export default function useGlobalAssistant() {
     chatGroups,
     createConversation: handleNewChat,
     deleteConversation: handleDeleteChat,
+    renameConversation: handleRenameChat,
+    stopGeneration,
     input,
     isLoading,
     isInitialLoading,
@@ -430,5 +470,7 @@ export default function useGlobalAssistant() {
     sendMessage,
     setActiveChatId: handleSelectChat,
     setInput,
+    scopeFilter,
+    setScopeFilter,
   };
 }
