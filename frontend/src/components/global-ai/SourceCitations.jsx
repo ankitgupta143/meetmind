@@ -82,7 +82,7 @@ export default function SourceCitations({ sources = [] }) {
 
                 {source.excerpt && (
                   <p className="border-l-2 border-indigo-500/40 pl-2 text-[11px] leading-relaxed text-slate-300 italic line-clamp-3">
-                    "{source.excerpt}"
+                    &ldquo;{source.excerpt}&rdquo;
                   </p>
                 )}
 

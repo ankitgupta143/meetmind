@@ -1,13 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Upload, Search, Sparkles, ArrowRight, Zap, Bot } from "lucide-react";
+import { Upload, Search, Sparkles, Bot } from "lucide-react";
 import { useUploadModal } from "@/context/UploadModalContext";
-import { dashboardData } from "@/constants/mockData";
 import { useAuth } from "@/context/AuthContext";
-import { motion } from "framer-motion";
 
-const HeroSection = () => {
+const HeroSection = ({ description, stats }) => {
   const router = useRouter();
   const { setOpen } = useUploadModal();
   const { user } = useAuth();
@@ -24,7 +22,13 @@ const HeroSection = () => {
 
   const userName = user?.firstName
     ? `${user.firstName} ${user.lastName || ""}`.trim()
-    : dashboardData.user.name;
+    : user?.name || "there";
+
+  const heroText =
+    description ||
+    (stats?.totalMeetings > 0
+      ? `Your AI assistant has analyzed ${stats.completedMeetings || 0} meetings, extracted ${stats.totalActionItems || 0} action items, and prepared decision dossiers for your review.`
+      : "Ready to transform today's conversations into clear decisions, action items, and AI-powered insights.");
 
   return (
     <section className="relative overflow-hidden rounded-[2.5rem] border border-white/[0.08] bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/50 p-6 sm:p-9 md:p-10 shadow-2xl backdrop-blur-2xl">
@@ -49,7 +53,7 @@ const HeroSection = () => {
           </h1>
 
           <p className="mt-3 text-xs leading-relaxed text-slate-300 sm:text-sm md:text-base">
-            Your AI assistant has analyzed recent transcripts, extracted 12 action items, and prepared decision dossiers for your review.
+            {heroText}
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
@@ -74,7 +78,7 @@ const HeroSection = () => {
         {/* AI Pulse Badge Card */}
         <div className="relative rounded-2xl border border-white/[0.08] bg-slate-900/60 p-5 backdrop-blur-xl shadow-lg lg:w-72">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400">AI Status</span>
+            <span className="text-xs font-semibold text-slate-400">AI Engine</span>
             <span className="relative flex h-2.5 w-2.5">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
@@ -86,7 +90,7 @@ const HeroSection = () => {
               <Bot size={20} />
             </div>
             <div>
-              <p className="text-xs font-bold text-white">Gemini Engine</p>
+              <p className="text-xs font-bold text-white">Groq & Whisper</p>
               <p className="text-[11px] text-slate-400">Audio Diarization Ready</p>
             </div>
           </div>

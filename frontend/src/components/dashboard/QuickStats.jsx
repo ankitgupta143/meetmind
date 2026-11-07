@@ -9,38 +9,42 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-const stats = [
+const defaultCardsConfig = [
   {
+    key: "meetings",
     title: "Meetings Analyzed",
-    value: "24",
-    subtitle: "+3 this week",
+    defaultVal: "0",
+    defaultSub: "0 this week",
     icon: CalendarDays,
     bgClass: "from-blue-500/20 via-indigo-500/15 to-transparent border-blue-500/30 text-blue-400",
     topLine: "group-hover:via-blue-400/60",
     hoverGlow: "group-hover:border-blue-500/40 group-hover:shadow-[0_15px_35px_-10px_rgba(59,130,246,0.25)]",
   },
   {
+    key: "actionItems",
     title: "Action Items",
-    value: "127",
-    subtitle: "91 Completed (72%)",
+    defaultVal: "0",
+    defaultSub: "0 Completed (0%)",
     icon: CheckCircle2,
     bgClass: "from-emerald-500/20 via-teal-500/15 to-transparent border-emerald-500/30 text-emerald-400",
     topLine: "group-hover:via-emerald-400/60",
     hoverGlow: "group-hover:border-emerald-500/40 group-hover:shadow-[0_15px_35px_-10px_rgba(16,185,129,0.25)]",
   },
   {
+    key: "aiSummaries",
     title: "AI Summaries",
-    value: "98%",
-    subtitle: "Accuracy Index",
+    defaultVal: "98%",
+    defaultSub: "Accuracy Index",
     icon: BrainCircuit,
     bgClass: "from-violet-500/20 via-purple-500/15 to-transparent border-violet-500/30 text-violet-400",
     topLine: "group-hover:via-violet-400/60",
     hoverGlow: "group-hover:border-violet-500/40 group-hover:shadow-[0_15px_35px_-10px_rgba(139,92,246,0.25)]",
   },
   {
+    key: "timeSaved",
     title: "Time Saved",
-    value: "18h",
-    subtitle: "+4.2 hrs this month",
+    defaultVal: "0h",
+    defaultSub: "+0 hrs this month",
     icon: Clock3,
     bgClass: "from-amber-500/20 via-orange-500/15 to-transparent border-amber-500/30 text-amber-400",
     topLine: "group-hover:via-amber-400/60",
@@ -48,10 +52,41 @@ const stats = [
   },
 ];
 
-const QuickStats = () => {
+const QuickStats = ({ stats, quickStats }) => {
+  // If backend provided pre-formatted quickStats array, map values into styled cards
+  const cards = defaultCardsConfig.map((config, index) => {
+    let value = config.defaultVal;
+    let subtitle = config.defaultSub;
+
+    if (Array.isArray(quickStats) && quickStats[index]) {
+      value = quickStats[index].value ?? value;
+      subtitle = quickStats[index].subtitle ?? subtitle;
+    } else if (stats) {
+      if (config.key === "meetings") {
+        value = String(stats.completedMeetings ?? 0);
+        subtitle = `+${stats.newMeetingsThisWeek ?? 0} this week`;
+      } else if (config.key === "actionItems") {
+        value = String(stats.totalActionItems ?? 0);
+        subtitle = `${stats.completedActionItems ?? 0} Completed (${stats.actionItemsCompletionRate ?? 0}%)`;
+      } else if (config.key === "aiSummaries") {
+        value = (stats.completedMeetings ?? 0) > 0 ? "98%" : "Ready";
+        subtitle = "Accuracy Index";
+      } else if (config.key === "timeSaved") {
+        value = `${stats.timeSavedHours ?? 0}h`;
+        subtitle = `+${stats.recentTimeSavedHours ?? 0} hrs this month`;
+      }
+    }
+
+    return {
+      ...config,
+      value,
+      subtitle,
+    };
+  });
+
   return (
     <section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      {stats.map((stat, index) => {
+      {cards.map((stat, index) => {
         const Icon = stat.icon;
 
         return (
@@ -98,4 +133,4 @@ const QuickStats = () => {
   );
 };
 
-export default QuickStats;
+export default QuickStats;

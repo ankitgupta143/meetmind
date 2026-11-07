@@ -2,6 +2,7 @@ import express from "express";
 import { authenticate } from "../middlewares/auth.middleware.js";
 import {
   createMeetingController,
+  getDashboardStatsController,
   getMeetingByIdController,
   getMeetingInsightsController,
   getMeetingsController,
@@ -23,6 +24,8 @@ import { applyTranscriptDiarizationController, previewTranscriptDiarizationContr
 const router = express.Router();
 
 router.get("/", authenticate, getMeetingsController);
+router.get("/stats", authenticate, getDashboardStatsController);
+router.get("/dashboard/stats", authenticate, getDashboardStatsController);
 router.get("/:id", authenticate, getMeetingByIdController);
 router.get("/:id/transcript", authenticate, getMeetingTranscriptController);
 router.get("/:id/insights", authenticate, getMeetingInsightsController);

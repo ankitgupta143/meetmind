@@ -6,6 +6,22 @@ import {
 } from "../services/meeting.service.js";
 import { generateMeetingInsights, getUserMeetingInsights } from "../services/meetingInsights.service.js";
 import { processMeeting } from "../services/meetingProcessing.service.js";
+import { getDashboardOverview } from "../services/dashboard.service.js";
+
+export async function getDashboardStatsController(req, res, next) {
+  try {
+    const overview = await getDashboardOverview({
+      userId: req.user.id,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: overview,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
 
 export async function getMeetingsController(req, res, next) {
   try {
