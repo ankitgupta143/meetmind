@@ -1,34 +1,50 @@
 "use client";
 
-import {
-  Clock3,
-  ArrowUpRight,
-  Sparkles,
-} from "lucide-react";
+import { Clock3, ArrowUpRight, Sparkles, Trash2 } from "lucide-react";
 
-const recent = [
-  "Authentication Architecture",
-  "Redis Caching Layer",
-  "Sprint 14 Planning & Goals",
-  "Executive Dashboard Metrics",
-  "Backend Audio Processing API",
+const suggested = [
+  "Action Items",
+  "Sprint Planning",
+  "Roadmap",
+  "Decisions",
+  "Deployment",
 ];
 
-export default function RecentSearches({ onSelect }) {
+export default function RecentSearches({
+  searches = [],
+  onSelect,
+  onClear,
+}) {
+  const hasHistory = Array.isArray(searches) && searches.length > 0;
+  const items = hasHistory ? searches : suggested;
+
   return (
     <div className="rounded-[2rem] border border-white/[0.08] bg-slate-950/60 p-6 sm:p-8 shadow-xl backdrop-blur-2xl">
-      <div className="mb-5 flex items-center gap-2.5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400">
-          <Clock3 size={16} />
+      <div className="mb-5 flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400">
+            {hasHistory ? <Clock3 size={16} /> : <Sparkles size={16} />}
+          </div>
+
+          <h3 className="text-sm font-bold text-white">
+            {hasHistory ? "Recent Searches" : "Suggested Topics"}
+          </h3>
         </div>
 
-        <h3 className="text-sm font-bold text-white">
-          Recent Searches
-        </h3>
+        {hasHistory && onClear && (
+          <button
+            onClick={onClear}
+            className="flex items-center gap-1 text-[11px] font-semibold text-slate-400 hover:text-rose-400 transition cursor-pointer"
+            title="Clear search history"
+          >
+            <Trash2 size={12} />
+            <span>Clear</span>
+          </button>
+        )}
       </div>
 
       <div className="space-y-2">
-        {recent.map((item) => (
+        {items.map((item) => (
           <button
             key={item}
             onClick={() => onSelect(item)}
