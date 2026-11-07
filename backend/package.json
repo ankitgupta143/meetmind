@@ -16,6 +16,8 @@
     "test:token": "node src/scripts/testAccessToken.js",
     "test:session": "node src/scripts/testSession.js",
     "test:user-profile": "node src/scripts/testUserProfile.js",
+    "test:conversation-model": "node src/scripts/testGlobalConversationModel.js",
+    "test:persistence": "node src/scripts/testPersistenceSuite.js",
     "verify:cloudinary": "node src/scripts/verify-cloudinary.js"
   },
   "dependencies": {

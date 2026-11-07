@@ -161,6 +161,26 @@ export function errorHandler(err, req, res, next) {
     });
   }
 
+  if (err.code === "CONVERSATION_NOT_FOUND") {
+    return res.status(404).json({
+      success: false,
+      message: err.message || "Conversation not found.",
+    });
+  }
+
+  if (
+    err.code === "INVALID_CONVERSATION_ID" ||
+    err.code === "MESSAGE_REQUIRED" ||
+    err.code === "Message_REQUIRED" ||
+    err.code === "MESSAGE_TOO_LONG" ||
+    err.code === "TITLE_TOO_LONG"
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: err.message,
+    });
+  }
+
   return res.status(500).json({
     success: false,
     message: "Internal Server Error.",

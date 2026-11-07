@@ -1,10 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowUp, Bot, ChevronDown, Clock3, Menu, Plus, Sparkles, User, Copy, Check } from "lucide-react";
+import {
+  ArrowUp,
+  Bot,
+  ChevronDown,
+  Clock3,
+  Menu,
+  Plus,
+  Sparkles,
+  User,
+} from "lucide-react";
 import TextareaAutosize from "react-textarea-autosize";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { GLOBAL_ASSISTANT_PROMPTS } from "./data/assistantData";
 import useGlobalAssistant from "./hooks/useGlobalAssistant";
 import Sidebar from "./Sidebar";
@@ -17,8 +24,10 @@ export default function GlobalAIAssistant() {
     activeChatId,
     chatGroups,
     createConversation,
+    deleteConversation,
     input,
     isLoading,
+    isInitialLoading,
     messages,
     responsePhase,
     sendMessage,
@@ -45,6 +54,7 @@ export default function GlobalAIAssistant() {
         setActiveChatId(id);
         setSidebarOpen(false);
       }}
+      onDelete={deleteConversation}
     />
   );
 
@@ -83,7 +93,8 @@ export default function GlobalAIAssistant() {
             </div>
             <div className="flex items-center gap-2">
               <button className="hidden items-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-slate-300 sm:flex">
-                <Clock3 size={13} className="text-indigo-400" /> All workspace meetings <ChevronDown size={13} />
+                <Clock3 size={13} className="text-indigo-400" /> All workspace
+                meetings <ChevronDown size={13} />
               </button>
               <button
                 onClick={startChat}
@@ -105,7 +116,8 @@ export default function GlobalAIAssistant() {
                   Your entire meeting memory, connected.
                 </h2>
                 <p className="mt-2 max-w-xl text-xs sm:text-sm leading-relaxed text-slate-400">
-                  Ask MeetMind to connect the dots across conversations, decisions, speaker sentiment, and cross-team commitments.
+                  Ask MeetMind to connect the dots across conversations,
+                  decisions, speaker sentiment, and cross-team commitments.
                 </p>
                 <div className="mt-8 grid gap-3 sm:grid-cols-2">
                   {GLOBAL_ASSISTANT_PROMPTS.map(
@@ -120,14 +132,16 @@ export default function GlobalAIAssistant() {
                             <Icon size={16} />
                           </div>
                           <div>
-                            <p className="text-xs font-bold text-slate-200 group-hover:text-white">{title}</p>
+                            <p className="text-xs font-bold text-slate-200 group-hover:text-white">
+                              {title}
+                            </p>
                             <p className="mt-0.5 text-[11px] text-slate-400">
                               {subtitle}
                             </p>
                           </div>
                         </div>
                       </button>
-                    ),
+                    )
                   )}
                 </div>
               </div>
@@ -135,13 +149,19 @@ export default function GlobalAIAssistant() {
           ) : (
             <div className="flex-1 overflow-y-auto px-5 py-6 sm:px-10">
               <div className="mx-auto max-w-3xl space-y-6">
-                {messages.map((message) => (
+                {messages.map((message, index) => (
                   <div
-                    key={message.id}
-                    className={`flex gap-3.5 ${message.role === "user" ? "justify-end" : ""}`}
+                    key={message.id || message._id || index}
+                    className={`flex gap-3.5 ${
+                      message.role === "user" ? "justify-end" : ""
+                    }`}
                   >
                     <div
-                      className={`mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${message.role === "user" ? "order-2 bg-indigo-500/20 border border-indigo-500/30 text-indigo-400" : "bg-gradient-to-tr from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-600/20"}`}
+                      className={`mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${
+                        message.role === "user"
+                          ? "order-2 bg-indigo-500/20 border border-indigo-500/30 text-indigo-400"
+                          : "bg-gradient-to-tr from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-600/20"
+                      }`}
                     >
                       {message.role === "user" ? (
                         <User size={15} />
@@ -150,7 +170,11 @@ export default function GlobalAIAssistant() {
                       )}
                     </div>
                     <div
-                      className={`max-w-[85%] rounded-2xl px-4 py-3 text-xs sm:text-sm leading-relaxed shadow-md ${message.role === "user" ? "order-1 rounded-tr-none bg-gradient-to-r from-indigo-600 to-violet-600 text-white" : "rounded-tl-none border border-white/[0.08] bg-slate-900/80 text-slate-200"}`}
+                      className={`max-w-[85%] rounded-2xl px-4 py-3 text-xs sm:text-sm leading-relaxed shadow-md ${
+                        message.role === "user"
+                          ? "order-1 rounded-tr-none bg-gradient-to-r from-indigo-600 to-violet-600 text-white"
+                          : "rounded-tl-none border border-white/[0.08] bg-slate-900/80 text-slate-200"
+                      }`}
                     >
                       {message.role === "user" ? (
                         message.content
@@ -174,7 +198,9 @@ export default function GlobalAIAssistant() {
                   </div>
                 )}
                 {responsePhase === "streaming" && (
-                  <p className="-mt-4 pl-10 text-xs font-semibold text-indigo-400">Synthesizing insights…</p>
+                  <p className="-mt-4 pl-10 text-xs font-semibold text-indigo-400">
+                    Synthesizing insights…
+                  </p>
                 )}
                 <div ref={bottomRef} />
               </div>
@@ -205,7 +231,8 @@ export default function GlobalAIAssistant() {
               </button>
             </div>
             <p className="mx-auto mt-2 max-w-3xl text-center text-[10px] text-slate-500">
-              MeetMind AI parses transcripts with semantic context. Verify mission-critical details with source recordings.
+              MeetMind AI parses transcripts with semantic context. Verify
+              mission-critical details with source recordings.
             </p>
           </div>
         </section>
