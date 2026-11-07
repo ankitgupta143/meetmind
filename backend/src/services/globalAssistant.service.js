@@ -10,13 +10,24 @@ const groq = new Groq({
 const AI_MODEL = process.env.GROQ_GLOBAL_ASSISTANT_MODEL || "openai/gpt-oss-20b";
 
 const MAX_MEETINGS = 5;
-const MAX_TRANSCRIPT_CHARS = 1200;
 const MAX_MESSAGE_LENGTH = 2000;
+const MAX_EXCERPT_CHARS = 300;
+const MAX_SOURCES_RETURNED = 5;
+
+/**
+ * Filter or slice segments to fit context cleanly
+ */
+function getCandidateSegments(segments = [], maxSegments = 6) {
+  if (!Array.isArray(segments) || segments.length === 0) return [];
+  // Return the first segments or evenly sampled segments if long
+  if (segments.length <= maxSegments) return segments;
+  return segments.slice(0, maxSegments);
+}
 
 export async function askGlobalAssistant({ userId, message }) {
   if (typeof message !== "string" || !message.trim()) {
     const error = new Error("Message is required.");
-    error.code = "Message_REQUIRED";
+    error.code = "MESSAGE_REQUIRED";
     throw error;
   }
 
@@ -24,12 +35,13 @@ export async function askGlobalAssistant({ userId, message }) {
 
   if (question.length > MAX_MESSAGE_LENGTH) {
     const error = new Error(
-      `Message cannot exceed ${MAX_MESSAGE_LENGTH} characters.`,
+      `Message cannot exceed ${MAX_MESSAGE_LENGTH} characters.`
     );
     error.code = "MESSAGE_TOO_LONG";
     throw error;
   }
 
+  // 1. Fetch user's non-deleted meetings
   const meetings = await Meeting.find({
     ownerId: userId,
     status: { $ne: "deleted" },
@@ -37,7 +49,7 @@ export async function askGlobalAssistant({ userId, message }) {
     .sort({ meetingDate: -1, createdAt: -1 })
     .limit(MAX_MEETINGS)
     .select(
-      "_id title description meetingDate durationSeconds participants status processingStatus",
+      "_id title description meetingDate durationSeconds participants status processingStatus"
     )
     .lean();
 
@@ -45,112 +57,139 @@ export async function askGlobalAssistant({ userId, message }) {
     return {
       message:
         "You don't have any meetings available yet. Upload a meeting first, and I'll help you explore its discussions and decisions.",
+      sources: [],
     };
   }
 
   const meetingIds = meetings.map((meeting) => meeting._id);
 
+  // 2. Fetch completed Transcripts (including segments) and MeetingInsights
   const [transcripts, insightList] = await Promise.all([
     Transcript.find({
       meetingId: { $in: meetingIds },
       status: "completed",
     })
-      .select("meetingId rawText language")
+      .select("meetingId rawText language segments")
       .lean(),
 
     MeetingInsights.find({
       meetingId: { $in: meetingIds },
       status: "completed",
     })
-      .select(
-        "meetingId summary actionItems decisions risks",
-      )
+      .select("meetingId summary actionItems decisions risks")
       .lean(),
   ]);
 
-  // 4. Index the results by meeting ID for efficient lookup.
   const transcriptMap = new Map(
-    transcripts.map((transcript) => [String(transcript.meetingId), transcript]),
+    transcripts.map((transcript) => [String(transcript.meetingId), transcript])
   );
 
   const insightsMap = new Map(
-    insightList.map((insights) => [String(insights.meetingId), insights]),
+    insightList.map((insights) => [String(insights.meetingId), insights])
   );
 
-  // 5. Build a compact, bounded context for the AI to stay within TPM limits.
-  const meetingContext = meetings.map((meeting) => {
-    const meetingId = String(meeting._id);
-    const transcript = transcriptMap.get(meetingId);
-    const insights = insightsMap.get(meetingId);
+  // 3. Build a source registry for deterministic, un-hallucinated citations
+  // Map: "SRC-1" -> { meetingId, meetingTitle, excerpt, startTime, endTime, speaker }
+  const sourceRegistry = new Map();
+  let sourceCounter = 1;
 
-    const maxTranscriptLength = insights ? 600 : MAX_TRANSCRIPT_CHARS;
+  const meetingContext = meetings.map((meeting) => {
+    const meetingIdStr = String(meeting._id);
+    const transcript = transcriptMap.get(meetingIdStr);
+    const insights = insightsMap.get(meetingIdStr);
+
+    const segments = transcript?.segments || [];
+    const candidateSegments = getCandidateSegments(segments, 6);
+
+    const indexedSources = [];
+
+    if (candidateSegments.length > 0) {
+      for (const seg of candidateSegments) {
+        if (!seg.text || !seg.text.trim()) continue;
+        const tag = `SRC-${sourceCounter++}`;
+        const sourceData = {
+          meetingId: meetingIdStr,
+          meetingTitle: meeting.title,
+          excerpt: seg.text.trim().slice(0, MAX_EXCERPT_CHARS),
+          startTime: typeof seg.startTime === "number" ? seg.startTime : null,
+          endTime: typeof seg.endTime === "number" ? seg.endTime : null,
+          speaker: seg.speaker || null,
+        };
+        sourceRegistry.set(tag, sourceData);
+        indexedSources.push({
+          sourceTag: tag,
+          speaker: seg.speaker,
+          time: seg.startTime,
+          text: seg.text.slice(0, 250),
+        });
+      }
+    } else if (transcript?.rawText?.trim()) {
+      // Fallback if transcript has rawText but no segments
+      const tag = `SRC-${sourceCounter++}`;
+      const snippet = transcript.rawText.trim().slice(0, MAX_EXCERPT_CHARS);
+      sourceRegistry.set(tag, {
+        meetingId: meetingIdStr,
+        meetingTitle: meeting.title,
+        excerpt: snippet,
+        startTime: null,
+        endTime: null,
+        speaker: null,
+      });
+      indexedSources.push({
+        sourceTag: tag,
+        text: snippet,
+      });
+    }
 
     return {
-      meetingId,
+      meetingId: meetingIdStr,
       title: meeting.title,
-      description: meeting.description || "",
       meetingDate: meeting.meetingDate,
-      durationSeconds: meeting.durationSeconds || 0,
-      participants: meeting.participants || [],
-
-      transcriptSnippet: transcript
-        ? (transcript.rawText || "").slice(0, maxTranscriptLength)
-        : null,
-
       insights: insights
         ? {
             overview: insights.summary?.overview || "",
-            keyPoints: insights.summary?.keyPoints || [],
             actionItems: (insights.actionItems || []).map((item) => ({
               title: item.title,
               assignee: item.assignee,
-              dueDate: item.dueDate,
               status: item.status,
             })),
             decisions: (insights.decisions || []).map((d) => ({
               title: d.title,
               description: d.description,
             })),
-            risks: (insights.risks || []).map((r) => ({
-              title: r.title,
-              severity: r.severity,
-            })),
           }
         : null,
+      transcriptExcerpts: indexedSources,
     };
   });
 
   const readyTranscriptCount = meetingContext.filter(
-    (meeting) => meeting.transcriptSnippet,
+    (meeting) => meeting.transcriptExcerpts.length > 0
   ).length;
 
-  // 6. Ask Groq to answer using the supplied workspace context.
+  // 4. Construct prompt instructing the AI to provide answers with source tags
   const prompt = `
 You are MeetMind's Global AI Meeting Assistant.
-
-You help the authenticated user understand information across
-their recorded meetings.
 
 USER QUESTION:
 ${question}
 
-MEETING WORKSPACE DATA:
-${JSON.stringify(meetingContext)}
+AVAILABLE MEETING WORKSPACE CONTEXT:
+${JSON.stringify(meetingContext, null, 2)}
 
-RULES:
-- Use only the supplied meeting data to answer questions about meetings.
-- Never invent meetings, people, quotations, decisions, deadlines, or statistics.
-- For summaries, prioritize the structured meeting insights when available.
-- For questions about what was actually said, use the transcript text.
-- For cross-meeting questions, compare the available meetings when relevant.
-- Mention meeting titles and dates when they help identify the source.
-- If information is missing, say so clearly.
-- If no relevant evidence is present, do not pretend that a search found a result.
-- Some transcripts may be truncated. Do not claim to have searched their entire contents.
-- Distinguish overdue tasks from tasks whose due dates or completion status
-  are unknown. Do not assume a task is overdue without sufficient data.
-- Keep the answer clear, structured, and concise.
-- Return a useful answer in Markdown.
+INSTRUCTIONS & CITATION RULES:
+1. Answer the question using ONLY the provided meeting data.
+2. If any statement is based on a transcript excerpt, cite the relevant [SRC-#] tag in your response.
+3. At the end of your response, you MUST output a JSON block listing all source tags you cited or used to construct your answer, formatted exactly as:
+\`\`\`sources
+["SRC-1", "SRC-2"]
+\`\`\`
+If no meeting transcripts or excerpts directly support the answer, output:
+\`\`\`sources
+[]
+\`\`\`
+4. Do not invent source tags, meeting IDs, or excerpts that do not appear in the context.
+5. Provide a helpful, clean markdown response.
 `;
 
   try {
@@ -162,7 +201,7 @@ RULES:
         {
           role: "system",
           content:
-            "You are a reliable meeting intelligence assistant. Ground factual answers in the provided workspace data.",
+            "You are a reliable meeting intelligence assistant. Ground answers strictly in the workspace data and cite sources accurately.",
         },
         {
           role: "user",
@@ -171,14 +210,80 @@ RULES:
       ],
     });
 
-    const answer = completion.choices?.[0]?.message?.content?.trim();
+    const rawContent = completion.choices?.[0]?.message?.content?.trim();
 
-    if (!answer) {
+    if (!rawContent) {
       throw new Error("AI returned an empty response.");
     }
 
+    // 5. Parse cited sources and clean answer text
+    const citedTags = new Set();
+
+    // Check for ```sources [...] ``` or ```json [...] ``` block
+    const sourcesBlockRegex = /```(?:sources|json)?\s*(\[[^\]]*\])\s*```/i;
+    const match = rawContent.match(sourcesBlockRegex);
+
+    let cleanMessage = rawContent;
+
+    if (match) {
+      try {
+        const parsed = JSON.parse(match[1]);
+        if (Array.isArray(parsed)) {
+          parsed.forEach((tag) => {
+            if (typeof tag === "string" && tag.startsWith("SRC-")) {
+              citedTags.add(tag);
+            }
+          });
+        }
+      } catch (_) {}
+      // Strip the trailing sources code block from user-visible message
+      cleanMessage = rawContent.replace(sourcesBlockRegex, "").trim();
+    }
+
+    // Also regex scan text for inline [SRC-X] tags
+    const inlineTagRegex = /\[(SRC-\d+)\]/g;
+    let inlineMatch;
+    while ((inlineMatch = inlineTagRegex.exec(cleanMessage)) !== null) {
+      citedTags.add(inlineMatch[1]);
+    }
+
+    // 6. Map cited tags to verified database records
+    const verifiedSources = [];
+    const addedExcerpts = new Set();
+
+    for (const tag of citedTags) {
+      if (sourceRegistry.has(tag)) {
+        const sourceData = sourceRegistry.get(tag);
+        const dedupeKey = `${sourceData.meetingId}-${sourceData.startTime}-${sourceData.excerpt.slice(0, 30)}`;
+        if (!addedExcerpts.has(dedupeKey)) {
+          addedExcerpts.add(dedupeKey);
+          verifiedSources.push(sourceData);
+          if (verifiedSources.length >= MAX_SOURCES_RETURNED) break;
+        }
+      }
+    }
+
+    // 7. Fallback: If AI referenced a meeting by title in cleanMessage but missed tags
+    if (verifiedSources.length === 0) {
+      for (const meeting of meetings) {
+        if (
+          cleanMessage.toLowerCase().includes(meeting.title.toLowerCase())
+        ) {
+          // Find the first registered source for this meeting
+          for (const [, sourceData] of sourceRegistry.entries()) {
+            if (sourceData.meetingId === String(meeting._id)) {
+              verifiedSources.push(sourceData);
+              break;
+            }
+          }
+          if (verifiedSources.length >= 2) break;
+        }
+      }
+    }
+
     return {
-      message: answer,
+      message: cleanMessage,
+      sources: verifiedSources,
       context: {
         meetingsConsidered: meetings.length,
         transcriptsAvailable: readyTranscriptCount,

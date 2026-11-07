@@ -10,6 +10,8 @@ import {
 } from "../services/globalAssistantService";
 import { groupConversationsByDate } from "../data/assistantData";
 
+const ACTIVE_CHAT_STORAGE_KEY = "meetmind_active_chat_id";
+
 export default function useGlobalAssistant() {
   const [conversationsList, setConversationsList] = useState([]);
   const [activeChatId, setActiveChatId] = useState(null);
@@ -17,6 +19,7 @@ export default function useGlobalAssistant() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [historyError, setHistoryError] = useState(null);
   const [responsePhase, setResponsePhase] = useState(null);
 
   // Ref to track active request by conversation ID to prevent duplicate requests
@@ -73,6 +76,7 @@ export default function useGlobalAssistant() {
             _id: msg._id,
             role: msg.role,
             content: msg.content,
+            sources: msg.sources || [],
             createdAt: msg.createdAt,
           })),
         }));
@@ -83,47 +87,70 @@ export default function useGlobalAssistant() {
     []
   );
 
-  // Initial load: Fetch conversation history from MongoDB
-  useEffect(() => {
-    let isCancelled = false;
+  // Fetch conversations from MongoDB with localStorage restore
+  const fetchHistory = useCallback(async () => {
+    setIsInitialLoading(true);
+    setHistoryError(null);
 
-    async function init() {
-      setIsInitialLoading(true);
-      try {
-        const data = await getConversations(1, 50);
-        if (isCancelled || !isMountedRef.current) return;
+    try {
+      const data = await getConversations(1, 50);
+      if (!isMountedRef.current) return;
 
-        const list = data?.conversations || [];
-        setConversationsList(list);
+      const list = data?.conversations || [];
+      setConversationsList(list);
 
-        if (list.length > 0) {
-          const firstId = list[0]._id;
-          setActiveChatId(firstId);
-          await loadConversationMessages(firstId);
-        } else {
-          setActiveChatId(null);
-        }
-      } catch (error) {
-        console.error("Failed to load initial conversations:", error);
-      } finally {
-        if (!isCancelled && isMountedRef.current) {
-          setIsInitialLoading(false);
-        }
+      if (list.length > 0) {
+        // Attempt to restore previously active conversation from localStorage
+        let savedChatId = null;
+        try {
+          savedChatId = localStorage.getItem(ACTIVE_CHAT_STORAGE_KEY);
+        } catch (_) {}
+
+        const matchedChat = list.find((c) => (c._id || c.id) === savedChatId);
+        const targetId = matchedChat
+          ? (matchedChat._id || matchedChat.id)
+          : list[0]._id;
+
+        setActiveChatId(targetId);
+        try {
+          localStorage.setItem(ACTIVE_CHAT_STORAGE_KEY, targetId);
+        } catch (_) {}
+
+        await loadConversationMessages(targetId);
+      } else {
+        setActiveChatId(null);
+        try {
+          localStorage.removeItem(ACTIVE_CHAT_STORAGE_KEY);
+        } catch (_) {}
+      }
+    } catch (error) {
+      console.error("Failed to load conversation history:", error);
+      if (isMountedRef.current) {
+        setHistoryError(
+          error.message || "Failed to load chat history. Please try again."
+        );
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setIsInitialLoading(false);
       }
     }
-
-    init();
-
-    return () => {
-      isCancelled = true;
-    };
   }, [loadConversationMessages]);
+
+  // Initial load on mount
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
 
   // Handler for selecting an existing chat
   const handleSelectChat = useCallback(
     async (id) => {
       if (id === activeChatId) return;
       setActiveChatId(id);
+
+      try {
+        localStorage.setItem(ACTIVE_CHAT_STORAGE_KEY, id);
+      } catch (_) {}
 
       // If we don't have messages cached for this chat yet, fetch them
       if (!chatMessagesMap[id]) {
@@ -147,6 +174,9 @@ export default function useGlobalAssistant() {
         [newId]: [],
       }));
       setActiveChatId(newId);
+      try {
+        localStorage.setItem(ACTIVE_CHAT_STORAGE_KEY, newId);
+      } catch (_) {}
       setInput("");
       return newId;
     } catch (error) {
@@ -180,9 +210,15 @@ export default function useGlobalAssistant() {
           if (remaining.length > 0) {
             const nextId = remaining[0]._id || remaining[0].id;
             setActiveChatId(nextId);
+            try {
+              localStorage.setItem(ACTIVE_CHAT_STORAGE_KEY, nextId);
+            } catch (_) {}
             loadConversationMessages(nextId);
           } else {
             setActiveChatId(null);
+            try {
+              localStorage.removeItem(ACTIVE_CHAT_STORAGE_KEY);
+            } catch (_) {}
           }
         }
       } catch (error) {
@@ -212,6 +248,9 @@ export default function useGlobalAssistant() {
             [targetChatId]: [],
           }));
           setActiveChatId(targetChatId);
+          try {
+            localStorage.setItem(ACTIVE_CHAT_STORAGE_KEY, targetChatId);
+          } catch (_) {}
         } catch (createErr) {
           console.error("Failed to create conversation for message:", createErr);
           return;
@@ -305,6 +344,7 @@ export default function useGlobalAssistant() {
           _id: assistantMessage?._id,
           role: "assistant",
           content: "",
+          sources: assistantMessage?.sources || responseData?.sources || [],
           createdAt: assistantMessage?.createdAt || new Date(),
         };
 
@@ -383,6 +423,8 @@ export default function useGlobalAssistant() {
     input,
     isLoading,
     isInitialLoading,
+    historyError,
+    retryFetchHistory: fetchHistory,
     responsePhase,
     messages: activeChat?.messages || [],
     sendMessage,

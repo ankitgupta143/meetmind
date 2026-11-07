@@ -197,6 +197,7 @@ export async function sendConversationMessage({
   const assistantMessage = {
     role: "assistant",
     content: aiResult.message || "",
+    sources: aiResult.sources || [],
     createdAt: new Date(),
   };
 

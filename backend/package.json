@@ -18,6 +18,7 @@
     "test:user-profile": "node src/scripts/testUserProfile.js",
     "test:conversation-model": "node src/scripts/testGlobalConversationModel.js",
     "test:persistence": "node src/scripts/testPersistenceSuite.js",
+    "test:sources": "node src/scripts/testSourceReferences.js",
     "verify:cloudinary": "node src/scripts/verify-cloudinary.js"
   },
   "dependencies": {

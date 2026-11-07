@@ -2,6 +2,47 @@ import mongoose from "mongoose";
 
 const { Schema } = mongoose;
 
+const sourceSchema = new Schema(
+  {
+    meetingId: {
+      type: Schema.Types.ObjectId,
+      ref: "Meeting",
+      required: [true, "Source meetingId is required"],
+    },
+    meetingTitle: {
+      type: String,
+      required: [true, "Source meetingTitle is required"],
+      trim: true,
+      maxlength: 200,
+    },
+    excerpt: {
+      type: String,
+      required: [true, "Source excerpt is required"],
+      trim: true,
+      maxlength: 1000,
+    },
+    startTime: {
+      type: Number,
+      default: null,
+      min: 0,
+    },
+    endTime: {
+      type: Number,
+      default: null,
+      min: 0,
+    },
+    speaker: {
+      type: String,
+      default: null,
+      trim: true,
+      maxlength: 100,
+    },
+  },
+  {
+    _id: false,
+  }
+);
+
 const messageSchema = new Schema(
   {
     role: {
@@ -16,6 +57,10 @@ const messageSchema = new Schema(
       type: String,
       required: [true, "Message content is required"],
       trim: true,
+    },
+    sources: {
+      type: [sourceSchema],
+      default: undefined, // Backward compatible: undefined for older or user messages
     },
     createdAt: {
       type: Date,

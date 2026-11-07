@@ -1,7 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { MessageSquare, Plus, Sparkles, Trash2, Check, X } from "lucide-react";
+import {
+  MessageSquare,
+  Plus,
+  RotateCw,
+  Sparkles,
+  Trash2,
+  Check,
+  X,
+} from "lucide-react";
 
 export default function Sidebar({
   activeChatId,
@@ -10,6 +18,9 @@ export default function Sidebar({
   onNewChat,
   onSelect,
   onDelete,
+  isLoading = false,
+  error = null,
+  onRetry,
 }) {
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -67,7 +78,41 @@ export default function Sidebar({
       </button>
 
       <div className="mt-5 flex-1 space-y-5 overflow-y-auto">
-        {totalConversations === 0 ? (
+        {isLoading ? (
+          <div className="space-y-4 px-1">
+            <div className="space-y-2">
+              <div className="h-2 w-14 rounded bg-white/10 animate-pulse" />
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 bg-white/[0.03] animate-pulse"
+                >
+                  <div className="h-3.5 w-3.5 rounded bg-white/10 shrink-0" />
+                  <div
+                    className="h-3 rounded bg-white/10"
+                    style={{ width: `${55 + i * 15}%` }}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : error ? (
+          <div className="mx-1 rounded-2xl border border-rose-500/20 bg-rose-950/20 p-3 text-center">
+            <p className="text-[11px] text-rose-300 mb-2.5 leading-relaxed">
+              {error}
+            </p>
+            {onRetry && (
+              <button
+                type="button"
+                onClick={onRetry}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-rose-500/20 px-3 py-1.5 text-[11px] font-semibold text-rose-200 hover:bg-rose-500/30 transition cursor-pointer"
+              >
+                <RotateCw size={12} />
+                <span>Retry</span>
+              </button>
+            )}
+          </div>
+        ) : totalConversations === 0 ? (
           <div className="px-3 py-6 text-center text-xs text-slate-500">
             No previous conversations
           </div>

@@ -135,6 +135,37 @@ async function testGlobalConversationModel() {
     "Compound index { ownerId: 1, lastMessageAt: -1 } is defined"
   );
 
+  // Test 10: Verify message sources field
+  const docWithSources = new GlobalConversation({
+    ownerId: testOwnerId,
+    messages: [
+      {
+        role: "assistant",
+        content: "We discussed the API release date.",
+        sources: [
+          {
+            meetingId: new mongoose.Types.ObjectId(),
+            meetingTitle: "Sprint Planning",
+            excerpt: "We should target Friday for release.",
+            startTime: 75.5,
+            endTime: 85.0,
+            speaker: "David",
+          },
+        ],
+      },
+    ],
+  });
+  try {
+    await docWithSources.validate();
+    assert(
+      docWithSources.messages[0].sources?.length === 1 &&
+        docWithSources.messages[0].sources[0].meetingTitle === "Sprint Planning",
+      "Sources subdocument validates and stores citations accurately"
+    );
+  } catch (err) {
+    assert(false, `Sources validation failed: ${err.message}`);
+  }
+
   console.log(`\nResults: ${testsPassed}/${totalTests} tests passed.`);
 
   // 2. Database Connection Test (run if --db flag passed)

@@ -16,6 +16,7 @@ import { GLOBAL_ASSISTANT_PROMPTS } from "./data/assistantData";
 import useGlobalAssistant from "./hooks/useGlobalAssistant";
 import Sidebar from "./Sidebar";
 import MarkdownRenderer from "@/components/ai-assistant/MarkdownRenderer";
+import SourceCitations from "./SourceCitations";
 
 export default function GlobalAIAssistant() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -28,6 +29,8 @@ export default function GlobalAIAssistant() {
     input,
     isLoading,
     isInitialLoading,
+    historyError,
+    retryFetchHistory,
     messages,
     responsePhase,
     sendMessage,
@@ -55,6 +58,9 @@ export default function GlobalAIAssistant() {
         setSidebarOpen(false);
       }}
       onDelete={deleteConversation}
+      isLoading={isInitialLoading}
+      error={historyError}
+      onRetry={retryFetchHistory}
     />
   );
 
@@ -179,7 +185,10 @@ export default function GlobalAIAssistant() {
                       {message.role === "user" ? (
                         message.content
                       ) : (
-                        <MarkdownRenderer content={message.content} />
+                        <>
+                          <MarkdownRenderer content={message.content} />
+                          <SourceCitations sources={message.sources} />
+                        </>
                       )}
                     </div>
                   </div>
