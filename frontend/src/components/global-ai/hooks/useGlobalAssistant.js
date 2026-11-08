@@ -102,29 +102,75 @@ export default function useGlobalAssistant() {
         const list = data?.conversations || [];
         setConversationsList(list);
 
-        if (list.length > 0) {
-          let savedChatId = null;
+        // Check if there is an explicit request to start a new chat
+        let isForceNew = false;
+        let hasPrefill = false;
+        let explicitId = null;
+
+        if (typeof window !== "undefined") {
           try {
-            savedChatId = localStorage.getItem(ACTIVE_CHAT_STORAGE_KEY);
+            const urlParams = new URLSearchParams(window.location.search);
+            explicitId = urlParams.get("id");
+            if (urlParams.get("new") === "true") {
+              isForceNew = true;
+            }
           } catch (_) {}
 
-          const matchedChat = list.find((c) => (c._id || c.id) === savedChatId);
-          const targetId = matchedChat
-            ? (matchedChat._id || matchedChat.id)
-            : list[0]._id;
-
-          setActiveChatId(targetId);
           try {
-            localStorage.setItem(ACTIVE_CHAT_STORAGE_KEY, targetId);
+            if (sessionStorage.getItem("meetmind_force_new_chat") === "true") {
+              isForceNew = true;
+              sessionStorage.removeItem("meetmind_force_new_chat");
+            }
+            if (sessionStorage.getItem("meetmind_prefill_prompt")) {
+              hasPrefill = true;
+            }
           } catch (_) {}
+        }
 
-          await loadConversationMessages(targetId);
-        } else {
+        // 1. If explicit ID in URL or explicit savedChatId requested from an explicit item click
+        if (explicitId && list.length > 0) {
+          const matched = list.find((c) => (c._id || c.id) === explicitId);
+          if (matched) {
+            const targetId = matched._id || matched.id;
+            setActiveChatId(targetId);
+            try {
+              localStorage.setItem(ACTIVE_CHAT_STORAGE_KEY, targetId);
+            } catch (_) {}
+            await loadConversationMessages(targetId);
+            return;
+          }
+        }
+
+        // 2. If redirected from template or visiting for a new conversation
+        if (isForceNew || hasPrefill) {
           setActiveChatId(null);
           try {
             localStorage.removeItem(ACTIVE_CHAT_STORAGE_KEY);
           } catch (_) {}
+          return;
         }
+
+        // 3. Otherwise: check if localStorage has an explicitly active chat
+        let savedChatId = null;
+        try {
+          savedChatId = localStorage.getItem(ACTIVE_CHAT_STORAGE_KEY);
+        } catch (_) {}
+
+        if (savedChatId && list.length > 0) {
+          const matchedChat = list.find((c) => (c._id || c.id) === savedChatId);
+          if (matchedChat) {
+            const targetId = matchedChat._id || matchedChat.id;
+            setActiveChatId(targetId);
+            await loadConversationMessages(targetId);
+            return;
+          }
+        }
+
+        // 4. Default to clean, fresh new conversation (no auto-opening old chats)
+        setActiveChatId(null);
+        try {
+          localStorage.removeItem(ACTIVE_CHAT_STORAGE_KEY);
+        } catch (_) {}
       } catch (error) {
         if (!ignore && isMountedRef.current) {
           console.error("Failed to load conversation history:", error);
@@ -216,6 +262,33 @@ export default function useGlobalAssistant() {
       console.error("Failed to create new conversation:", error);
     }
   }, []);
+
+  // Reset to a clean new chat session (draft mode ready for user prompt)
+  const resetToNewChat = useCallback(() => {
+    setActiveChatId(null);
+    setInput("");
+    try {
+      localStorage.removeItem(ACTIVE_CHAT_STORAGE_KEY);
+      sessionStorage.removeItem("meetmind_force_new_chat");
+    } catch (_) {}
+  }, []);
+
+  // Listen for global reset events (e.g. user clicking AI Assistant in sidebar while already on page)
+  useEffect(() => {
+    const handleNewChatEvent = () => {
+      resetToNewChat();
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("meetmind:new_chat", handleNewChatEvent);
+    }
+
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("meetmind:new_chat", handleNewChatEvent);
+      }
+    };
+  }, [resetToNewChat]);
 
   // Handler for renaming a conversation title
   const handleRenameChat = useCallback(
@@ -327,7 +400,9 @@ export default function useGlobalAssistant() {
       // If no active chat exists, create one first in MongoDB
       if (!targetChatId) {
         try {
-          const newConv = await createConversation("New conversation");
+          const initialTitle =
+            text.length > 50 ? `${text.slice(0, 50)}...` : text;
+          const newConv = await createConversation(initialTitle);
           targetChatId = newConv._id;
           setConversationsList((prev) => [newConv, ...prev]);
           setChatMessagesMap((prev) => ({
@@ -525,7 +600,8 @@ export default function useGlobalAssistant() {
     activeChat,
     activeChatId,
     chatGroups,
-    createConversation: handleNewChat,
+    createConversation: resetToNewChat,
+    resetToNewChat,
     deleteConversation: handleDeleteChat,
     renameConversation: handleRenameChat,
     stopGeneration,

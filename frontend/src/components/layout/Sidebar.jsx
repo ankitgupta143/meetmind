@@ -101,7 +101,18 @@ function SidebarContent({ collapsed, setCollapsed, onClose }) {
               <Link
                 key={item.title}
                 href={item.href}
-                onClick={onClose ?? undefined}
+                onClick={() => {
+                  if (item.href === "/ai-assistant") {
+                    try {
+                      sessionStorage.setItem("meetmind_force_new_chat", "true");
+                      localStorage.removeItem("meetmind_active_chat_id");
+                    } catch (_) {}
+                    if (typeof window !== "undefined") {
+                      window.dispatchEvent(new CustomEvent("meetmind:new_chat"));
+                    }
+                  }
+                  onClose?.();
+                }}
                 className={`relative group flex items-center rounded-xl py-2.5 transition-all duration-200 ${
                   collapsed ? "justify-center px-0" : "gap-3.5 px-3.5"
                 } ${

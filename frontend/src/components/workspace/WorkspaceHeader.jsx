@@ -34,7 +34,13 @@ export default function WorkspaceHeader() {
             <Search size={14} /> <span>Search Workspace</span>
           </button>
           <button
-            onClick={() => router.push("/ai-assistant")}
+            onClick={() => {
+              try {
+                sessionStorage.setItem("meetmind_force_new_chat", "true");
+                localStorage.removeItem("meetmind_active_chat_id");
+              } catch (_) {}
+              router.push("/ai-assistant?new=true");
+            }}
             className="flex items-center gap-2 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-4 py-2.5 text-xs font-semibold text-indigo-300 transition hover:bg-indigo-500/20 hover:text-white cursor-pointer active:scale-95"
           >
             <MessageSquareText size={14} /> <span>AI Assistant</span>

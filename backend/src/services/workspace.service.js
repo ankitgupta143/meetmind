@@ -338,7 +338,7 @@ export async function toggleWorkspaceActionItem({
     throw error;
   }
 
-  const insights = await MeetingInsights.findOne({ meetingId });
+  const insights = await MeetingInsights.findOne({ meetingId: meeting._id });
   if (!insights || !insights.actionItems || !insights.actionItems[itemIndex]) {
     const error = new Error("Action item not found.");
     error.code = "ACTION_ITEM_NOT_FOUND";

@@ -63,10 +63,15 @@ export default function GlobalAIAssistant() {
       const prefill = sessionStorage.getItem("meetmind_prefill_prompt");
       if (prefill) {
         sessionStorage.removeItem("meetmind_prefill_prompt");
+        sessionStorage.removeItem("meetmind_force_new_chat");
         setInput(prefill);
+        setActiveChatId(null);
+        try {
+          localStorage.removeItem("meetmind_active_chat_id");
+        } catch (_) {}
       }
     } catch (_) {}
-  }, [setInput]);
+  }, [setInput, setActiveChatId]);
 
   const startChat = () => {
     createConversation();
