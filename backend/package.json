@@ -7,19 +7,7 @@
   "main": "src/server.js",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "start": "node src/server.js",
-    "verify:db": "node src/scripts/verifyDatabase.js",
-    "test:password": "node src/scripts/testPassword.js",
-    "test:registration": "node src/scripts/testRegistration.js",
-    "test:validation": "node src/scripts/testValidation.js",
-    "test:login": "node src/scripts/testLogin.js",
-    "test:token": "node src/scripts/testAccessToken.js",
-    "test:session": "node src/scripts/testSession.js",
-    "test:user-profile": "node src/scripts/testUserProfile.js",
-    "test:conversation-model": "node src/scripts/testGlobalConversationModel.js",
-    "test:persistence": "node src/scripts/testPersistenceSuite.js",
-    "test:sources": "node src/scripts/testSourceReferences.js",
-    "verify:cloudinary": "node src/scripts/verify-cloudinary.js"
+    "start": "node src/server.js"
   },
   "dependencies": {
     "@deepgram/sdk": "^5.10.1",
