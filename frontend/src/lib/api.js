@@ -16,6 +16,35 @@ const api = axios.create({
   },
 });
 
+// Share identical in-flight GETs. React Strict Mode can replay mount effects
+// during development; coalescing these reads avoids duplicate server work while
+// still allowing a later retry/refetch after the request settles.
+const pendingGetRequests = new Map();
+const axiosGet = api.get.bind(api);
+
+api.get = (url, config = {}) => {
+  // Requests with caller-managed cancellation must keep their own lifecycle.
+  if (config.signal) {
+    return axiosGet(url, config);
+  }
+
+  const requestConfig = { ...config, url, method: "get" };
+  const requestUrl = api.getUri(requestConfig);
+  const authorization =
+    config.headers?.Authorization || config.headers?.authorization || accessToken;
+  const key = `${requestUrl}|${authorization}`;
+  const pending = pendingGetRequests.get(key);
+  if (pending) return pending;
+
+  const request = axiosGet(url, config).finally(() => {
+    if (pendingGetRequests.get(key) === request) {
+      pendingGetRequests.delete(key);
+    }
+  });
+  pendingGetRequests.set(key, request);
+  return request;
+};
+
 // Request interceptor to attach access token and handle multipart FormData
 api.interceptors.request.use(
   (config) => {
