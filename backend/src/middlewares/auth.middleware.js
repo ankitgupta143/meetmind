@@ -37,6 +37,7 @@ export function authenticate(req, res, next) {
 
     req.user = {
       id: decoded.sub,
+      _id: decoded.sub,
       role: decoded.role,
     };
 

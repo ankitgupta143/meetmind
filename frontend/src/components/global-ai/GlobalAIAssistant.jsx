@@ -58,6 +58,16 @@ export default function GlobalAIAssistant() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [isLoading, messages]);
 
+  useEffect(() => {
+    try {
+      const prefill = sessionStorage.getItem("meetmind_prefill_prompt");
+      if (prefill) {
+        sessionStorage.removeItem("meetmind_prefill_prompt");
+        setInput(prefill);
+      }
+    } catch (_) {}
+  }, [setInput]);
+
   const startChat = () => {
     createConversation();
     setSidebarOpen(false);

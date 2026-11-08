@@ -9,12 +9,13 @@ import {
   Users,
   Share2,
   Download,
-  Sparkles,
   Check,
-  Zap,
+  Star,
+  Pin,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useExportDrawer } from "@/context/ExportDrawerContext";
+import api from "@/lib/api";
 
 export default function MeetingDetailsHeader({
   meeting,
@@ -23,6 +24,8 @@ export default function MeetingDetailsHeader({
   const router = useRouter();
   const { setOpen } = useExportDrawer();
   const [copiedLink, setCopiedLink] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(Boolean(meeting?.isFavorite));
+  const [isPinned, setIsPinned] = useState(Boolean(meeting?.isPinned));
 
   const formatDate = (date) => {
     if (!date) return "Unknown date";
@@ -79,6 +82,50 @@ export default function MeetingDetailsHeader({
     }
   };
 
+  const handleToggleFavorite = async () => {
+    const meetingId = meeting?._id || meeting?.id;
+    if (!meetingId) return;
+
+    const nextState = !isFavorite;
+    setIsFavorite(nextState);
+
+    if (nextState) {
+      toast.success(`"${meeting.title || "Meeting"}" added to favorites! ⭐`);
+    } else {
+      toast.info(`"${meeting.title || "Meeting"}" removed from favorites`);
+    }
+
+    try {
+      await api.patch(`/workspace/meetings/${meetingId}/favorite`);
+    } catch (err) {
+      setIsFavorite(!nextState);
+      toast.error("Failed to update favorite status");
+      console.error("Failed to toggle favorite:", err);
+    }
+  };
+
+  const handleTogglePin = async () => {
+    const meetingId = meeting?._id || meeting?.id;
+    if (!meetingId) return;
+
+    const nextState = !isPinned;
+    setIsPinned(nextState);
+
+    if (nextState) {
+      toast.success(`"${meeting.title || "Meeting"}" pinned to workspace! 📌`);
+    } else {
+      toast.info(`"${meeting.title || "Meeting"}" unpinned from workspace`);
+    }
+
+    try {
+      await api.patch(`/workspace/meetings/${meetingId}/pin`);
+    } catch (err) {
+      setIsPinned(!nextState);
+      toast.error("Failed to update pin status");
+      console.error("Failed to toggle pin:", err);
+    }
+  };
+
   return (
     <div className="relative overflow-hidden rounded-[2rem] border border-white/[0.08] bg-slate-950/60 p-5 shadow-2xl backdrop-blur-2xl sm:p-7 md:p-8">
       {/* Ambient background glow spot */}
@@ -88,7 +135,7 @@ export default function MeetingDetailsHeader({
         <div>
           <button
             onClick={() => router.push("/meetings")}
-            className="group mb-4 inline-flex items-center gap-2 text-xs font-semibold text-slate-400 transition hover:text-indigo-400"
+            className="group mb-4 inline-flex items-center gap-2 text-xs font-semibold text-slate-400 transition hover:text-indigo-400 cursor-pointer"
           >
             <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
             <span>Back to Meetings</span>
@@ -136,9 +183,43 @@ export default function MeetingDetailsHeader({
         </div>
 
         <div className="flex w-full flex-wrap items-center gap-2.5 sm:gap-3 lg:w-auto">
+          {/* Favorite Toggle Button */}
+          <button
+            onClick={handleToggleFavorite}
+            className={`flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-semibold transition active:scale-95 cursor-pointer ${
+              isFavorite
+                ? "border-amber-500/30 bg-amber-500/15 text-amber-300 shadow-sm shadow-amber-500/20"
+                : "border-white/[0.08] bg-white/[0.04] text-slate-200 hover:bg-white/10 hover:text-white"
+            }`}
+            title={isFavorite ? "Remove from Favorites" : "Add to Favorites"}
+          >
+            <Star
+              size={15}
+              className={isFavorite ? "fill-amber-400 text-amber-400" : ""}
+            />
+            <span>{isFavorite ? "Favorited" : "Favorite"}</span>
+          </button>
+
+          {/* Pin Toggle Button */}
+          <button
+            onClick={handleTogglePin}
+            className={`flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-semibold transition active:scale-95 cursor-pointer ${
+              isPinned
+                ? "border-indigo-500/30 bg-indigo-500/15 text-indigo-300 shadow-sm shadow-indigo-500/20"
+                : "border-white/[0.08] bg-white/[0.04] text-slate-200 hover:bg-white/10 hover:text-white"
+            }`}
+            title={isPinned ? "Unpin from Workspace" : "Pin to Workspace"}
+          >
+            <Pin
+              size={15}
+              className={isPinned ? "fill-indigo-400 text-indigo-400 rotate-45" : ""}
+            />
+            <span>{isPinned ? "Pinned" : "Pin"}</span>
+          </button>
+
           <button
             onClick={handleShare}
-            className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-2.5 text-xs font-medium text-slate-200 transition hover:bg-white/10 hover:text-white active:scale-95"
+            className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-white/10 hover:text-white active:scale-95 cursor-pointer"
             title="Share Link"
           >
             {copiedLink ? (
@@ -156,7 +237,7 @@ export default function MeetingDetailsHeader({
 
           <button
             onClick={() => setOpen(true)}
-            className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-2.5 text-xs font-medium text-slate-200 transition hover:bg-white/10 hover:text-white active:scale-95"
+            className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-white/10 hover:text-white active:scale-95 cursor-pointer"
             title="Export Summary & Notes"
           >
             <Download size={16} />

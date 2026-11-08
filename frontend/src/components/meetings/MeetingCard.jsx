@@ -1,14 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import {
   CalendarDays,
   Clock3,
   Users,
   ChevronRight,
-  Sparkles,
-  Activity,
+  Star,
+  Pin,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import api from "@/lib/api";
 
 const statusStyles = {
   Completed: "bg-emerald-500/15 border-emerald-500/30 text-emerald-300",
@@ -19,11 +22,57 @@ const statusStyles = {
 
 export default function MeetingCard({ meeting }) {
   const router = useRouter();
+  const meetingId = meeting?.id || meeting?._id;
+  const [isFavorite, setIsFavorite] = useState(Boolean(meeting?.isFavorite));
+  const [isPinned, setIsPinned] = useState(Boolean(meeting?.isPinned));
 
   const handleClick = () => {
-    const meetingId = meeting?.id || meeting?._id;
     if (meetingId) {
       router.push(`/meetings/${meetingId}`);
+    }
+  };
+
+  const handleToggleFavorite = async (e) => {
+    e.stopPropagation();
+    if (!meetingId) return;
+
+    const nextState = !isFavorite;
+    setIsFavorite(nextState);
+
+    if (nextState) {
+      toast.success(`"${meeting.title || "Meeting"}" added to favorites! ⭐`);
+    } else {
+      toast.info(`"${meeting.title || "Meeting"}" removed from favorites`);
+    }
+
+    try {
+      await api.patch(`/workspace/meetings/${meetingId}/favorite`);
+    } catch (err) {
+      setIsFavorite(!nextState);
+      toast.error("Failed to update favorite status");
+      console.error("Failed to toggle favorite:", err);
+    }
+  };
+
+  const handleTogglePin = async (e) => {
+    e.stopPropagation();
+    if (!meetingId) return;
+
+    const nextState = !isPinned;
+    setIsPinned(nextState);
+
+    if (nextState) {
+      toast.success(`"${meeting.title || "Meeting"}" pinned to workspace! 📌`);
+    } else {
+      toast.info(`"${meeting.title || "Meeting"}" unpinned from workspace`);
+    }
+
+    try {
+      await api.patch(`/workspace/meetings/${meetingId}/pin`);
+    } catch (err) {
+      setIsPinned(!nextState);
+      toast.error("Failed to update pin status");
+      console.error("Failed to toggle pin:", err);
     }
   };
 
@@ -44,7 +93,7 @@ export default function MeetingCard({ meeting }) {
 
       <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <h3 className="text-base font-bold text-white group-hover:text-indigo-300 transition-colors">
               {meeting.title}
             </h3>
@@ -56,6 +105,40 @@ export default function MeetingCard({ meeting }) {
             >
               {meeting.status}
             </span>
+
+            {/* Favorite Star Button */}
+            <button
+              type="button"
+              onClick={handleToggleFavorite}
+              className={`rounded-lg p-1.5 transition cursor-pointer ${
+                isFavorite
+                  ? "text-amber-400 bg-amber-400/10"
+                  : "text-slate-500 hover:text-amber-400 hover:bg-white/[0.06]"
+              }`}
+              title={isFavorite ? "Favorited (Click to remove)" : "Add to workspace favorites"}
+            >
+              <Star
+                size={14}
+                className={isFavorite ? "fill-amber-400 text-amber-400" : ""}
+              />
+            </button>
+
+            {/* Pin Button */}
+            <button
+              type="button"
+              onClick={handleTogglePin}
+              className={`rounded-lg p-1.5 transition cursor-pointer ${
+                isPinned
+                  ? "text-indigo-400 bg-indigo-500/15"
+                  : "text-slate-500 hover:text-indigo-400 hover:bg-white/[0.06]"
+              }`}
+              title={isPinned ? "Pinned (Click to unpin)" : "Pin to workspace"}
+            >
+              <Pin
+                size={14}
+                className={isPinned ? "fill-indigo-400 text-indigo-400 rotate-45" : ""}
+              />
+            </button>
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-4 sm:gap-6 text-xs text-slate-400">

@@ -103,13 +103,25 @@ const meetingSchema = new Schema(
       default: null,
       maxlength: 2000,
     },
+
+    isFavorite: {
+      type: Boolean,
+      default: false,
+    },
+
+    isPinned: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
   },
 );
 
-meetingSchema.index({ownerId: 1, createdAt: -1});
+meetingSchema.index({ ownerId: 1, createdAt: -1 });
+meetingSchema.index({ ownerId: 1, isFavorite: 1 });
+meetingSchema.index({ ownerId: 1, isPinned: 1 });
 
 const Meeting = mongoose.model("Meeting", meetingSchema);
 export default Meeting;

@@ -83,7 +83,7 @@ export function mapMeetingToCard(meeting) {
     duration: formatMeetingDuration(meeting.durationSeconds),
     participants: meeting.participants?.length ?? 0,
     status: formatMeetingStatus(meeting.processingStatus),
+    isFavorite: Boolean(meeting.isFavorite),
+    isPinned: Boolean(meeting.isPinned),
   };
 }
-
-

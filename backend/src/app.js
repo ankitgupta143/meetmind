@@ -7,9 +7,10 @@ const app = express();
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import meetingRoutes from "./routes/meeting.routes.js";
-import { errorHandler } from "./middlewares/error.middleware.js";
 import globalAssistantRoutes from "./routes/globalAssistant.routes.js";
 import searchRoutes from "./routes/search.routes.js";
+import workspaceRoutes from "./routes/workspace.routes.js";
+import { errorHandler } from "./middlewares/error.middleware.js";
 
 const allowedOrigins = [
   process.env.FRONTEND_URL,
@@ -55,6 +56,7 @@ app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/meetings", meetingRoutes);
 app.use("/api/v1/global-assistant", globalAssistantRoutes);
 app.use("/api/v1/search", searchRoutes);
+app.use("/api/v1/workspace", workspaceRoutes);
 app.use(errorHandler);
 
 export default app;

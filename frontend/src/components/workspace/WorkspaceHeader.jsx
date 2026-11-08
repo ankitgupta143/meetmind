@@ -1,11 +1,15 @@
 "use client";
 
-import { FolderPlus, Search, Sparkles } from "lucide-react";
+import { MessageSquareText, Search, Sparkles, UploadCloud } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useUploadModal } from "@/context/UploadModalContext";
 
 export default function WorkspaceHeader() {
   const { user } = useAuth();
-  const userName = user?.firstName || "Ankit";
+  const router = useRouter();
+  const { setOpen } = useUploadModal();
+  const userName = user?.firstName || "there";
 
   return (
     <section className="relative overflow-hidden rounded-[2.5rem] border border-white/[0.08] bg-slate-950/60 p-6 sm:p-10 shadow-2xl backdrop-blur-2xl">
@@ -19,15 +23,27 @@ export default function WorkspaceHeader() {
             Welcome back, {userName}
           </h1>
           <p className="mt-2 max-w-2xl text-xs sm:text-sm text-slate-400 leading-relaxed">
-            Organize pinned recordings, executive dossiers, drafts and AI prompt templates in a single high-velocity canvas.
+            Manage your favorited recordings, cross-meeting action deliverables, AI research sessions, and synthesis templates in one unified command center.
           </p>
         </div>
         <div className="flex flex-wrap gap-2.5">
-          <button className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-white/10 hover:text-white">
+          <button
+            onClick={() => router.push("/search")}
+            className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-white/10 hover:text-white cursor-pointer active:scale-95"
+          >
             <Search size={14} /> <span>Search Workspace</span>
           </button>
-          <button className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2.5 text-xs font-semibold text-white shadow-md shadow-indigo-600/25 transition hover:shadow-indigo-600/40 active:scale-95">
-            <FolderPlus size={14} /> <span>New Collection</span>
+          <button
+            onClick={() => router.push("/ai-assistant")}
+            className="flex items-center gap-2 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-4 py-2.5 text-xs font-semibold text-indigo-300 transition hover:bg-indigo-500/20 hover:text-white cursor-pointer active:scale-95"
+          >
+            <MessageSquareText size={14} /> <span>AI Assistant</span>
+          </button>
+          <button
+            onClick={() => setOpen(true)}
+            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2.5 text-xs font-semibold text-white shadow-md shadow-indigo-600/25 transition hover:shadow-indigo-600/40 active:scale-95 cursor-pointer"
+          >
+            <UploadCloud size={14} /> <span>Upload Recording</span>
           </button>
         </div>
       </div>
