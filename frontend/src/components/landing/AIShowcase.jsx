@@ -26,7 +26,7 @@ export default function AIShowcase() {
             {[
               "Instant answers backed by timestamped citations",
               "Automated blocker & risk identification",
-              "Personalized action item dossiers per attendee",
+              "Personalized action item summaries per attendee",
             ].map((text) => (
               <div key={text} className="flex items-center gap-3 text-sm text-slate-300">
                 <div className="flex size-5 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">

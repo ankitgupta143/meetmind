@@ -98,7 +98,7 @@ const DashboardPreview = () => (
           <CheckCircle2 size={16} />
         </div>
         <div className="min-w-0">
-          <p className="text-[11px] sm:text-xs font-bold text-emerald-400 truncate">✦ AI Action Dossier Ready</p>
+          <p className="text-[11px] sm:text-xs font-bold text-emerald-400 truncate">✦ AI Action Summary Ready</p>
           <p className="text-[9px] sm:text-[10px] text-slate-400 truncate">12 tasks auto-assigned & synced</p>
         </div>
       </div>

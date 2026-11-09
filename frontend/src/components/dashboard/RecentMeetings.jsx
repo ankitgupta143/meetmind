@@ -35,7 +35,7 @@ const RecentMeetings = ({ meetings = [] }) => {
             <Sparkles size={16} className="text-indigo-400" />
           </h2>
           <p className="mt-1 text-xs text-slate-400">
-            Pick up where you left off or review AI synthesis dossiers.
+            Pick up where you left off or review AI synthesis reports.
           </p>
         </div>
 

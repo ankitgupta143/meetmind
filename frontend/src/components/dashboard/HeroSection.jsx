@@ -27,7 +27,7 @@ const HeroSection = ({ description, stats }) => {
   const heroText =
     description ||
     (stats?.totalMeetings > 0
-      ? `Your AI assistant has analyzed ${stats.completedMeetings || 0} meetings, extracted ${stats.totalActionItems || 0} action items, and prepared decision dossiers for your review.`
+      ? `Your AI assistant has analyzed ${stats.completedMeetings || 0} meetings, extracted ${stats.totalActionItems || 0} action items, and prepared decision summaries for your review.`
       : "Ready to transform today's conversations into clear decisions, action items, and AI-powered insights.");
 
   return (

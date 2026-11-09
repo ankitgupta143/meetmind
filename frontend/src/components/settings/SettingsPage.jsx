@@ -270,7 +270,7 @@ export default function SettingsPage() {
             <div className="flex gap-4">
               <Choice label="Bullet Points" checked={false} onClick={() => {}} />
               <Choice label="Balanced Synthesis" checked onClick={() => {}} />
-              <Choice label="Comprehensive Dossier" checked={false} onClick={() => {}} />
+              <Choice label="Comprehensive Report" checked={false} onClick={() => {}} />
             </div>
           </div>
 

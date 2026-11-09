@@ -8,10 +8,12 @@ import {
   ChevronRight,
   Star,
   Pin,
+  Download,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import api from "@/lib/api";
+import { useExportDrawer } from "@/context/ExportDrawerContext";
 
 const statusStyles = {
   Completed: "bg-emerald-500/15 border-emerald-500/30 text-emerald-300",
@@ -22,6 +24,7 @@ const statusStyles = {
 
 export default function MeetingCard({ meeting }) {
   const router = useRouter();
+  const { openExport } = useExportDrawer();
   const meetingId = meeting?.id || meeting?._id;
   const [isFavorite, setIsFavorite] = useState(Boolean(meeting?.isFavorite));
   const [isPinned, setIsPinned] = useState(Boolean(meeting?.isPinned));
@@ -138,6 +141,19 @@ export default function MeetingCard({ meeting }) {
                 size={14}
                 className={isPinned ? "fill-indigo-400 text-indigo-400 rotate-45" : ""}
               />
+            </button>
+
+            {/* Quick Export Button */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                openExport?.(meeting);
+              }}
+              className="rounded-lg p-1.5 text-slate-500 hover:text-emerald-400 hover:bg-white/[0.06] transition cursor-pointer"
+              title="Export meeting report"
+            >
+              <Download size={14} />
             </button>
           </div>
 

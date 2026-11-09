@@ -123,7 +123,7 @@ export default function OnboardingPage() {
       <div>
         <h2 className="text-2xl font-bold tracking-tight text-white">Connect workspace apps</h2>
         <p className="mt-1 text-xs text-slate-400">
-          Sync action items, transcripts, and dossiers directly to your productivity stack.
+          Sync action items, transcripts, and reports directly to your productivity stack.
         </p>
         <div className="mt-6 space-y-2.5">
           {apps.map((item) => {

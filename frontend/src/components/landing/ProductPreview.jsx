@@ -10,7 +10,7 @@ const views = {
     badge: "Live Workspace",
     items: [
       { label: "Today's Agenda", val: "4 scheduled meetings", icon: Calendar, color: "from-blue-500/20 to-indigo-500/20 text-blue-400" },
-      { label: "Pending Decisions", val: "3 dossiers ready for signoff", icon: CheckSquare, color: "from-emerald-500/20 to-teal-500/20 text-emerald-400" },
+      { label: "Pending Decisions", val: "3 summaries ready for signoff", icon: CheckSquare, color: "from-emerald-500/20 to-teal-500/20 text-emerald-400" },
       { label: "Team Velocity", val: "94% commitment score", icon: TrendingUp, color: "from-violet-500/20 to-purple-500/20 text-violet-400" },
     ],
   },

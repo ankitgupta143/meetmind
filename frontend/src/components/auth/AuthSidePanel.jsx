@@ -36,7 +36,7 @@ export default function AuthSidePanel() {
             {[
               ["42", "Meetings"],
               ["138", "AI Chats"],
-              ["62", "Dossiers"],
+              ["62", "Reports"],
             ].map(([value, label]) => (
               <div key={label} className="rounded-xl border border-white/[0.04] bg-slate-900/60 p-2.5 text-center">
                 <p className="text-lg font-extrabold text-white">{value}</p>

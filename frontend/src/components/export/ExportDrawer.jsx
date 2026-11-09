@@ -17,16 +17,19 @@ import { requestMeetingExport, triggerExportDownload } from "./export.service";
 import { buildExportFilename } from "./export.utils";
 
 export default function ExportDrawer() {
-  const { open, setOpen } = useExportDrawer();
-  const [format, setFormat] = useState("pdf");
+  const { open, setOpen, meeting } = useExportDrawer();
+  const [format, setFormat] = useState("markdown");
   const [sections, setSections] = useState(EXPORT_SECTIONS);
-  const [filename, setFilename] = useState(DEFAULT_EXPORT_FILENAME);
+  const [customFilename, setCustomFilename] = useState(null);
   const [settings, setSettings] = useState(DEFAULT_EXPORT_SETTINGS);
   const [isExporting, setIsExporting] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  const [lastDownloadUrl, setLastDownloadUrl] = useState(null);
+
+  const filename = customFilename !== null ? customFilename : (meeting?.title || DEFAULT_EXPORT_FILENAME);
 
   const selectedFormat = useMemo(
-    () => EXPORT_FORMATS.find((option) => option.value === format),
+    () => EXPORT_FORMATS.find((option) => option.value === format) || EXPORT_FORMATS[2],
     [format],
   );
 
@@ -34,6 +37,7 @@ export default function ExportDrawer() {
     setOpen(false);
     setIsExporting(false);
     setIsComplete(false);
+    setCustomFilename(null);
   }, [setOpen]);
 
   useEffect(() => {
@@ -58,27 +62,56 @@ export default function ExportDrawer() {
   const handleExport = async () => {
     if (!sections.length || isExporting) return;
 
+    let meetingId = meeting?._id || meeting?.id;
+    if (!meetingId && typeof window !== "undefined") {
+      const match = window.location.pathname.match(/\/meetings\/([a-f0-9]{24})/i);
+      if (match) {
+        meetingId = match[1];
+      }
+    }
+
+    if (!meetingId) {
+      toast.error("Please open a meeting to export its summary report.");
+      return;
+    }
+
     setIsExporting(true);
     try {
+      const exportFilename = buildExportFilename(filename, selectedFormat.extension);
       const exportResult = await requestMeetingExport({
+        meetingId,
         format,
         sections,
-        filename: buildExportFilename(filename, selectedFormat.extension),
+        filename: exportFilename,
         settings,
       });
+
       setIsComplete(true);
-      toast.success("Your export dossier is ready!", {
-        action: exportResult.downloadUrl ? {
-          label: "Download",
-          onClick: () => triggerExportDownload(exportResult.downloadUrl, exportResult.filename),
-        } : undefined,
+      setLastDownloadUrl(exportResult.downloadUrl);
+      toast.success("Meeting report downloaded! 🎉", {
+        description: `Saved to your Downloads folder: ${exportFilename}`,
+        action: exportResult.downloadUrl
+          ? {
+              label: "Download Again",
+              onClick: () =>
+                triggerExportDownload(exportResult.downloadUrl, exportResult.filename),
+            }
+          : undefined,
+        duration: 8000,
       });
-    } catch {
-      toast.error("We couldn't prepare your export. Please try again.");
+    } catch (err) {
+      console.error("Export generation failed:", err);
+      toast.error(
+        err.message ||
+          err.response?.data?.message ||
+          "Failed to prepare your export report. Please try again."
+      );
     } finally {
       setIsExporting(false);
     }
   };
+
+  const exportFilename = buildExportFilename(filename, selectedFormat.extension);
 
   return (
     <AnimatePresence>
@@ -91,9 +124,16 @@ export default function ExportDrawer() {
               <ExportFormats format={format} onChange={setFormat} />
               <ExportOptions selectedSections={sections} onToggle={toggleSection} onToggleAll={toggleAllSections} />
               <ExportSettings settings={settings} onChange={(changes) => setSettings((current) => ({ ...current, ...changes }))} />
-              <FileNameInput extension={selectedFormat.extension} filename={filename} onChange={setFilename} />
+              <FileNameInput extension={selectedFormat.extension} filename={filename} onChange={setCustomFilename} />
             </div>
-            <ExportFooter disabled={!sections.length} isComplete={isComplete} isExporting={isExporting} onExport={handleExport} />
+            <ExportFooter
+              disabled={!sections.length}
+              downloadFilename={exportFilename}
+              isComplete={isComplete}
+              isExporting={isExporting}
+              lastDownloadUrl={lastDownloadUrl}
+              onExport={handleExport}
+            />
           </motion.aside>
         </>
       )}

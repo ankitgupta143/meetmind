@@ -9,7 +9,7 @@ export default function ExportHeader({ onClose }) {
         </span>
         <div>
           <h2 id="export-meeting-title" className="text-base font-bold text-white">Export Meeting</h2>
-          <p className="text-xs text-slate-400">Create a shareable meeting dossier</p>
+          <p className="text-xs text-slate-400">Create a shareable meeting summary & report</p>
         </div>
       </div>
       <button aria-label="Close export drawer" className="rounded-xl p-2 text-slate-400 transition hover:bg-white/10 hover:text-white" onClick={onClose} type="button">

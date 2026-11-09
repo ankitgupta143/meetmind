@@ -22,7 +22,7 @@ export default function MeetingDetailsHeader({
   insights,
 }) {
   const router = useRouter();
-  const { setOpen } = useExportDrawer();
+  const { setOpen, openExport } = useExportDrawer();
   const [copiedLink, setCopiedLink] = useState(false);
   const [isFavorite, setIsFavorite] = useState(Boolean(meeting?.isFavorite));
   const [isPinned, setIsPinned] = useState(Boolean(meeting?.isPinned));
@@ -236,7 +236,7 @@ export default function MeetingDetailsHeader({
           </button>
 
           <button
-            onClick={() => setOpen(true)}
+            onClick={() => (openExport ? openExport(meeting) : setOpen(true))}
             className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-white/10 hover:text-white active:scale-95 cursor-pointer"
             title="Export Summary & Notes"
           >
