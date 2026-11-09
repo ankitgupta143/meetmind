@@ -136,3 +136,56 @@ export async function deleteMeetingDecision({ meetingId, userId, index }) {
 
   return deletedDecision;
 }
+
+
+/**
+ * Create a new decision in meeting insights
+ */
+export async function createMeetingDecision({
+  meetingId,
+  userId,
+  decisionData = {},
+}) {
+  const meeting = await verifyMeetingOwnership({
+    meetingId,
+    userId,
+  });
+
+  if (!meeting) {
+    const error = new Error("Meeting not found.");
+    error.code = "MEETING_NOT_FOUND";
+    throw error;
+  }
+
+  let insights = await MeetingInsights.findOne({
+    meetingId: meeting._id,
+  });
+
+  if (!insights) {
+    insights = await MeetingInsights.create({
+      meetingId: meeting._id,
+      decisions: [],
+    });
+  }
+
+  const title = (decisionData.title || "").trim();
+  if (!title) {
+    const error = new Error("Decision title cannot be empty.");
+    error.code = "INVALID_DECISION_TITLE";
+    throw error;
+  }
+
+  const newDecision = {
+    title,
+    description: (decisionData.description || "").trim(),
+    owner: decisionData.owner ? decisionData.owner.trim() : null,
+  };
+
+  insights.decisions.push(newDecision);
+  await insights.save();
+
+  return {
+    decision: newDecision,
+    decisions: insights.decisions,
+  };
+}

@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Search, X, ChevronDown, Sparkles, UserCheck, Pencil } from "lucide-react";
+import { Search, X, ChevronDown, Sparkles, UserCheck, Pencil, Play } from "lucide-react";
 import api from "@/lib/api";
 import SpeakerRenameModal from "./modals/SpeakerRenameModal";
+import { useMeetingAudio } from "@/context/MeetingAudioContext";
 
 function formatTranscriptTime(seconds = 0) {
   const totalSeconds = Math.max(Math.floor(Number(seconds) || 0), 0);
@@ -78,6 +79,16 @@ const ALL_SPEAKERS = "__all__";
 const PAGE_LIMIT = 50;
 
 export default function Transcript({ meetingId, participants = [], onSpeakerUpdated }) {
+  const {
+    currentTime = 0,
+    isPlaying = false,
+    seekAndPlay = () => {},
+    autoScroll = true,
+    setSegments = () => {},
+  } = useMeetingAudio();
+
+  const activeSegmentRef = useRef(null);
+
   const [transcript, setTranscript] = useState(null);
   const [pagination, setPagination] = useState(null);
   const [speakers, setSpeakers] = useState([]);
@@ -130,6 +141,9 @@ export default function Transcript({ meetingId, participants = [], onSpeakerUpda
         setTranscript(td);
         if (pg) setPagination(pg);
         if (spk) setSpeakers(spk);
+        if (td.segments) {
+          setSegments(td.segments);
+        }
       } catch (err) {
         if (!isMounted) return;
         console.error("Failed to fetch transcript:", err);
@@ -148,7 +162,7 @@ export default function Transcript({ meetingId, participants = [], onSpeakerUpda
     return () => {
       isMounted = false;
     };
-  }, [meetingId, searchQuery, selectedSpeaker, page, reloadTrigger]);
+  }, [meetingId, searchQuery, selectedSpeaker, page, reloadTrigger, setSegments]);
 
   const handleSpeakerRenameSuccess = (result) => {
     if (result?.speakers) {
@@ -159,6 +173,16 @@ export default function Transcript({ meetingId, participants = [], onSpeakerUpda
       onSpeakerUpdated(result);
     }
   };
+
+  // Auto-scroll active segment into view when playing
+  useEffect(() => {
+    if (autoScroll && isPlaying && activeSegmentRef.current) {
+      activeSegmentRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
+  }, [currentTime, autoScroll, isPlaying]);
 
   const visibleSegments = transcript?.segments ?? [];
   const totalMatchingSegments = pagination?.totalSegments ?? visibleSegments.length;
@@ -338,14 +362,26 @@ export default function Transcript({ meetingId, participants = [], onSpeakerUpda
               {visibleSegments.map((item, index) => {
                 const speaker = item.speaker || "Unknown Speaker";
                 const { bg, text, ring } = getSpeakerColor(speaker);
+                const isActive =
+                  currentTime >= (item.startTime ?? 0) &&
+                  currentTime < (item.endTime ?? Infinity);
 
                 return (
                   <div
                     key={`${item.startTime}-${index}`}
-                    className="group flex gap-4 px-5 py-4 transition-all duration-200 hover:bg-white/[0.03] hover:pl-6 border-l-2 border-transparent hover:border-indigo-500"
+                    ref={isActive ? activeSegmentRef : null}
+                    onClick={(e) => {
+                      if (e.target.closest("button")) return;
+                      seekAndPlay(item.startTime);
+                    }}
+                    className={`group flex gap-4 px-5 py-4 transition-all duration-300 border-l-4 cursor-pointer ${
+                      isActive
+                        ? "border-indigo-400 bg-indigo-500/[0.08] shadow-md shadow-indigo-500/10 pl-6"
+                        : "border-transparent hover:bg-white/[0.03] hover:pl-6 hover:border-slate-700"
+                    }`}
                   >
                     <div
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xs font-bold shadow-sm"
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xs font-bold shadow-sm transition-transform group-hover:scale-105"
                       style={{
                         background: bg,
                         color: text,
@@ -358,12 +394,27 @@ export default function Transcript({ meetingId, participants = [], onSpeakerUpda
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-2 min-w-0">
-                          <h3 className="truncate text-xs font-bold tracking-tight text-slate-200 group-hover:text-white">
+                          <h3
+                            className={`truncate text-xs font-bold tracking-tight transition ${
+                              isActive ? "text-indigo-300" : "text-slate-200 group-hover:text-white"
+                            }`}
+                          >
                             {speaker}
                           </h3>
+
+                          {/* Sound Equalizer Pill when this speaker is actively talking */}
+                          {isActive && isPlaying && (
+                            <div className="flex items-end gap-[2px] h-3.5 px-1.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30">
+                              <span className="h-1.5 w-0.5 rounded-full bg-emerald-400 animate-pulse" />
+                              <span className="h-3 w-0.5 rounded-full bg-emerald-400 animate-pulse delay-75" />
+                              <span className="h-2 w-0.5 rounded-full bg-emerald-400 animate-pulse delay-150" />
+                            </div>
+                          )}
+
                           <button
                             type="button"
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               setRenameInitialSpeaker(speaker);
                               setRenameModalOpen(true);
                             }}
@@ -373,9 +424,27 @@ export default function Transcript({ meetingId, participants = [], onSpeakerUpda
                             <Pencil size={11} />
                           </button>
                         </div>
-                        <span className="shrink-0 rounded bg-white/[0.04] px-2 py-0.5 font-mono text-[11px] text-slate-400">
-                          {formatTranscriptTime(item.startTime)}
-                        </span>
+
+                        {/* Interactive Timestamp Seek Button */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            seekAndPlay(item.startTime);
+                          }}
+                          className={`flex items-center gap-1.5 shrink-0 rounded-lg border px-2 py-0.5 font-mono text-[11px] transition cursor-pointer ${
+                            isActive
+                              ? "border-indigo-400/50 bg-indigo-500/20 text-indigo-300 shadow-sm"
+                              : "border-white/[0.06] bg-white/[0.04] text-slate-400 hover:text-white hover:bg-indigo-600/30 hover:border-indigo-500/40"
+                          }`}
+                          title={`Play from ${formatTranscriptTime(item.startTime)}`}
+                        >
+                          <Play
+                            size={10}
+                            className={isActive ? "fill-indigo-400 text-indigo-400" : "fill-current"}
+                          />
+                          <span>{formatTranscriptTime(item.startTime)}</span>
+                        </button>
                       </div>
 
                       <p className="mt-1.5 text-xs leading-relaxed text-slate-300 sm:text-sm">

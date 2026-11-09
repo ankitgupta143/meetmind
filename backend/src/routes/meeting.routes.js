@@ -12,11 +12,16 @@ import {
 } from "../controllers/meeting.controller.js";
 import { getMeetingTranscriptController } from "../controllers/transcript.controller.js";
 import meetingUpload from "../middlewares/meetingUpload.js";
-import { updateActionItemController } from "../controllers/actionItem.controller.js";
+import {
+  updateActionItemController,
+  createActionItemController,
+  deleteActionItemController,
+} from "../controllers/actionItem.controller.js";
 import {
   deleteMeetingDecisionController,
   getMeetingDecisionsController,
   updateMeetingDecisionController,
+  createMeetingDecisionController,
 } from "../controllers/decision.controller.js";
 import { diarizeMeetingController } from "../controllers/diarization.controller.js";
 import {
@@ -45,13 +50,31 @@ router.post("/:id/insights", authenticate, testMeetingInsightsController);
 
 router.post("/:id/assistant", authenticate, meetingAssistantController);
 
+router.post(
+  "/:meetingId/action-items",
+  authenticate,
+  createActionItemController,
+);
+
 router.patch(
   "/:meetingId/action-items/:itemIndex",
   authenticate,
   updateActionItemController,
 );
 
+router.delete(
+  "/:meetingId/action-items/:itemIndex",
+  authenticate,
+  deleteActionItemController,
+);
+
 router.get("/:id/decisions", authenticate, getMeetingDecisionsController);
+
+router.post(
+  "/:meetingId/decisions",
+  authenticate,
+  createMeetingDecisionController,
+);
 
 router.patch(
   "/:meetingId/decisions/:index",

@@ -63,3 +63,15 @@ export async function importGoogleMeetMeeting({ meetingTitle, date, participants
   });
   return response.data?.data;
 }
+
+
+/**
+ * Sync meeting action items to productivity apps (Notion, Linear, Jira, Asana)
+ */
+export async function syncMeetingTasks({ provider, meetingId, targetList }) {
+  const response = await api.post(`/integrations/${provider}/sync-tasks`, {
+    meetingId,
+    targetList,
+  });
+  return response.data;
+}

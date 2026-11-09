@@ -11,6 +11,8 @@ import Decisions from "./Decisions";
 import Analytics from "./Analytics";
 import { AIAssistant } from "../ai-assistant";
 import { WORKSPACE_TABS } from "@/constants/meeting";
+import { MeetingAudioProvider } from "@/context/MeetingAudioContext";
+import MeetingAudioPlayer from "./player/MeetingAudioPlayer";
 
 export default function MeetingWorkspace({
   meeting,
@@ -39,12 +41,14 @@ export default function MeetingWorkspace({
     actions: (
       <ActionItems
         insights={insights}
+        participants={meeting?.participants}
       />
     ),
 
     decisions: (
       <Decisions
         insights={insights}
+        participants={meeting?.participants}
       />
     ),
 
@@ -65,30 +69,34 @@ export default function MeetingWorkspace({
   };
 
   return (
-    <div className="grid min-w-0 gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
-      <MeetingSidebar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        insights={insights}
-      />
+    <MeetingAudioProvider meeting={meeting}>
+      <div className="grid min-w-0 gap-6 lg:grid-cols-[280px_minmax(0,1fr)] pb-28">
+        <MeetingSidebar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          insights={insights}
+        />
 
-      <section className="min-w-0">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.22, ease: "easeOut" }}
-          >
-            {workspaceViews[activeTab] ?? (
-              <AISummary
-                insights={insights}
-              />
-            )}
-          </motion.div>
-        </AnimatePresence>
-      </section>
-    </div>
+        <section className="min-w-0">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22, ease: "easeOut" }}
+            >
+              {workspaceViews[activeTab] ?? (
+                <AISummary
+                  insights={insights}
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </section>
+      </div>
+
+      <MeetingAudioPlayer />
+    </MeetingAudioProvider>
   );
 }

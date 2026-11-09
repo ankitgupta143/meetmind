@@ -8,6 +8,7 @@ import {
   updateIntegrationConfigController,
   postMeetingToSlackController,
   importGoogleMeetMeetingController,
+  syncMeetingTasksController,
 } from "../controllers/integration.controller.js";
 
 const router = express.Router();
@@ -19,5 +20,6 @@ router.patch("/:provider/config", authenticate, updateIntegrationConfigControlle
 router.post("/:provider/connect", authenticate, connectIntegrationController);
 router.post("/:provider/disconnect", authenticate, disconnectIntegrationController);
 router.post("/:provider/sync", authenticate, syncIntegrationController);
+router.post("/:provider/sync-tasks", authenticate, syncMeetingTasksController);
 
 export default router;

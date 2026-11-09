@@ -95,3 +95,32 @@ export async function deleteMeetingDecisionController(req, res, next) {
     next(error);
   }
 }
+
+
+export async function createMeetingDecisionController(req, res, next) {
+  try {
+    const { title, description, owner } = req.body || {};
+
+    if (!title || typeof title !== "string" || !title.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Decision title cannot be empty.",
+      });
+    }
+
+    const { createMeetingDecision } = await import("../services/decision.service.js");
+    const result = await createMeetingDecision({
+      meetingId: req.params.meetingId || req.params.id,
+      userId: req.user.id || req.user._id,
+      decisionData: { title, description, owner },
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Decision created successfully.",
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+}

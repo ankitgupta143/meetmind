@@ -6,6 +6,7 @@ import {
   updateIntegrationConfig,
   postMeetingToSlack,
   importGoogleMeetMeeting,
+  syncMeetingTasksToProvider,
 } from "../services/integration.service.js";
 
 /**
@@ -172,6 +173,33 @@ export async function importGoogleMeetMeetingController(req, res, next) {
         result.message ||
         `Google Meet meeting '${meeting.title}' imported successfully.`,
       data: meeting,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+
+/**
+ * Controller: Sync meeting action items to external productivity tools (Notion, Linear, Jira, Asana)
+ */
+export async function syncMeetingTasksController(req, res, next) {
+  try {
+    const userId = req.user.id || req.user._id;
+    const provider = req.params.provider;
+    const { meetingId, targetList } = req.body || {};
+
+    const result = await syncMeetingTasksToProvider({
+      userId,
+      meetingId,
+      provider,
+      targetList,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: result.message,
+      data: result,
     });
   } catch (error) {
     next(error);

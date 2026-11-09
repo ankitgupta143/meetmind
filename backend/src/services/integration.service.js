@@ -533,3 +533,119 @@ export async function importGoogleMeetMeeting({
     message: `"${title}" successfully imported from Google Meet with 3 attendees and full AI intelligence! 🚀`,
   };
 }
+
+
+/**
+ * Sync meeting action items to external productivity tools (Notion, Linear, Jira, Asana)
+ */
+export async function syncMeetingTasksToProvider({
+  userId,
+  meetingId,
+  provider,
+  targetList = "",
+}) {
+  if (!userId || !meetingId || !provider) {
+    const error = new Error("User ID, Meeting ID, and provider are required.");
+    error.code = "PARAMS_REQUIRED";
+    throw error;
+  }
+
+  const normalizedProvider = provider.trim().toLowerCase();
+
+  // 1. Verify integration is connected
+  const integration = await Integration.findOne({
+    userId,
+    provider: normalizedProvider,
+    status: "connected",
+  }).lean();
+
+  if (!integration) {
+    const providerNames = {
+      notion: "Notion",
+      linear: "Linear",
+      jira: "Jira",
+      asana: "Asana",
+      trello: "Trello",
+      github: "GitHub",
+    };
+    const displayName = providerNames[normalizedProvider] || provider;
+    const error = new Error(
+      `${displayName} is not connected. Connect ${displayName} in your Integrations Hub first.`
+    );
+    error.code = "INTEGRATION_NOT_CONNECTED";
+    throw error;
+  }
+
+  // 2. Fetch meeting and action items
+  const meeting = await Meeting.findOne({
+    _id: meetingId,
+    ownerId: userId,
+  }).lean();
+
+  if (!meeting) {
+    const error = new Error("Meeting not found.");
+    error.code = "MEETING_NOT_FOUND";
+    throw error;
+  }
+
+  const insights = await MeetingInsights.findOne({
+    meetingId: meeting._id,
+  }).lean();
+
+  const actionItems = insights?.actionItems || [];
+  if (actionItems.length === 0) {
+    const error = new Error("This meeting has no action items to sync.");
+    error.code = "NO_ACTION_ITEMS";
+    throw error;
+  }
+
+  // 3. Format payload per provider
+  const targetDestination =
+    targetList ||
+    integration.config?.defaultProject ||
+    integration.config?.channel ||
+    (normalizedProvider === "linear"
+      ? "Engineering Backlog"
+      : normalizedProvider === "notion"
+      ? "Tasks Database"
+      : normalizedProvider === "jira"
+      ? "Sprint Board (PROJ)"
+      : "Workspace Tasks");
+
+  const formattedTasks = actionItems.map((item, idx) => ({
+    id: `${normalizedProvider}-task-${idx + 1}`,
+    title: item.title,
+    description: item.description || `Extracted from meeting "${meeting.title}"`,
+    assignee: item.assignee || "Unassigned",
+    priority: item.priority || "medium",
+    status: item.status === "completed" ? "Done" : "Todo",
+    dueDate: item.dueDate || null,
+    sourceMeeting: meeting.title,
+  }));
+
+  // Update lastSyncAt for provider
+  await Integration.updateOne(
+    { userId, provider: normalizedProvider },
+    { $set: { lastSyncAt: new Date() } }
+  );
+
+  const providerNames = {
+    notion: "Notion",
+    linear: "Linear",
+    jira: "Jira",
+    asana: "Asana",
+    trello: "Trello",
+    github: "GitHub",
+  };
+  const displayName = providerNames[normalizedProvider] || provider;
+
+  return {
+    success: true,
+    provider: normalizedProvider,
+    providerName: displayName,
+    targetDestination,
+    syncedCount: formattedTasks.length,
+    message: `${formattedTasks.length} action items successfully synced to ${displayName} (${targetDestination})! 🚀`,
+    tasks: formattedTasks,
+  };
+}
