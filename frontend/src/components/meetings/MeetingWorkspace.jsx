@@ -70,7 +70,7 @@ export default function MeetingWorkspace({
 
   return (
     <MeetingAudioProvider meeting={meeting}>
-      <div className="grid min-w-0 gap-6 lg:grid-cols-[280px_minmax(0,1fr)] pb-28">
+      <div className="grid min-w-0 gap-6 lg:grid-cols-[280px_minmax(0,1fr)] pb-32">
         <MeetingSidebar
           activeTab={activeTab}
           setActiveTab={setActiveTab}

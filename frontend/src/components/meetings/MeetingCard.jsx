@@ -89,15 +89,12 @@ export default function MeetingCard({ meeting }) {
           handleClick();
         }
       }}
-      className="group relative overflow-hidden rounded-[2rem] border border-white/[0.08] bg-slate-950/60 p-6 shadow-xl backdrop-blur-2xl transition-all duration-300 hover:border-indigo-500/40 hover:bg-slate-900/80 hover:-translate-y-1 hover:shadow-[0_20px_45px_-15px_rgba(99,102,241,0.25)] cursor-pointer"
+      className="group relative overflow-hidden rounded-xl border border-border bg-card p-5 transition-colors duration-200 hover:border-indigo-300/30 hover:bg-surface-raised cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-      {/* Background ambient glow spot */}
-      <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-indigo-500/10 blur-2xl transition-opacity duration-300 group-hover:opacity-100 opacity-40" />
-
       <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            <h3 className="text-base font-bold text-white group-hover:text-indigo-300 transition-colors">
+            <h3 className="text-base font-semibold text-foreground group-hover:text-indigo-200 transition-colors">
               {meeting.title}
             </h3>
 

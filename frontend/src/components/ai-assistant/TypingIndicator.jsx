@@ -9,15 +9,15 @@ export default function TypingIndicator() {
         <Bot size={18} />
       </div>
 
-      <div className="rounded-2xl rounded-tl-none border border-zinc-200 bg-white px-5 py-4 shadow-sm">
-        <p className="mb-3 text-sm font-medium text-zinc-700">
+      <div className="rounded-2xl rounded-tl-none border border-border bg-surface-raised px-5 py-4 shadow-xs">
+        <p className="mb-3 text-sm font-medium text-foreground">
           MeetMind is analyzing your meeting...
         </p>
 
         <div className="flex gap-1">
-          <span className="h-2 w-2 animate-bounce rounded-full bg-indigo-500 [animation-delay:-0.3s]" />
-          <span className="h-2 w-2 animate-bounce rounded-full bg-indigo-500 [animation-delay:-0.15s]" />
-          <span className="h-2 w-2 animate-bounce rounded-full bg-indigo-500" />
+          <span className="h-2 w-2 animate-bounce rounded-full bg-primary [animation-delay:-0.3s]" />
+          <span className="h-2 w-2 animate-bounce rounded-full bg-primary [animation-delay:-0.15s]" />
+          <span className="h-2 w-2 animate-bounce rounded-full bg-primary" />
         </div>
       </div>
     </div>

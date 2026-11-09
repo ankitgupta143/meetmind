@@ -7,7 +7,7 @@ import ChatMessages from "./ChatMessages";
 import EmptyConversation from "./EmptyConversation";
 import PromptSuggestions from "./PromptSuggestions";
 
-export default function AIAssistant() {
+export default function AIAssistant({ meetingId }) {
   const {
     messages,
     input,
@@ -16,14 +16,14 @@ export default function AIAssistant() {
     sendMessage,
     clearConversation,
     regenerateResponse,
-  } = useAssistantChat();
+  } = useAssistantChat(meetingId);
 
   return (
-    <div className="flex h-[calc(100vh-240px)] min-h-[620px] flex-col overflow-hidden rounded-[2rem] border border-white/[0.08] bg-slate-950/60 shadow-xl backdrop-blur-2xl">
+    <div className="flex h-[clamp(580px,calc(100vh-260px),780px)] min-h-[540px] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-xs">
       <ChatHeader onNewChat={clearConversation} />
 
       {messages.length === 0 ? (
-        <div className="flex flex-1 flex-col overflow-y-auto px-6 py-6 sm:px-8">
+        <div className="flex flex-1 flex-col justify-center overflow-y-auto px-4 py-4 sm:px-8">
           <EmptyConversation />
           <PromptSuggestions onSuggestionClick={sendMessage} />
         </div>

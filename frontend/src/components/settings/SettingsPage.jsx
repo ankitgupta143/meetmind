@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { useTheme } from "next-themes";
 import {
   Bell,
   Bot,
@@ -39,11 +40,13 @@ const Toggle = ({ checked, onChange }) => (
     aria-checked={checked}
     onClick={() => onChange(!checked)}
     className={`relative h-6 w-11 rounded-full transition-colors cursor-pointer ${
-      checked ? "bg-indigo-600 shadow-lg shadow-indigo-600/30" : "bg-slate-800"
+      checked
+        ? "bg-indigo-600 shadow-md shadow-indigo-600/30"
+        : "bg-muted border border-border"
     }`}
   >
     <span
-      className={`absolute top-1 size-4 rounded-full bg-white shadow-md transition-all ${
+      className={`absolute top-1 size-4 rounded-full bg-white shadow-sm transition-all ${
         checked ? "left-6" : "left-1"
       }`}
     />
@@ -53,14 +56,14 @@ const Toggle = ({ checked, onChange }) => (
 const Choice = ({ checked, label, onClick }) => (
   <button
     onClick={onClick}
-    className="flex items-center gap-2.5 text-xs font-semibold text-slate-200 cursor-pointer"
+    className="flex items-center gap-2.5 text-xs font-semibold text-foreground/90 cursor-pointer"
   >
     <span
       className={`flex size-4 items-center justify-center rounded-full border ${
-        checked ? "border-indigo-500 bg-indigo-500/20" : "border-white/20"
+        checked ? "border-indigo-500 bg-indigo-500/20" : "border-border"
       }`}
     >
-      {checked && <span className="size-2 rounded-full bg-indigo-500 shadow-sm" />}
+      {checked && <span className="size-2 rounded-full bg-indigo-500 shadow-xs" />}
     </span>
     {label}
   </button>
@@ -68,16 +71,16 @@ const Choice = ({ checked, label, onClick }) => (
 
 const SectionHeading = ({ title, description }) => (
   <div className="mb-6">
-    <h2 className="text-xl font-bold tracking-tight text-white">{title}</h2>
+    <h2 className="text-xl font-bold tracking-tight text-foreground">{title}</h2>
     {description && (
-      <p className="mt-1 text-xs text-slate-400">{description}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{description}</p>
     )}
   </div>
 );
 
 export default function SettingsPage() {
   const [active, setActive] = useState("appearance");
-  const [theme, setTheme] = useState("dark");
+  const { theme, setTheme } = useTheme();
   const [accent, setAccent] = useState("purple");
   const [settings, setSettings] = useState({
     animations: true,
@@ -98,9 +101,9 @@ export default function SettingsPage() {
   const toggle = (key, value) =>
     setSettings((current) => ({ ...current, [key]: value }));
 
-  const field = (label, children) => (
-    <div className="flex items-center justify-between gap-6 py-3.5">
-      <span className="text-xs font-semibold text-slate-200">{label}</span>
+  const field = (label, children, key) => (
+    <div key={key || label} className="flex items-center justify-between gap-6 py-3.5">
+      <span className="text-xs font-semibold text-foreground/90">{label}</span>
       {children}
     </div>
   );
@@ -112,14 +115,14 @@ export default function SettingsPage() {
           title="Account Profile"
           description="Manage your personal information and preferences."
         />
-        <div className="rounded-2xl border border-white/[0.08] bg-slate-900/50 p-5">
-          <p className="text-sm font-bold text-white">Ankit Gupta</p>
-          <p className="mt-0.5 text-xs text-slate-400">
+        <div className="rounded-2xl border border-border bg-surface-raised/40 p-5">
+          <p className="text-sm font-bold text-foreground">Ankit Gupta</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
             Frontend Engineer · ankit@gmail.com
           </p>
           <Link
             href="/profile"
-            className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-400 hover:text-indigo-300"
+            className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
           >
             <span>Manage detailed profile</span>
             <ChevronRight className="size-3.5" />
@@ -136,25 +139,27 @@ export default function SettingsPage() {
         />
         <div className="space-y-6">
           <div>
-            <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
+            <p className="mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Color Theme
             </p>
             <div className="flex flex-wrap gap-5">
-              {["Dark (Default)", "Light", "System"].map((item) => (
+              {[
+                ["Dark (Default)", "dark"],
+                ["Light", "light"],
+                ["System", "system"],
+              ].map(([item, value]) => (
                 <Choice
-                  key={item}
+                  key={value}
                   label={item}
-                  checked={theme === (item.startsWith("Dark") ? "dark" : item.toLowerCase())}
-                  onClick={() =>
-                    setTheme(item.startsWith("Dark") ? "dark" : item.toLowerCase())
-                  }
+                  checked={theme === value}
+                  onClick={() => setTheme(value)}
                 />
               ))}
             </div>
           </div>
 
           <div>
-            <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
+            <p className="mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Accent Color Aura
             </p>
             <div className="flex flex-wrap gap-2.5">
@@ -168,32 +173,34 @@ export default function SettingsPage() {
                   onClick={() => setAccent(key)}
                   className={`flex items-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-semibold transition cursor-pointer ${
                     accent === key
-                      ? "border-indigo-500/50 bg-indigo-500/15 text-white"
-                      : "border-white/[0.08] bg-white/[0.03] text-slate-300 hover:bg-white/[0.06]"
+                      ? "border-indigo-500/50 bg-indigo-500/15 text-primary dark:text-white"
+                      : "border-border bg-surface-raised text-muted-foreground hover:bg-surface-hover hover:text-foreground"
                   }`}
                 >
                   <span className={`size-2.5 rounded-full ${color}`} />
                   {label}
-                  {accent === key && <Check className="size-3.5 text-indigo-400" />}
+                  {accent === key && <Check className="size-3.5 text-indigo-500" />}
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="divide-y divide-white/[0.06] rounded-2xl border border-white/[0.08] bg-slate-900/40 px-5">
+          <div className="divide-y divide-border rounded-2xl border border-border bg-surface-raised/40 px-5">
             {field(
               "Enable silky 60fps animations",
               <Toggle
                 checked={settings.animations}
                 onChange={(value) => toggle("animations", value)}
-              />
+              />,
+              "animations"
             )}
             {field(
               "Compact workspace grid",
               <Toggle
                 checked={settings.compact}
                 onChange={(value) => toggle("compact", value)}
-              />
+              />,
+              "compact"
             )}
           </div>
         </div>
@@ -225,18 +232,18 @@ export default function SettingsPage() {
             ],
           ].map(([title, items]) => (
             <div key={title}>
-              <p className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+              <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 {title}
               </p>
-              <div className="divide-y divide-white/[0.06] rounded-2xl border border-white/[0.08] bg-slate-900/40 px-5">
+              <div className="divide-y divide-border rounded-2xl border border-border bg-surface-raised/40 px-5">
                 {items.map(([label, key]) =>
                   field(
                     label,
                     <Toggle
-                      key={key}
                       checked={settings[key]}
                       onChange={(value) => toggle(key, value)}
-                    />
+                    />,
+                    key
                   )
                 )}
               </div>
@@ -254,17 +261,17 @@ export default function SettingsPage() {
         />
         <div className="space-y-5">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
+            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Primary LLM Provider
             </label>
-            <select className="mt-2 h-10 w-full rounded-xl border border-white/[0.08] bg-slate-900 px-3 text-xs text-white outline-none focus:border-indigo-500">
-              <option className="bg-slate-900">Gemini 1.5 Flash (Ultra Fast)</option>
-              <option className="bg-slate-900">Gemini 1.5 Pro (Deep Analysis)</option>
+            <select className="mt-2 h-10 w-full rounded-xl border border-border bg-surface-raised px-3 text-xs text-foreground outline-none focus:border-indigo-500">
+              <option className="bg-popover text-popover-foreground">Gemini 1.5 Flash (Ultra Fast)</option>
+              <option className="bg-popover text-popover-foreground">Gemini 1.5 Pro (Deep Analysis)</option>
             </select>
           </div>
 
           <div>
-            <p className="mb-2.5 text-xs font-bold uppercase tracking-wider text-slate-400">
+            <p className="mb-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Executive Summary Style
             </p>
             <div className="flex gap-4">
@@ -275,10 +282,10 @@ export default function SettingsPage() {
           </div>
 
           <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Automated Synthesis Triggers
             </p>
-            <div className="divide-y divide-white/[0.06] rounded-2xl border border-white/[0.08] bg-slate-900/40 px-5">
+            <div className="divide-y divide-border rounded-2xl border border-border bg-surface-raised/40 px-5">
               {[
                 ["Auto-Generate Summary", "autoSummary"],
                 ["Extract Action Items & Deadlines", "actionItems"],
@@ -288,10 +295,10 @@ export default function SettingsPage() {
                 field(
                   label,
                   <Toggle
-                    key={key}
                     checked={settings[key]}
                     onChange={(value) => toggle(key, value)}
-                  />
+                  />,
+                  key
                 )
               )}
             </div>
@@ -306,7 +313,7 @@ export default function SettingsPage() {
           title="Security & Access"
           description="Manage encryption, active sessions, and access keys."
         />
-        <div className="divide-y divide-white/[0.06] rounded-2xl border border-white/[0.08] bg-slate-900/40 px-5">
+        <div className="divide-y divide-border rounded-2xl border border-border bg-surface-raised/40 px-5">
           {[
             ["Change Password", "Update your secret password.", KeyRound],
             ["Two-factor Authentication", "Hardware / Authenticator app.", ShieldCheck],
@@ -316,16 +323,16 @@ export default function SettingsPage() {
             <button
               key={title}
               onClick={() => toast.info(`${title} is managed via Auth0/OAuth.`)}
-              className="flex w-full items-center gap-3.5 py-4 text-left transition hover:bg-white/[0.02] cursor-pointer"
+              className="flex w-full items-center gap-3.5 py-4 text-left transition hover:bg-surface-hover/50 cursor-pointer"
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-primary">
                 <Icon size={16} />
               </div>
               <span className="flex-1">
-                <span className="block text-xs font-bold text-white">{title}</span>
-                <span className="block text-[11px] text-slate-400">{description}</span>
+                <span className="block text-xs font-bold text-foreground">{title}</span>
+                <span className="block text-[11px] text-muted-foreground">{description}</span>
               </span>
-              <ChevronRight className="size-4 text-slate-500" />
+              <ChevronRight className="size-4 text-muted-foreground" />
             </button>
           ))}
         </div>
@@ -338,7 +345,7 @@ export default function SettingsPage() {
           title="Connected Services"
           description="Check streaming providers and calendar integrations."
         />
-        <div className="divide-y divide-white/[0.06] rounded-2xl border border-white/[0.08] bg-slate-900/40 px-5">
+        <div className="divide-y divide-border rounded-2xl border border-border bg-surface-raised/40 px-5">
           {[
             ["Google Meet", true],
             ["Slack Workspace", true],
@@ -346,12 +353,12 @@ export default function SettingsPage() {
             ["Zoom Video", false],
           ].map(([service, connected]) => (
             <div key={service} className="flex items-center justify-between py-3.5">
-              <span className="text-xs font-semibold text-white">{service}</span>
+              <span className="text-xs font-semibold text-foreground">{service}</span>
               <span
                 className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold ${
                   connected
-                    ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-300"
-                    : "bg-white/[0.04] border-white/[0.08] text-slate-400"
+                    ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-300"
+                    : "bg-surface-raised border-border text-muted-foreground"
                 }`}
               >
                 {connected ? "✓ Connected" : "Not Linked"}
@@ -361,7 +368,7 @@ export default function SettingsPage() {
         </div>
         <Link
           href="/integrations"
-          className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-400 hover:text-indigo-300"
+          className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
         >
           <span>Manage Integrations</span>
           <ChevronRight className="size-3.5" />
@@ -375,7 +382,7 @@ export default function SettingsPage() {
           title="About MeetMind"
           description="Application build environment and system diagnostic specs."
         />
-        <div className="divide-y divide-white/[0.06] rounded-2xl border border-white/[0.08] bg-slate-900/40 px-5">
+        <div className="divide-y divide-border rounded-2xl border border-border bg-surface-raised/40 px-5">
           {[
             ["App Release", "v2.4.0-obsidian"],
             ["Frontend Framework", "Next.js (Turbopack)"],
@@ -384,8 +391,8 @@ export default function SettingsPage() {
             ["AI Engine", "Gemini 1.5 Flash Diarization"],
           ].map(([key, value]) => (
             <div key={key} className="flex justify-between py-3 text-xs">
-              <span className="text-slate-400">{key}</span>
-              <span className="font-mono font-bold text-slate-200">{value}</span>
+              <span className="text-muted-foreground">{key}</span>
+              <span className="font-mono font-bold text-foreground">{value}</span>
             </div>
           ))}
         </div>
@@ -396,20 +403,20 @@ export default function SettingsPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
-        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-400">
-          <Sparkles size={14} className="text-cyan-400" />
+        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary">
+          <Sparkles size={14} className="text-primary" />
           <span>System Preferences</span>
         </div>
-        <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+        <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
           Settings
         </h1>
-        <p className="mt-1 text-xs text-slate-400">
+        <p className="mt-1 text-xs text-muted-foreground">
           Control your MeetMind experience, AI engine defaults and visual theme.
         </p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
-        <aside className="h-fit rounded-[2rem] border border-white/[0.08] bg-slate-950/60 p-3 shadow-xl backdrop-blur-2xl">
+        <aside className="h-fit rounded-2xl border border-border bg-card p-3 shadow-xs">
           {tabs.map(([id, label, Icon]) => {
             const isActive = active === id;
             return (
@@ -419,7 +426,7 @@ export default function SettingsPage() {
                 className={`relative mb-1 flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-xs font-semibold transition cursor-pointer ${
                   isActive
                     ? "text-white"
-                    : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-200"
+                    : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"
                 }`}
               >
                 {isActive && (
@@ -436,7 +443,7 @@ export default function SettingsPage() {
           })}
         </aside>
 
-        <section className="rounded-[2rem] border border-white/[0.08] bg-slate-950/60 p-6 shadow-xl backdrop-blur-2xl">
+        <section className="rounded-2xl border border-border bg-card p-6 shadow-xs">
           {content[active]}
           <button
             onClick={() => toast.success("Settings saved successfully!")}

@@ -20,21 +20,24 @@ export const metadata = {
 import { UploadModalProvider } from "@/context/UploadModalContext";
 import { ExportDrawerProvider } from "@/context/ExportDrawerContext";
 import { AuthProvider } from "@/context/AuthContext";
+import ThemeProvider from "@/components/providers/ThemeProvider";
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>
-          <UploadModalProvider>
-            <ExportDrawerProvider>
-              {children}
-              <Toaster richColors position="top-right" />
-            </ExportDrawerProvider>
-          </UploadModalProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <UploadModalProvider>
+              <ExportDrawerProvider>
+                {children}
+                <Toaster richColors position="top-right" />
+              </ExportDrawerProvider>
+            </UploadModalProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

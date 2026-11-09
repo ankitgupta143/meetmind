@@ -32,7 +32,7 @@ export default function UploadMeetingModal() {
   return (
     <AnimatePresence mode="wait">
       <motion.div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md"
+        className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/65 p-3 backdrop-blur-sm sm:p-6"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -58,16 +58,16 @@ export default function UploadMeetingModal() {
             duration: 0.25,
             ease: [0.16, 1, 0.3, 1],
           }}
-          className="relative mx-auto w-full max-w-3xl overflow-hidden rounded-[2.5rem] border border-white/10 bg-slate-950/95 shadow-[0_25px_70px_-15px_rgba(0,0,0,0.8)] backdrop-blur-2xl"
+          className="relative my-auto mx-auto w-full max-w-3xl overflow-hidden rounded-xl border border-border bg-card shadow-2xl"
         >
           <button
             onClick={handleClose}
-            className="absolute right-6 top-6 z-20 rounded-xl p-2 text-slate-400 transition hover:bg-white/10 hover:text-white"
+            className="absolute right-4 top-4 z-20 rounded-lg p-2 text-muted-foreground transition hover:bg-surface-hover hover:text-foreground sm:right-5 sm:top-5"
           >
             <X size={18} />
           </button>
 
-          <div className="max-h-[85vh] overflow-y-auto">
+          <div className="max-h-[min(88svh,760px)] overflow-y-auto">
             {step === UPLOAD_STEPS.IDLE && (
               <UploadDropzone
                 setStep={setStep}

@@ -31,35 +31,30 @@ const HeroSection = ({ description, stats }) => {
       : "Ready to transform today's conversations into clear decisions, action items, and AI-powered insights.");
 
   return (
-    <section className="relative overflow-hidden rounded-[2.5rem] border border-white/[0.08] bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/50 p-6 sm:p-9 md:p-10 shadow-2xl backdrop-blur-2xl">
-      {/* Aurora light spots */}
-      <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-indigo-500/20 blur-[100px]" />
-      <div className="pointer-events-none absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-violet-600/15 blur-[100px]" />
-      <div className="pointer-events-none absolute right-1/3 bottom-0 h-40 w-40 rounded-full bg-cyan-500/15 blur-[80px]" />
-
-      <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+    <section className="dashboard-hero relative overflow-hidden rounded-xl border border-border bg-card p-6 sm:p-8">
+      <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-2xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/15 px-3 py-1 text-xs font-bold text-indigo-300 shadow-sm">
-            <Sparkles size={13} className="text-cyan-400 animate-pulse" />
+          <div className="dashboard-date inline-flex items-center gap-2 rounded-md border border-border bg-surface-raised px-2.5 py-1 text-xs font-medium text-muted-foreground">
+            <Sparkles size={13} className="text-indigo-300" />
             <span>{today}</span>
           </div>
 
-          <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-white sm:text-4xl lg:text-5xl">
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
             {greeting},{" "}
-            <span className="bg-gradient-to-r from-indigo-300 via-violet-200 to-cyan-300 bg-clip-text text-transparent">
+            <span className="text-indigo-200">
               {userName}
             </span>{" "}
             👋
           </h1>
 
-          <p className="mt-3 text-xs leading-relaxed text-slate-300 sm:text-sm md:text-base">
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground md:text-base">
             {heroText}
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
             <button
               onClick={() => setOpen(true)}
-              className="group relative flex items-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 px-5 py-3 text-xs sm:text-sm font-semibold text-white shadow-lg shadow-indigo-600/25 transition-all duration-300 hover:shadow-indigo-600/40 hover:-translate-y-0.5 active:scale-95"
+              className="group flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-indigo-200 active:scale-[0.98]"
             >
               <Upload size={16} className="transition-transform group-hover:scale-110" />
               <span>Upload Meeting</span>
@@ -67,7 +62,7 @@ const HeroSection = ({ description, stats }) => {
 
             <button
               onClick={() => router.push("/meetings")}
-              className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-5 py-3 text-xs sm:text-sm font-semibold text-slate-200 backdrop-blur-md transition-all duration-200 hover:bg-white/10 hover:text-white active:scale-95"
+              className="flex items-center gap-2 rounded-lg border border-border bg-surface-raised px-5 py-3 text-sm font-medium text-foreground transition hover:bg-surface-hover active:scale-[0.98]"
             >
               <Search size={16} />
               <span>Browse Meetings</span>
@@ -76,9 +71,9 @@ const HeroSection = ({ description, stats }) => {
         </div>
 
         {/* AI Pulse Badge Card */}
-        <div className="relative rounded-2xl border border-white/[0.08] bg-slate-900/60 p-5 backdrop-blur-xl shadow-lg lg:w-72">
+        <div className="dashboard-engine relative rounded-xl border border-border bg-surface-raised p-5 lg:w-72">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400">AI Engine</span>
+            <span className="text-xs font-medium text-muted-foreground">AI Engine</span>
             <span className="relative flex h-2.5 w-2.5">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>

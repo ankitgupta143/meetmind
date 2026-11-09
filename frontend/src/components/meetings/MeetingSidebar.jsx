@@ -70,15 +70,15 @@ export default function MeetingSidebar({
   ];
 
   return (
-    <aside className="h-fit rounded-[2rem] border border-white/[0.08] bg-slate-950/60 p-4 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.6)] backdrop-blur-2xl">
+    <aside className="h-fit rounded-2xl border border-border bg-card p-3 shadow-xs">
       <div className="mb-4 flex items-center justify-between px-2 pt-1">
         <div className="flex items-center gap-2">
-          <Sparkles size={14} className="text-indigo-400" />
-          <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400">
+          <Sparkles size={14} className="text-primary" />
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Workspace
           </h3>
         </div>
-        <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] font-medium text-slate-400">
+        <span className="rounded-full border border-border bg-surface-raised px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
           6 Modules
         </span>
       </div>
@@ -92,16 +92,16 @@ export default function MeetingSidebar({
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`relative group flex w-full items-center justify-between rounded-2xl p-3.5 text-left transition-all duration-200 ${
+              className={`relative group flex w-full items-center justify-between rounded-xl p-3 text-left transition-colors duration-200 cursor-pointer ${
                 isActive
-                  ? "text-white"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]"
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-surface-hover"
               }`}
             >
               {isActive && (
                 <motion.div
                   layoutId="meetingWorkspaceActiveTab"
-                  className="absolute inset-0 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-600/90 to-violet-600 shadow-[0_8px_25px_-5px_rgba(99,102,241,0.5)] border border-indigo-400/30"
+                  className="absolute inset-0 rounded-xl border border-indigo-500/20 bg-indigo-500/10 dark:border-indigo-400/25 dark:bg-indigo-400/10 shadow-xs"
                   transition={{ type: "spring", stiffness: 380, damping: 32 }}
                 />
               )}
@@ -110,8 +110,8 @@ export default function MeetingSidebar({
                 <div
                   className={`mt-0.5 flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-200 ${
                     isActive
-                      ? "bg-white/20 text-white shadow-sm"
-                      : "bg-white/[0.05] text-slate-400 group-hover:bg-white/[0.09] group-hover:text-slate-200 group-hover:scale-105"
+                      ? "bg-primary text-primary-foreground shadow-sm shadow-primary/25"
+                      : "bg-surface-raised text-muted-foreground group-hover:bg-surface-hover group-hover:text-foreground group-hover:scale-105"
                   }`}
                 >
                   <Icon size={17} />
@@ -119,8 +119,10 @@ export default function MeetingSidebar({
 
                 <div>
                   <p
-                    className={`text-sm font-semibold tracking-tight ${
-                      isActive ? "text-white" : "text-slate-200 group-hover:text-white"
+                    className={`text-sm tracking-tight ${
+                      isActive
+                        ? "font-bold text-foreground"
+                        : "font-semibold text-foreground/80 group-hover:text-foreground"
                     }`}
                   >
                     {item.title}
@@ -129,8 +131,8 @@ export default function MeetingSidebar({
                   <p
                     className={`mt-0.5 text-xs ${
                       isActive
-                        ? "text-indigo-100/90"
-                        : "text-slate-400"
+                        ? "text-primary dark:text-indigo-300 font-medium"
+                        : "text-muted-foreground"
                     }`}
                   >
                     {item.subtitle}
@@ -142,10 +144,10 @@ export default function MeetingSidebar({
                 <span
                   className={`relative z-10 rounded-full px-2.5 py-0.5 text-[11px] font-bold tracking-wide transition-colors ${
                     isActive
-                      ? "bg-white/25 text-white shadow-sm"
+                      ? "bg-primary/15 text-primary dark:bg-white/20 dark:text-white"
                       : item.badge === "AI"
-                      ? "bg-gradient-to-r from-cyan-500/20 to-indigo-500/20 border border-cyan-500/30 text-cyan-300"
-                      : "bg-white/[0.06] text-slate-400 group-hover:bg-white/10 group-hover:text-slate-300"
+                      ? "bg-indigo-500/15 border border-indigo-500/30 text-indigo-600 dark:bg-gradient-to-r dark:from-cyan-500/20 dark:to-indigo-500/20 dark:border-cyan-500/30 dark:text-cyan-300"
+                      : "bg-surface-raised border border-border/60 text-muted-foreground group-hover:text-foreground"
                   }`}
                 >
                   {item.badge}

@@ -16,7 +16,7 @@ export default function MeetingsList({
 
   if (loading) {
     return (
-      <div className="rounded-[2rem] border border-white/[0.08] bg-slate-950/60 p-12 text-center shadow-xl backdrop-blur-2xl">
+      <div className="rounded-xl border border-border bg-card p-12 text-center">
         <div className="inline-flex h-10 w-10 animate-spin items-center justify-center rounded-full border-2 border-indigo-500 border-t-transparent" />
         <p className="mt-4 text-xs font-medium text-slate-400">Loading your meeting archive...</p>
       </div>
@@ -25,7 +25,7 @@ export default function MeetingsList({
 
   if (error) {
     return (
-      <div className="rounded-[2rem] border border-rose-500/20 bg-slate-950/60 p-10 text-center shadow-xl backdrop-blur-2xl">
+      <div className="rounded-xl border border-rose-500/20 bg-card p-10 text-center">
         <p className="text-sm font-semibold text-rose-400">{error}</p>
       </div>
     );
@@ -34,7 +34,7 @@ export default function MeetingsList({
   if (!meetings.length) {
     if (isFiltered) {
       return (
-        <div className="rounded-[2rem] border border-white/[0.08] bg-slate-950/60 p-12 text-center shadow-xl backdrop-blur-2xl">
+        <div className="rounded-xl border border-border bg-card p-12 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400">
             <FilterX size={24} />
           </div>
@@ -57,7 +57,7 @@ export default function MeetingsList({
     }
 
     return (
-      <div className="rounded-[2rem] border border-white/[0.08] bg-slate-950/60 p-12 text-center shadow-xl backdrop-blur-2xl">
+      <div className="rounded-xl border border-border bg-card p-12 text-center">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400">
           <CalendarDays size={24} />
         </div>

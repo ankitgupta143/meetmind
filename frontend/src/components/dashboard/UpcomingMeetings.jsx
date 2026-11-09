@@ -7,7 +7,7 @@ const UpcomingMeetings = ({ meetings = [] }) => {
   const router = useRouter();
 
   return (
-    <section className="mt-8 rounded-[2rem] border border-white/[0.08] bg-slate-950/60 p-6 sm:p-8 shadow-xl backdrop-blur-2xl">
+    <section className="dashboard-panel mt-6 rounded-xl border border-white/[0.08] bg-slate-950/60 p-6 sm:p-7 shadow-xl backdrop-blur-2xl">
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
@@ -51,7 +51,7 @@ const UpcomingMeetings = ({ meetings = [] }) => {
             <div
               key={meeting.id}
               onClick={() => router.push(`/meetings/${meeting.id}`)}
-              className="group flex items-center justify-between rounded-2xl border border-white/[0.06] bg-slate-900/40 p-4 transition-all duration-300 hover:border-indigo-500/30 hover:bg-slate-900/80 cursor-pointer"
+              className="dashboard-row group flex items-center justify-between rounded-xl border border-white/[0.06] bg-slate-900/40 p-4 transition-all duration-300 hover:border-indigo-500/30 hover:bg-slate-900/80 cursor-pointer"
             >
               <div className="flex items-start gap-3.5">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/30 text-indigo-400">

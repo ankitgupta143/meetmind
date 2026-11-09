@@ -14,21 +14,21 @@ export default function ChatInput({ value, onChange, onSubmit, isLoading }) {
   };
 
   return (
-    <div className="border-t border-white/[0.08] bg-slate-950/80 p-4 sm:p-5 backdrop-blur-xl">
-      <div className="relative flex items-center rounded-2xl border border-white/[0.08] bg-slate-900/90 px-4 py-2.5 transition-all duration-200 focus-within:border-indigo-500/50 focus-within:ring-2 focus-within:ring-indigo-500/20">
+    <div className="border-t border-border bg-card p-4 sm:p-5">
+      <div className="relative flex items-center rounded-xl border border-border bg-surface-raised px-4 py-2.5 transition focus-within:border-indigo-300/50 focus-within:ring-2 focus-within:ring-indigo-300/10">
         <TextareaAutosize
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Ask a question about this meeting (e.g., 'What deadlines were set?')..."
-          className="flex-1 resize-none bg-transparent py-1 text-xs sm:text-sm text-slate-100 placeholder-slate-500 outline-none max-h-36"
+          className="flex-1 resize-none bg-transparent py-1 text-sm text-foreground placeholder:text-muted-foreground outline-none max-h-36"
           maxRows={5}
           disabled={isLoading}
         />
         <button
           onClick={onSubmit}
           disabled={!value.trim() || isLoading}
-          className="ml-3 flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white shadow-md transition-all hover:shadow-indigo-600/30 hover:scale-105 disabled:opacity-40 disabled:hover:scale-100 cursor-pointer disabled:cursor-not-allowed"
+          className="ml-3 flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground transition hover:bg-indigo-200 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
         >
           <ArrowUp size={16} />
         </button>

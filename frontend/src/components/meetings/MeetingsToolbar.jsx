@@ -40,7 +40,7 @@ export default function MeetingsToolbar({
     "Newest First";
 
   return (
-    <div className="relative z-30 flex flex-col gap-3 rounded-2xl border border-white/[0.08] bg-slate-950/60 p-4 shadow-xl backdrop-blur-2xl lg:flex-row lg:items-center lg:justify-between">
+    <div className="relative z-30 flex flex-col gap-3 rounded-xl border border-border bg-card p-3 lg:flex-row lg:items-center lg:justify-between">
       {/* Search & Filter */}
       <div className="flex flex-1 flex-col gap-3 sm:flex-row">
         {/* Search input */}
@@ -55,7 +55,7 @@ export default function MeetingsToolbar({
             value={search}
             onChange={(e) => onSearchChange?.(e.target.value)}
             placeholder="Search meetings by title, topic or participant..."
-            className="h-10 w-full rounded-xl border border-white/[0.08] bg-slate-900/80 pl-10 pr-9 text-xs text-slate-200 placeholder-slate-500 outline-none transition focus:border-indigo-500/50 focus:bg-slate-900 focus:ring-2 focus:ring-indigo-500/20"
+            className="h-10 w-full rounded-lg border border-border bg-surface-raised pl-10 pr-9 text-sm text-foreground placeholder:text-muted-foreground outline-none transition focus:border-indigo-300/50 focus:ring-2 focus:ring-indigo-300/10"
           />
 
           {search && (
@@ -73,7 +73,7 @@ export default function MeetingsToolbar({
         <select
           value={status}
           onChange={(e) => onStatusChange?.(e.target.value)}
-          className="h-10 rounded-xl border border-white/[0.08] bg-slate-900/80 px-3.5 text-xs font-medium text-slate-300 outline-none transition focus:border-indigo-500 cursor-pointer"
+          className="h-10 rounded-lg border border-border bg-surface-raised px-3.5 text-sm font-medium text-foreground outline-none transition focus:border-indigo-300/50 cursor-pointer"
         >
           <option value="all" className="bg-slate-900 text-white">All Status</option>
           <option value="completed" className="bg-slate-900 text-white">Completed</option>
@@ -87,7 +87,7 @@ export default function MeetingsToolbar({
       <div className="relative z-40 flex items-center gap-2.5" ref={sortRef}>
         <button
           onClick={() => setSortOpen((prev) => !prev)}
-          className="flex h-10 items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3.5 text-xs font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white cursor-pointer"
+          className="flex h-10 items-center gap-2 rounded-lg border border-border bg-surface-raised px-3.5 text-sm font-medium text-foreground transition hover:bg-surface-hover cursor-pointer"
         >
           <ArrowUpDown size={14} className="text-indigo-400" />
           <span>{currentSortLabel}</span>

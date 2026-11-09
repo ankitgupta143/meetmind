@@ -27,7 +27,7 @@ const RecentMeetings = ({ meetings = [] }) => {
   const { setOpen } = useUploadModal();
 
   return (
-    <section className="mt-8 rounded-[2rem] border border-white/[0.08] bg-slate-950/60 p-6 sm:p-8 shadow-xl backdrop-blur-2xl">
+    <section className="dashboard-panel mt-6 rounded-xl border border-white/[0.08] bg-slate-950/60 p-6 sm:p-7 shadow-xl backdrop-blur-2xl">
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
@@ -70,7 +70,7 @@ const RecentMeetings = ({ meetings = [] }) => {
             <div
               key={meeting.id || meeting._id}
               onClick={() => router.push(`/meetings/${meeting.id || meeting._id}`)}
-              className="group flex flex-col gap-4 rounded-2xl border border-white/[0.06] bg-slate-900/40 p-5 text-left transition-all duration-300 hover:border-indigo-500/30 hover:bg-slate-900/80 hover:-translate-y-0.5 cursor-pointer sm:flex-row sm:items-center sm:justify-between"
+              className="dashboard-row group flex flex-col gap-4 rounded-xl border border-white/[0.06] bg-slate-900/40 p-4 text-left transition-all duration-300 hover:border-indigo-500/30 hover:bg-slate-900/80 hover:-translate-y-0.5 cursor-pointer sm:flex-row sm:items-center sm:justify-between"
             >
               <div>
                 <div className="flex items-center gap-3">

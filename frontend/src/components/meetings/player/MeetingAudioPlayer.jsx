@@ -101,11 +101,11 @@ export default function MeetingAudioPlayer() {
   };
 
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[95%] max-w-5xl">
-      <div className="relative rounded-[2rem] border border-white/10 bg-slate-950/85 p-3.5 shadow-2xl backdrop-blur-2xl sm:px-6 sm:py-3.5">
+    <div className="fixed bottom-4 z-40 w-[95%] max-w-5xl left-1/2 -translate-x-1/2 lg:left-[calc(50%+140px)]">
+      <div className="relative rounded-[2rem] border border-border bg-card/95 dark:bg-slate-950/85 p-3.5 shadow-2xl shadow-indigo-950/10 dark:shadow-black/50 backdrop-blur-2xl sm:px-6 sm:py-3.5">
         {/* Glow ambient background spot (clipped inside its own container) */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]">
-          <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 h-32 w-96 rounded-full bg-gradient-to-t from-indigo-500/20 via-violet-500/10 to-transparent blur-2xl" />
+          <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 h-32 w-96 rounded-full bg-gradient-to-t from-indigo-500/10 via-violet-500/5 to-transparent dark:from-indigo-500/20 dark:via-violet-500/10 blur-2xl" />
         </div>
 
         <div className="relative z-10 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -115,7 +115,7 @@ export default function MeetingAudioPlayer() {
               <button
                 type="button"
                 onClick={() => skipBackward(10)}
-                className="flex size-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-300 transition hover:bg-white/10 hover:text-white active:scale-95 cursor-pointer"
+                className="flex size-9 items-center justify-center rounded-xl border border-border bg-surface-raised text-muted-foreground transition hover:bg-surface-hover hover:text-foreground active:scale-95 cursor-pointer"
                 title="Rewind 10 seconds"
               >
                 <RotateCcw size={15} />
@@ -137,7 +137,7 @@ export default function MeetingAudioPlayer() {
               <button
                 type="button"
                 onClick={() => skipForward(10)}
-                className="flex size-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-300 transition hover:bg-white/10 hover:text-white active:scale-95 cursor-pointer"
+                className="flex size-9 items-center justify-center rounded-xl border border-border bg-surface-raised text-muted-foreground transition hover:bg-surface-hover hover:text-foreground active:scale-95 cursor-pointer"
                 title="Forward 10 seconds"
               >
                 <RotateCw size={15} />
@@ -145,23 +145,23 @@ export default function MeetingAudioPlayer() {
             </div>
 
             {/* Speaker Indicator */}
-            <div className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 min-w-0">
+            <div className="flex items-center gap-2 rounded-xl border border-border bg-surface-raised px-3 py-1.5 min-w-0">
               <Radio
                 size={14}
                 className={
                   isPlaying
-                    ? "text-emerald-400 animate-pulse"
-                    : "text-slate-500"
+                    ? "text-emerald-500 animate-pulse"
+                    : "text-muted-foreground"
                 }
               />
               <div className="truncate text-xs">
                 {currentSpeaker ? (
-                  <span className="font-semibold text-slate-200">
-                    <span className="text-slate-400 font-normal">Speaker: </span>
+                  <span className="font-semibold text-foreground">
+                    <span className="text-muted-foreground font-normal">Speaker: </span>
                     {currentSpeaker}
                   </span>
                 ) : (
-                  <span className="text-slate-400">Audio Sync Ready</span>
+                  <span className="text-muted-foreground">Audio Sync Ready</span>
                 )}
               </div>
             </div>
@@ -169,7 +169,7 @@ export default function MeetingAudioPlayer() {
 
           {/* Center: Waveform Scrubber & Timestamps */}
           <div className="flex flex-1 items-center gap-3 px-1 sm:px-4">
-            <span className="w-12 text-right font-mono text-xs text-slate-300 shrink-0">
+            <span className="w-12 text-right font-mono text-xs text-foreground/90 shrink-0">
               {formatPlayerTime(currentTime)}
             </span>
 
@@ -196,8 +196,8 @@ export default function MeetingAudioPlayer() {
                         style={{ height: `${heightPercent}%` }}
                         className={`w-full rounded-full transition-all duration-100 ${
                           isPast
-                            ? "bg-gradient-to-t from-indigo-500 to-violet-400 shadow-[0_0_8px_rgba(99,102,241,0.5)]"
-                            : "bg-white/[0.12] group-hover:bg-white/[0.2]"
+                            ? "bg-gradient-to-t from-indigo-500 to-violet-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"
+                            : "bg-slate-300 dark:bg-white/[0.15] group-hover:bg-slate-400 dark:group-hover:bg-white/[0.25]"
                         }`}
                       />
                     </div>
@@ -210,21 +210,21 @@ export default function MeetingAudioPlayer() {
                 style={{ left: `${progressPercentage}%` }}
                 className="pointer-events-none absolute top-1/2 -translate-y-1/2 -translate-x-1/2"
               >
-                <div className="size-3.5 rounded-full border-2 border-white bg-indigo-500 shadow-md shadow-indigo-500/50" />
+                <div className="size-3.5 rounded-full border-2 border-white bg-indigo-600 shadow-md shadow-indigo-500/50" />
               </div>
 
               {/* Hover Tooltip */}
               {hoverTime !== null && (
                 <div
                   style={{ left: `${hoverPosition}%` }}
-                  className="pointer-events-none absolute -top-7 -translate-x-1/2 rounded-md bg-slate-900 border border-white/20 px-1.5 py-0.5 text-[10px] font-mono text-slate-200 shadow-lg"
+                  className="pointer-events-none absolute -top-7 -translate-x-1/2 rounded-md bg-popover border border-border px-1.5 py-0.5 text-[10px] font-mono text-popover-foreground shadow-lg"
                 >
                   {formatPlayerTime(hoverTime)}
                 </div>
               )}
             </div>
 
-            <span className="w-12 text-left font-mono text-xs text-slate-400 shrink-0">
+            <span className="w-12 text-left font-mono text-xs text-muted-foreground shrink-0">
               {formatPlayerTime(duration)}
             </span>
           </div>
@@ -237,8 +237,8 @@ export default function MeetingAudioPlayer() {
               onClick={() => setAutoScroll(!autoScroll)}
               className={`flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-xs font-semibold transition cursor-pointer ${
                 autoScroll
-                  ? "border-indigo-500/40 bg-indigo-500/15 text-indigo-300"
-                  : "border-white/10 bg-white/[0.03] text-slate-400 hover:text-white"
+                  ? "border-indigo-500/40 bg-indigo-500/15 text-primary dark:text-indigo-300"
+                  : "border-border bg-surface-raised text-muted-foreground hover:bg-surface-hover hover:text-foreground"
               }`}
               title={
                 autoScroll
@@ -255,7 +255,7 @@ export default function MeetingAudioPlayer() {
               <button
                 type="button"
                 onClick={() => setSpeedMenuOpen(!speedMenuOpen)}
-                className="flex items-center gap-1 rounded-xl border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-xs font-semibold text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer"
+                className="flex items-center gap-1 rounded-xl border border-border bg-surface-raised px-2.5 py-1.5 text-xs font-semibold text-foreground/80 hover:bg-surface-hover hover:text-foreground transition cursor-pointer"
                 title="Playback speed"
               >
                 <span>{playbackRate}x</span>
@@ -268,7 +268,7 @@ export default function MeetingAudioPlayer() {
               </button>
 
               {speedMenuOpen && (
-                <div className="absolute bottom-full right-0 mb-3 w-28 rounded-2xl border border-white/15 bg-slate-950/95 p-1.5 shadow-2xl backdrop-blur-2xl z-50">
+                <div className="absolute bottom-full right-0 mb-3 w-28 rounded-2xl border border-border bg-popover p-1.5 shadow-2xl backdrop-blur-2xl z-50">
                   {SPEED_OPTIONS.map((speed) => (
                     <button
                       key={speed}
@@ -279,8 +279,8 @@ export default function MeetingAudioPlayer() {
                       }}
                       className={`flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-medium transition cursor-pointer ${
                         playbackRate === speed
-                          ? "bg-indigo-600 text-white font-semibold"
-                          : "text-slate-300 hover:bg-white/10"
+                          ? "bg-primary text-primary-foreground font-semibold"
+                          : "text-foreground/80 hover:bg-surface-hover hover:text-foreground"
                       }`}
                     >
                       <span>{speed}x</span>
@@ -300,11 +300,11 @@ export default function MeetingAudioPlayer() {
               <button
                 type="button"
                 onClick={toggleMute}
-                className="flex size-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-300 transition hover:bg-white/10 hover:text-white cursor-pointer"
+                className="flex size-9 items-center justify-center rounded-xl border border-border bg-surface-raised text-muted-foreground transition hover:bg-surface-hover hover:text-foreground cursor-pointer"
                 title={isMuted ? "Unmute" : "Mute"}
               >
                 {isMuted || volume === 0 ? (
-                  <VolumeX size={15} className="text-rose-400" />
+                  <VolumeX size={15} className="text-rose-500" />
                 ) : (
                   <Volume2 size={15} />
                 )}
@@ -312,7 +312,7 @@ export default function MeetingAudioPlayer() {
 
               {/* Volume Slider Popover */}
               {volumeSliderOpen && (
-                <div className="absolute bottom-full right-0 mb-3 flex h-28 w-10 flex-col items-center justify-center rounded-2xl border border-white/15 bg-slate-950/95 p-2 shadow-2xl backdrop-blur-2xl z-50">
+                <div className="absolute bottom-full right-0 mb-3 flex h-28 w-10 flex-col items-center justify-center rounded-2xl border border-border bg-popover p-2 shadow-2xl backdrop-blur-2xl z-50">
                   <input
                     type="range"
                     min="0"
@@ -320,9 +320,9 @@ export default function MeetingAudioPlayer() {
                     step="0.05"
                     value={isMuted ? 0 : volume}
                     onChange={(e) => changeVolume(parseFloat(e.target.value))}
-                    className="h-20 w-1.5 appearance-none rounded-full bg-slate-800 accent-indigo-500 cursor-pointer [writing-mode:bt-lr] [-webkit-appearance:slider-vertical]"
+                    className="h-20 w-1.5 appearance-none rounded-full bg-muted accent-primary cursor-pointer [writing-mode:bt-lr] [-webkit-appearance:slider-vertical]"
                   />
-                  <span className="mt-1 text-[10px] font-mono text-slate-400">
+                  <span className="mt-1 text-[10px] font-mono text-muted-foreground">
                     {Math.round((isMuted ? 0 : volume) * 100)}%
                   </span>
                 </div>

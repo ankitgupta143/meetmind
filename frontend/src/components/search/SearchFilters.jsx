@@ -19,8 +19,8 @@ export default function SearchFilters({
           onClick={() => onChange(filter.value)}
           className={`rounded-xl px-4 py-2 text-xs font-semibold capitalize transition cursor-pointer ${
             active === filter.value
-              ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
-              : "border border-white/[0.08] bg-white/[0.04] text-slate-300 hover:bg-white/10 hover:text-white"
+              ? "border border-indigo-300/20 bg-indigo-300/10 text-indigo-100"
+              : "border border-border bg-surface-raised text-muted-foreground hover:bg-surface-hover hover:text-foreground"
           }`}
         >
           {filter.label}

@@ -130,11 +130,8 @@ export default function MeetingDetailsHeader({
   };
 
   return (
-    <div className="relative overflow-hidden rounded-[2rem] border border-white/[0.08] bg-slate-950/60 p-5 shadow-2xl backdrop-blur-2xl sm:p-7 md:p-8">
-      {/* Ambient background glow spot */}
-      <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-gradient-to-br from-indigo-500/15 via-violet-500/10 to-transparent blur-3xl" />
-
-      <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+    <div className="relative rounded-xl border border-border bg-card p-5 sm:p-6">
+      <div className="relative flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <button
             onClick={() => router.push("/meetings")}
@@ -144,7 +141,7 @@ export default function MeetingDetailsHeader({
             <span>Back to Meetings</span>
           </button>
 
-          <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl md:text-4xl">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             {meeting?.title || "Meeting Workspace"}
           </h1>
 

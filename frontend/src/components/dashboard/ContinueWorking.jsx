@@ -18,7 +18,7 @@ const ContinueWorking = ({ meeting }) => {
 
   if (!meeting) {
     return (
-      <section className="mt-8 overflow-hidden rounded-[2rem] border border-white/[0.08] bg-slate-950/60 p-6 sm:p-8 shadow-xl backdrop-blur-2xl">
+      <section className="dashboard-continue-card mt-8 overflow-hidden rounded-[2rem] border border-white/[0.08] bg-slate-950/60 p-6 sm:p-8 shadow-xl backdrop-blur-2xl">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex-1">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/15 px-3 py-1 text-xs font-bold text-indigo-300">
@@ -51,7 +51,7 @@ const ContinueWorking = ({ meeting }) => {
   const meetingId = meeting.id || meeting._id;
 
   return (
-    <section className="mt-8 overflow-hidden rounded-[2rem] border border-white/[0.08] bg-slate-950/60 p-6 sm:p-8 shadow-xl backdrop-blur-2xl">
+    <section className="dashboard-continue-card mt-8 overflow-hidden rounded-[2rem] border border-white/[0.08] bg-slate-950/60 p-6 sm:p-8 shadow-xl backdrop-blur-2xl">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex-1">
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/15 px-3 py-1 text-xs font-bold text-indigo-300">

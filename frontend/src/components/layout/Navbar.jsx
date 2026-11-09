@@ -33,11 +33,11 @@ const Navbar = ({ onMenuClick }) => {
   };
 
   return (
-    <header className="flex h-20 items-center justify-between rounded-[2rem] border border-white/[0.08] bg-slate-900/60 px-5 shadow-[0_12px_40px_-15px_rgba(0,0,0,0.6)] backdrop-blur-2xl sm:px-7">
+    <header className="flex h-16 items-center justify-between border-b border-border bg-background px-4 sm:px-6 lg:rounded-xl lg:border lg:bg-card">
       {/* Hamburger — mobile/tablet only */}
       <button
         onClick={onMenuClick}
-        className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-400 transition hover:bg-white/10 hover:text-white lg:hidden"
+          className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-surface-hover hover:text-foreground lg:hidden"
         aria-label="Open navigation menu"
       >
         <Menu size={20} />
@@ -55,10 +55,10 @@ const Navbar = ({ onMenuClick }) => {
           onChange={(e) => setSearchVal(e.target.value)}
           onKeyDown={handleSearchSubmit}
           placeholder="Search meetings, transcripts, action items..."
-          className="h-11 w-full rounded-xl border border-white/[0.08] bg-slate-950/60 pl-11 pr-12 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-indigo-500/50 focus:bg-slate-950/90 focus:ring-2 focus:ring-indigo-500/20"
+          className="h-10 w-full rounded-lg border border-border bg-surface-raised pl-10 pr-12 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-indigo-300/50 focus:ring-2 focus:ring-indigo-300/10"
         />
 
-        <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-0.5 rounded border border-white/10 bg-white/[0.05] px-1.5 py-0.5 text-[10px] font-medium text-slate-400">
+        <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-0.5 rounded border border-border bg-background px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
           <span>↵</span>
         </div>
       </div>
@@ -66,10 +66,9 @@ const Navbar = ({ onMenuClick }) => {
       <div className="flex items-center gap-3 sm:gap-4">
         <button
           onClick={() => setOpen(true)}
-          className="group relative flex items-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/25 transition-all duration-300 hover:shadow-indigo-600/40 hover:-translate-y-0.5 active:scale-[0.98]"
+          className="flex items-center gap-2 rounded-lg bg-primary px-3.5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-indigo-200 active:scale-[0.98]"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-in-out" />
-          <UploadCloud size={17} className="transition-transform group-hover:scale-110" />
+          <UploadCloud size={17} />
           <span className="hidden sm:inline">Upload Meeting</span>
           <span className="sm:hidden">Upload</span>
         </button>
@@ -77,13 +76,13 @@ const Navbar = ({ onMenuClick }) => {
         <NotificationDrawer />
 
         {user && (
-          <div className="flex items-center gap-3 border-l border-white/[0.08] pl-3 sm:pl-4">
-            <span className="hidden text-sm font-semibold text-slate-200 md:block">
+          <div className="flex items-center gap-3 border-l border-border pl-3 sm:pl-4">
+            <span className="hidden text-sm font-medium text-foreground md:block">
               {user.firstName}
             </span>
 
             {/* Avatar with glowing ring */}
-            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 font-semibold text-white shadow-md ring-2 ring-indigo-500/30">
+            <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-indigo-300 font-semibold text-slate-950">
               {avatarUrl ? (
                 <Image
                   src={avatarUrl}

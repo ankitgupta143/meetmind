@@ -4,8 +4,9 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import api from "@/lib/api";
 
-export default function useAssistantChat() {
-  const { id: meetingId } = useParams();
+export default function useAssistantChat(propMeetingId) {
+  const params = useParams();
+  const meetingId = propMeetingId || params?.id;
 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");

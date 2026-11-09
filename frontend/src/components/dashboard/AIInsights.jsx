@@ -38,7 +38,7 @@ const AIInsights = ({ insights }) => {
   const items = Array.isArray(insights) && insights.length > 0 ? insights : defaultFallbackInsights;
 
   return (
-    <section className="relative mt-8 overflow-hidden rounded-[2.5rem] border border-white/[0.08] bg-gradient-to-b from-slate-900/70 via-slate-900/40 to-slate-950/80 p-6 sm:p-8 shadow-xl backdrop-blur-2xl">
+    <section className="dashboard-panel relative mt-6 overflow-hidden rounded-xl border border-white/[0.08] bg-gradient-to-b from-slate-900/70 via-slate-900/40 to-slate-950/80 p-6 sm:p-7 shadow-xl backdrop-blur-2xl">
       {/* Top highlight line */}
       <div className="pointer-events-none absolute inset-x-8 top-0 h-[1px] bg-gradient-to-r from-transparent via-indigo-400/40 to-transparent" />
 
@@ -59,7 +59,7 @@ const AIInsights = ({ insights }) => {
           return (
             <div
               key={item.id || index}
-              className="group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-slate-900/40 p-5 transition-all duration-300 hover:border-indigo-500/30 hover:bg-slate-900/80 hover:-translate-y-1"
+              className="dashboard-insight group relative overflow-hidden rounded-xl border border-white/[0.06] bg-slate-900/40 p-5 transition-all duration-300 hover:border-indigo-500/30 hover:bg-slate-900/80 hover:-translate-y-1"
             >
               {/* Subtle card top highlight */}
               <div className="pointer-events-none absolute inset-x-4 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent transition-opacity group-hover:via-indigo-400/40" />

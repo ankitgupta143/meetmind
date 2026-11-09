@@ -40,7 +40,7 @@ export default function MessageBubble({
       <div
         className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-sm ${
           isUser
-            ? "bg-indigo-500/20 border border-indigo-500/30 text-indigo-400"
+            ? "bg-indigo-500/20 border border-indigo-500/30 text-indigo-500"
             : "bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-indigo-600/20"
         }`}
       >
@@ -54,8 +54,8 @@ export default function MessageBubble({
         } flex flex-col`}
       >
         {/* Header */}
-        <div className="mb-1.5 flex items-center gap-2 text-[11px] text-slate-400">
-          <span className="font-semibold text-slate-300">
+        <div className="mb-1.5 flex items-center gap-2 text-[11px] text-muted-foreground">
+          <span className="font-semibold text-foreground">
             {isUser ? "You" : "MeetMind Copilot"}
           </span>
           <span>•</span>
@@ -64,10 +64,10 @@ export default function MessageBubble({
 
         {/* Bubble */}
         <div
-          className={`rounded-2xl px-4 py-3.5 shadow-md ${
+          className={`rounded-2xl px-4 py-3.5 shadow-sm ${
             isUser
               ? "rounded-tr-none bg-gradient-to-r from-indigo-600 to-violet-600 text-white"
-              : "rounded-tl-none border border-white/[0.08] bg-slate-900/80 text-slate-100"
+              : "rounded-tl-none border border-border bg-surface-raised text-foreground"
           }`}
         >
           {isUser ? (
@@ -84,12 +84,12 @@ export default function MessageBubble({
           <div className="mt-2 flex items-center gap-2">
             <button
               onClick={copyMessage}
-              className="flex items-center gap-1 rounded-lg border border-white/[0.06] bg-white/[0.03] px-2 py-1 text-[11px] font-medium text-slate-400 transition hover:bg-white/10 hover:text-white"
+              className="flex items-center gap-1 rounded-lg border border-border bg-surface-raised px-2 py-1 text-[11px] font-medium text-muted-foreground transition hover:bg-surface-hover hover:text-foreground cursor-pointer"
             >
               {copied ? (
                 <>
-                  <Check size={12} className="text-emerald-400" />
-                  <span className="text-emerald-400">Copied</span>
+                  <Check size={12} className="text-emerald-500" />
+                  <span className="text-emerald-500">Copied</span>
                 </>
               ) : (
                 <>
@@ -102,7 +102,7 @@ export default function MessageBubble({
             {onRegenerate && (
               <button
                 onClick={onRegenerate}
-                className="flex items-center gap-1 rounded-lg border border-white/[0.06] bg-white/[0.03] px-2 py-1 text-[11px] font-medium text-slate-400 transition hover:bg-white/10 hover:text-white"
+                className="flex items-center gap-1 rounded-lg border border-border bg-surface-raised px-2 py-1 text-[11px] font-medium text-muted-foreground transition hover:bg-surface-hover hover:text-foreground cursor-pointer"
               >
                 <RotateCcw size={12} />
                 <span>Retry</span>

@@ -40,7 +40,7 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-8">
+      <div className="dashboard-page space-y-8">
         {error && (
           <div className="flex items-center justify-between rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 text-xs sm:text-sm text-rose-300">
             <div className="flex items-center gap-2.5">
