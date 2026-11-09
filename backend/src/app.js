@@ -10,6 +10,7 @@ import meetingRoutes from "./routes/meeting.routes.js";
 import globalAssistantRoutes from "./routes/globalAssistant.routes.js";
 import searchRoutes from "./routes/search.routes.js";
 import workspaceRoutes from "./routes/workspace.routes.js";
+import integrationRoutes from "./routes/integration.routes.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 
 const allowedOrigins = [
@@ -57,6 +58,7 @@ app.use("/api/v1/meetings", meetingRoutes);
 app.use("/api/v1/global-assistant", globalAssistantRoutes);
 app.use("/api/v1/search", searchRoutes);
 app.use("/api/v1/workspace", workspaceRoutes);
+app.use("/api/v1/integrations", integrationRoutes);
 app.use(errorHandler);
 
 export default app;

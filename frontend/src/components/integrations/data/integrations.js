@@ -20,8 +20,6 @@ export const integrationSections = [
         description: "Automatically import and analyze your Google Meet calls.",
         icon: Video,
         color: "bg-emerald-50 text-emerald-600",
-        connected: true,
-        lastSync: "Synced just now",
       },
       {
         id: "zoom",

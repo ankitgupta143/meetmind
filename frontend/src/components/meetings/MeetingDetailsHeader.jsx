@@ -12,10 +12,12 @@ import {
   Check,
   Star,
   Pin,
+  Hash,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useExportDrawer } from "@/context/ExportDrawerContext";
 import api from "@/lib/api";
+import PostToSlackModal from "./modals/PostToSlackModal";
 
 export default function MeetingDetailsHeader({
   meeting,
@@ -26,6 +28,7 @@ export default function MeetingDetailsHeader({
   const [copiedLink, setCopiedLink] = useState(false);
   const [isFavorite, setIsFavorite] = useState(Boolean(meeting?.isFavorite));
   const [isPinned, setIsPinned] = useState(Boolean(meeting?.isPinned));
+  const [slackModalOpen, setSlackModalOpen] = useState(false);
 
   const formatDate = (date) => {
     if (!date) return "Unknown date";
@@ -243,8 +246,23 @@ export default function MeetingDetailsHeader({
             <Download size={16} />
             <span>Export</span>
           </button>
+
+          <button
+            onClick={() => setSlackModalOpen(true)}
+            className="flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-2.5 text-xs font-semibold text-amber-200 transition hover:bg-amber-500/20 hover:border-amber-500/40 hover:text-white active:scale-95 cursor-pointer"
+            title="Post Summary to Slack"
+          >
+            <Hash size={15} className="text-amber-400" />
+            <span>Post to Slack</span>
+          </button>
         </div>
       </div>
+
+      <PostToSlackModal
+        isOpen={slackModalOpen}
+        onClose={() => setSlackModalOpen(false)}
+        meeting={meeting}
+      />
     </div>
   );
 }

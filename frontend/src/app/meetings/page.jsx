@@ -116,12 +116,18 @@ export default function MeetingsPage() {
     setLoading(true);
   };
 
+  const handleMeetingImported = (newMeeting) => {
+    if (newMeeting) {
+      setMeetings((prev) => [mapMeetingToCard(newMeeting), ...prev]);
+    }
+  };
+
   const isFiltered = Boolean(debouncedSearch.trim() || status !== "all");
 
   return (
     <AppLayout>
       <div className="space-y-8">
-        <MeetingsHeader />
+        <MeetingsHeader onImportSuccess={handleMeetingImported} />
 
         <MeetingsToolbar
           search={search}
