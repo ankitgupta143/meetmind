@@ -15,6 +15,7 @@ import { WORKSPACE_TABS } from "@/constants/meeting";
 export default function MeetingWorkspace({
   meeting,
   insights,
+  onRefresh,
 }) {
   const [activeTab, setActiveTab] = useState(
     WORKSPACE_TABS.SUMMARY || "summary"
@@ -30,6 +31,8 @@ export default function MeetingWorkspace({
     transcript: (
       <Transcript
         meetingId={meeting?._id}
+        participants={meeting?.participants}
+        onSpeakerUpdated={onRefresh}
       />
     ),
 
@@ -47,7 +50,10 @@ export default function MeetingWorkspace({
 
     analytics: (
       <Analytics
+        meetingId={meeting?._id}
+        participants={meeting?.participants}
         insights={insights}
+        onSpeakerUpdated={onRefresh}
       />
     ),
 

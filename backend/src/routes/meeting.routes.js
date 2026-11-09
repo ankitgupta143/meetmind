@@ -24,6 +24,7 @@ import {
   previewTranscriptDiarizationController,
 } from "../controllers/transcriptDiarization.controller.js";
 import { exportMeetingController } from "../controllers/meetingExport.controller.js";
+import { updateMeetingSpeakersController } from "../controllers/meetingSpeaker.controller.js";
 
 const router = express.Router();
 
@@ -67,5 +68,7 @@ router.post("/:meetingId/diarize-preview", authenticate, previewTranscriptDiariz
 router.post("/:meetingId/diarize-apply", authenticate, applyTranscriptDiarizationController);
 
 router.post("/:meetingId/export", authenticate, exportMeetingController);
+
+router.patch("/:meetingId/speakers", authenticate, updateMeetingSpeakersController);
 
 export default router;

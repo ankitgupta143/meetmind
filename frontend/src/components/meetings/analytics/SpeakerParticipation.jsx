@@ -1,11 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import {
   Trophy,
   Clock3,
   Mic,
   User,
   Sparkles,
+  UserCheck,
+  Pencil,
 } from "lucide-react";
 
 import {
@@ -18,6 +21,8 @@ import {
   Tooltip,
   Cell,
 } from "recharts";
+
+import SpeakerRenameModal from "../modals/SpeakerRenameModal";
 
 const COLORS = [
   "#6366f1",
@@ -67,7 +72,13 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 export default function SpeakerParticipation({
   analytics,
+  meetingId,
+  participants = [],
+  onSpeakerUpdated,
 }) {
+  const [renameModalOpen, setRenameModalOpen] = useState(false);
+  const [renameInitialSpeaker, setRenameInitialSpeaker] = useState(null);
+
   const speakerStats = Array.isArray(
     analytics?.speakerStats
   )
@@ -98,153 +109,206 @@ export default function SpeakerParticipation({
     null
   );
 
-  return (
-    <section className="overflow-hidden rounded-[2rem] border border-white/[0.08] bg-slate-950/60 p-6 shadow-xl backdrop-blur-2xl">
-      {/* Header */}
-      <div className="mb-6">
-        <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-          Speaker Participation
-          <Sparkles size={16} className="text-indigo-400" />
-        </h2>
-        <p className="mt-1 text-xs text-slate-400">
-          Visual breakdown of speaking time and engagement distribution.
-        </p>
-      </div>
+  const allSpeakerNames = speakers.map((s) => s.name);
 
-      {/* Empty State */}
-      {speakers.length === 0 ? (
-        <div className="rounded-2xl border border-white/[0.06] bg-slate-900/30 p-10 text-center">
-          <Mic size={36} className="mx-auto text-slate-600" />
-          <h3 className="mt-3 text-sm font-semibold text-slate-200">
-            Speaker data unavailable
-          </h3>
-          <p className="mt-1 text-xs text-slate-400">
-            Speaker participation data has not been generated for this meeting yet.
-          </p>
-        </div>
-      ) : (
-        <>
-          {/* Chart */}
-          <div className="h-64 sm:h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={speakers}
-                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="rgba(255,255,255,0.06)"
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="name"
-                  tickLine={false}
-                  axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
-                  tick={{ fill: "#94a3b8", fontSize: 11 }}
-                />
-                <YAxis
-                  unit="%"
-                  domain={[0, 100]}
-                  tickLine={false}
-                  axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
-                  tick={{ fill: "#94a3b8", fontSize: 11 }}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="percentage" radius={[6, 6, 0, 0]}>
-                  {speakers.map((speaker, index) => (
-                    <Cell
-                      key={speaker.id}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+  const handleSpeakerRenameSuccess = (result) => {
+    if (onSpeakerUpdated) {
+      onSpeakerUpdated(result);
+    }
+  };
+
+  return (
+    <>
+      <section className="overflow-hidden rounded-[2rem] border border-white/[0.08] bg-slate-950/60 p-6 shadow-xl backdrop-blur-2xl">
+        {/* Header */}
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+              Speaker Participation
+              <Sparkles size={16} className="text-indigo-400" />
+            </h2>
+            <p className="mt-1 text-xs text-slate-400">
+              Visual breakdown of speaking time and engagement distribution.
+            </p>
           </div>
 
-          {/* Top Speaker Spotlight */}
-          {topSpeaker && (
-            <div className="mt-6 rounded-2xl border border-indigo-500/30 bg-gradient-to-r from-indigo-950/50 via-slate-900/60 to-violet-950/40 p-5 backdrop-blur-md">
-              <div className="flex items-start gap-3.5">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-500/20 border border-indigo-500/30 shadow-md">
-                  <Trophy size={20} className="text-indigo-400" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-white">
-                    Primary Discussion Lead
-                  </h3>
-                  <p className="mt-1 text-xs leading-relaxed text-slate-300">
-                    <span className="font-semibold text-indigo-300">{topSpeaker.name}</span>{" "}
-                    contributed{" "}
-                    <span className="font-semibold text-white">{topSpeaker.percentage}%</span>{" "}
-                    of the total discussion with{" "}
-                    <span className="font-mono text-cyan-300">{topSpeaker.speakingTime}</span>{" "}
-                    of active talk time.
-                  </p>
+          {meetingId && speakers.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                setRenameInitialSpeaker(null);
+                setRenameModalOpen(true);
+              }}
+              className="flex items-center gap-1.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-3 py-1.5 text-xs font-semibold text-indigo-300 transition hover:bg-indigo-500/20 active:scale-95 cursor-pointer shadow-sm"
+              title="Rename speakers across analytics and transcript"
+            >
+              <UserCheck size={14} className="text-indigo-400" />
+              <span>Rename Speakers</span>
+            </button>
+          )}
+        </div>
+
+        {/* Empty State */}
+        {speakers.length === 0 ? (
+          <div className="rounded-2xl border border-white/[0.06] bg-slate-900/30 p-10 text-center">
+            <Mic size={36} className="mx-auto text-slate-600" />
+            <h3 className="mt-3 text-sm font-semibold text-slate-200">
+              Speaker data unavailable
+            </h3>
+            <p className="mt-1 text-xs text-slate-400">
+              Speaker participation data has not been generated for this meeting yet.
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Chart */}
+            <div className="h-64 sm:h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={speakers}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="rgba(255,255,255,0.06)"
+                    vertical={false}
+                  />
+                  <XAxis
+                    dataKey="name"
+                    tickLine={false}
+                    axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
+                    tick={{ fill: "#94a3b8", fontSize: 11 }}
+                  />
+                  <YAxis
+                    unit="%"
+                    domain={[0, 100]}
+                    tickLine={false}
+                    axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
+                    tick={{ fill: "#94a3b8", fontSize: 11 }}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar dataKey="percentage" radius={[6, 6, 0, 0]}>
+                    {speakers.map((speaker, index) => (
+                      <Cell
+                        key={speaker.id}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Top Speaker Spotlight */}
+            {topSpeaker && (
+              <div className="mt-6 rounded-2xl border border-indigo-500/30 bg-gradient-to-r from-indigo-950/50 via-slate-900/60 to-violet-950/40 p-5 backdrop-blur-md">
+                <div className="flex items-start gap-3.5">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-500/20 border border-indigo-500/30 shadow-md">
+                    <Trophy size={20} className="text-indigo-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white">
+                      Primary Discussion Lead
+                    </h3>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-300">
+                      <span className="font-semibold text-indigo-300">{topSpeaker.name}</span>{" "}
+                      contributed{" "}
+                      <span className="font-semibold text-white">{topSpeaker.percentage}%</span>{" "}
+                      of the total discussion with{" "}
+                      <span className="font-mono text-cyan-300">{topSpeaker.speakingTime}</span>{" "}
+                      of active talk time.
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Participant Breakdown List */}
-          <div className="mt-6">
-            <h3 className="mb-3.5 text-xs font-bold uppercase tracking-wider text-slate-400">
-              Participant Breakdown
-            </h3>
+            {/* Participant Breakdown List */}
+            <div className="mt-6">
+              <h3 className="mb-3.5 text-xs font-bold uppercase tracking-wider text-slate-400">
+                Participant Breakdown
+              </h3>
 
-            <div className="space-y-2.5">
-              {speakers.map((speaker, index) => (
-                <div
-                  key={speaker.id}
-                  className="group flex flex-col gap-3 rounded-2xl border border-white/[0.06] bg-slate-900/40 p-4 transition-all duration-200 hover:border-indigo-500/30 hover:bg-slate-900/70 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="flex h-10 w-10 items-center justify-center rounded-xl text-xs font-bold text-white shadow-sm"
-                      style={{
-                        backgroundColor: COLORS[index % COLORS.length],
-                      }}
-                    >
-                      {getInitials(speaker.name)}
+              <div className="space-y-2.5">
+                {speakers.map((speaker, index) => (
+                  <div
+                    key={speaker.id}
+                    className="group flex flex-col gap-3 rounded-2xl border border-white/[0.06] bg-slate-900/40 p-4 transition-all duration-200 hover:border-indigo-500/30 hover:bg-slate-900/70 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="flex h-10 w-10 items-center justify-center rounded-xl text-xs font-bold text-white shadow-sm"
+                        style={{
+                          backgroundColor: COLORS[index % COLORS.length],
+                        }}
+                      >
+                        {getInitials(speaker.name)}
+                      </div>
+
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-xs font-bold tracking-tight text-white group-hover:text-indigo-300">
+                            {speaker.name}
+                          </h4>
+                          {meetingId && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setRenameInitialSpeaker(speaker.name);
+                                setRenameModalOpen(true);
+                              }}
+                              className="opacity-0 group-hover:opacity-100 transition rounded p-1 text-slate-400 hover:text-indigo-300 hover:bg-white/[0.08] cursor-pointer"
+                              title={`Rename ${speaker.name}`}
+                            >
+                              <Pencil size={11} />
+                            </button>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-slate-400">
+                          Meeting Participant
+                        </p>
+                      </div>
                     </div>
 
-                    <div>
-                      <h4 className="text-xs font-bold tracking-tight text-white group-hover:text-indigo-300">
-                        {speaker.name}
-                      </h4>
-                      <p className="text-[11px] text-slate-400">
-                        Meeting Participant
-                      </p>
+                    <div className="flex items-center gap-6 text-xs">
+                      <div>
+                        <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+                          <Clock3 size={13} className="text-amber-400" />
+                          <span>Duration</span>
+                        </div>
+                        <p className="mt-0.5 font-mono font-semibold text-slate-200 text-xs">
+                          {speaker.speakingTime}
+                        </p>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+                          <User size={13} className="text-cyan-400" />
+                          <span>Share</span>
+                        </div>
+                        <p className="mt-0.5 font-mono font-semibold text-indigo-300 text-xs">
+                          {speaker.percentage}%
+                        </p>
+                      </div>
                     </div>
                   </div>
-
-                  <div className="flex items-center gap-6 text-xs">
-                    <div>
-                      <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
-                        <Clock3 size={13} className="text-amber-400" />
-                        <span>Duration</span>
-                      </div>
-                      <p className="mt-0.5 font-mono font-semibold text-slate-200 text-xs">
-                        {speaker.speakingTime}
-                      </p>
-                    </div>
-
-                    <div>
-                      <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
-                        <User size={13} className="text-cyan-400" />
-                        <span>Share</span>
-                      </div>
-                      <p className="mt-0.5 font-mono font-semibold text-indigo-300 text-xs">
-                        {speaker.percentage}%
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        </>
-      )}
-    </section>
+          </>
+        )}
+      </section>
+
+      {/* Speaker Rename Modal */}
+      <SpeakerRenameModal
+        isOpen={renameModalOpen}
+        onClose={() => setRenameModalOpen(false)}
+        meetingId={meetingId}
+        speakers={allSpeakerNames}
+        initialSpeaker={renameInitialSpeaker}
+        participants={participants}
+        onSuccess={handleSpeakerRenameSuccess}
+      />
+    </>
   );
 }

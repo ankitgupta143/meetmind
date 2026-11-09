@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 
 import AppLayout from "@/components/layout/AppLayout";
@@ -21,6 +21,24 @@ export default function MeetingDetailsPage() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const refreshMeetingData = useCallback(async () => {
+    if (!meetingId) return;
+    try {
+      const [mRes, iRes] = await Promise.allSettled([
+        api.get(`/meetings/${meetingId}`),
+        api.get(`/meetings/${meetingId}/insights`),
+      ]);
+      if (mRes.status === "fulfilled" && mRes.value.data?.data?.meeting) {
+        setMeeting(mRes.value.data.data.meeting);
+      }
+      if (iRes.status === "fulfilled" && iRes.value.data?.data?.insights) {
+        setInsights(iRes.value.data.data.insights);
+      }
+    } catch (err) {
+      console.error("Failed to refresh meeting data:", err);
+    }
+  }, [meetingId]);
 
   useEffect(() => {
     if (
@@ -56,7 +74,7 @@ export default function MeetingDetailsPage() {
           if (isMounted) {
             setInsights(insightsData);
           }
-        } catch (insightsErr) {
+        } catch {
           console.log("Insights still processing, will poll for updates...");
           // Poll every 4 seconds if insights are not ready yet
           const pollInsights = async () => {
@@ -145,6 +163,7 @@ export default function MeetingDetailsPage() {
         <MeetingWorkspace
           meeting={meeting}
           insights={insights}
+          onRefresh={refreshMeetingData}
         />
       </div>
     </AppLayout>

@@ -8,7 +8,7 @@ import SentimentTrend from "./analytics/SentimentTrend";
 import SpeakerParticipation from "./analytics/SpeakerParticipation";
 import TopicsDiscussed from "./analytics/TopicsDiscussed";
 
-export default function Analytics({ insights }) {
+export default function Analytics({ insights, meetingId, participants, onSpeakerUpdated }) {
   const analytics = insights?.analytics ?? null;
 
   return (
@@ -26,7 +26,12 @@ export default function Analytics({ insights }) {
 
       <OverviewCards analytics={analytics} />
 
-      <SpeakerParticipation analytics={analytics} />
+      <SpeakerParticipation
+        analytics={analytics}
+        meetingId={meetingId}
+        participants={participants}
+        onSpeakerUpdated={onSpeakerUpdated}
+      />
 
       <MeetingTimeline insights={insights} />
 
