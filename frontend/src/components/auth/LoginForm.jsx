@@ -37,7 +37,16 @@ export default function LoginForm() {
     try {
       const result = await login(email, password);
       toast.success(result.message || "Welcome back to MeetMind!");
-      router.push("/dashboard");
+
+      let redirectPath = "/dashboard";
+      if (typeof window !== "undefined") {
+        const params = new URLSearchParams(window.location.search);
+        const redirect = params.get("redirect");
+        if (redirect && redirect.startsWith("/") && !redirect.startsWith("//")) {
+          redirectPath = redirect;
+        }
+      }
+      router.push(redirectPath);
     } catch (error) {
       toast.error(error.message || "Failed to sign in. Please check credentials.");
     } finally {

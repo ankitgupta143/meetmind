@@ -1,14 +1,40 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence, MotionConfig } from "framer-motion";
+import { useState, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { motion, MotionConfig } from "framer-motion";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import UploadMeetingModal from "../upload/UploadMeetingModal";
 import ExportDrawer from "../export/ExportDrawer";
+import { useAuth } from "@/context/AuthContext";
 
 const AppLayout = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { loading, isAuthenticated } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      const returnUrl =
+        pathname && pathname !== "/dashboard"
+          ? `?redirect=${encodeURIComponent(pathname)}`
+          : "";
+      router.replace(`/login${returnUrl}`);
+    }
+  }, [loading, isAuthenticated, pathname, router]);
+
+  if (loading || !isAuthenticated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
+        <div className="flex flex-col items-center gap-3">
+          <div className="size-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+          <p className="text-xs text-muted-foreground">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <MotionConfig reducedMotion="user">
@@ -38,4 +64,3 @@ const AppLayout = ({ children }) => {
 };
 
 export default AppLayout;
-

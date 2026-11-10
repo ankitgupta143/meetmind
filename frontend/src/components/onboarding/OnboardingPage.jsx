@@ -86,16 +86,23 @@ export default function OnboardingPage() {
           We&apos;ll tailor summaries, prompt templates, and insights to your workflow.
         </p>
         <div className="mt-6 grid grid-cols-2 gap-3">
-          {roles.map((item) => (
-            <Card
-              key={item.id}
-              selected={role === item.id}
-              onClick={() => setRole(item.id)}
-            >
-              <p className="text-xs font-bold text-white">{item.label}</p>
-              <p className="mt-0.5 text-[11px] text-slate-400">{item.description}</p>
-            </Card>
-          ))}
+          {roles.map((item) => {
+            const id = typeof item === "string" ? item.toLowerCase() : item.id;
+            const label = typeof item === "string" ? item : item.label;
+            const description = typeof item === "object" ? item.description : "";
+            return (
+              <Card
+                key={id}
+                selected={role === id}
+                onClick={() => setRole(id)}
+              >
+                <p className="text-xs font-bold text-white">{label}</p>
+                {description && (
+                  <p className="mt-0.5 text-[11px] text-slate-400">{description}</p>
+                )}
+              </Card>
+            );
+          })}
         </div>
       </div>
     ),
@@ -106,16 +113,28 @@ export default function OnboardingPage() {
           Where do most of your team conversations happen?
         </p>
         <div className="mt-6 grid grid-cols-2 gap-3">
-          {platforms.map((item) => (
-            <Card
-              key={item.id}
-              selected={platform === item.id}
-              onClick={() => setPlatform(item.id)}
-            >
-              <p className="text-xs font-bold text-white">{item.name}</p>
-              <p className="mt-0.5 text-[11px] text-slate-400">{item.description}</p>
-            </Card>
-          ))}
+          {platforms.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Card
+                key={item.id}
+                selected={platform === item.id}
+                onClick={() => setPlatform(item.id)}
+              >
+                <div className="flex items-center gap-2 mb-1.5">
+                  {Icon && (
+                    <span className="flex size-6 items-center justify-center rounded-lg bg-white/5 text-indigo-400 shrink-0">
+                      <Icon className="size-3.5" />
+                    </span>
+                  )}
+                  <p className="text-xs font-bold text-white">{item.name}</p>
+                </div>
+                {item.description && (
+                  <p className="text-[11px] text-slate-400">{item.description}</p>
+                )}
+              </Card>
+            );
+          })}
         </div>
       </div>
     ),
@@ -128,14 +147,24 @@ export default function OnboardingPage() {
         <div className="mt-6 space-y-2.5">
           {apps.map((item) => {
             const isConnected = connected.includes(item.id);
+            const Icon = item.icon;
             return (
               <div
                 key={item.id}
                 className="flex items-center justify-between rounded-2xl border border-white/[0.08] bg-slate-900/50 p-3.5"
               >
-                <div>
-                  <p className="text-xs font-bold text-white">{item.name}</p>
-                  <p className="mt-0.5 text-[11px] text-slate-400">{item.description}</p>
+                <div className="flex items-center gap-3">
+                  {Icon && (
+                    <span className="flex size-9 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-indigo-400 shrink-0">
+                      <Icon className="size-4" />
+                    </span>
+                  )}
+                  <div>
+                    <p className="text-xs font-bold text-white">{item.name}</p>
+                    {item.description && (
+                      <p className="mt-0.5 text-[11px] text-slate-400">{item.description}</p>
+                    )}
+                  </div>
                 </div>
                 <button
                   type="button"

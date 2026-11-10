@@ -14,6 +14,7 @@ const PUBLIC_ROUTES = [
   "/forgot-password",
   "/reset-password",
   "/verify-email",
+  "/onboarding",
 ];
 
 export function AuthProvider({ children }) {
@@ -42,6 +43,26 @@ export function AuthProvider({ children }) {
     checkSession();
   }, []);
 
+  // Route guard effect: redirect unauthenticated users to login, and authenticated users away from auth pages
+  useEffect(() => {
+    if (loading) return;
+
+    const isPublic =
+      PUBLIC_ROUTES.includes(pathname) ||
+      pathname?.startsWith("/reset-password") ||
+      pathname?.startsWith("/verify-email");
+
+    if (!user && !isPublic) {
+      const returnUrl =
+        pathname && pathname !== "/dashboard"
+          ? `?redirect=${encodeURIComponent(pathname)}`
+          : "";
+      router.replace(`/login${returnUrl}`);
+    } else if (user && (pathname === "/login" || pathname === "/register")) {
+      router.replace("/dashboard");
+    }
+  }, [user, loading, pathname, router]);
+
   // Listen for global logout events triggered by interceptor auth failures
   useEffect(() => {
     const handleGlobalLogout = () => {
@@ -52,7 +73,11 @@ export function AuthProvider({ children }) {
         pathname?.startsWith("/reset-password") ||
         pathname?.startsWith("/verify-email");
       if (!isPublic) {
-        router.push("/login");
+        const returnUrl =
+          pathname && pathname !== "/dashboard"
+            ? `?redirect=${encodeURIComponent(pathname)}`
+            : "";
+        router.replace(`/login${returnUrl}`);
       }
     };
 
@@ -94,7 +119,7 @@ export function AuthProvider({ children }) {
     }
   };
 
-// Logout handler
+  // Logout handler
   const logout = async () => {
     try {
       await api.post("/auth/logout");
