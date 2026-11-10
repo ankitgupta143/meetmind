@@ -9,11 +9,15 @@ import {
   Star,
   Pin,
   Download,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { useExportDrawer } from "@/context/ExportDrawerContext";
+import EditMeetingModal from "./modals/EditMeetingModal";
+import DeleteMeetingModal from "./modals/DeleteMeetingModal";
 
 const statusStyles = {
   Completed: "bg-emerald-500/15 border-emerald-500/30 text-emerald-300",
@@ -22,12 +26,18 @@ const statusStyles = {
   Failed: "bg-rose-500/15 border-rose-500/30 text-rose-300",
 };
 
-export default function MeetingCard({ meeting }) {
+export default function MeetingCard({
+  meeting,
+  onMeetingUpdated,
+  onMeetingDeleted,
+}) {
   const router = useRouter();
   const { openExport } = useExportDrawer();
   const meetingId = meeting?.id || meeting?._id;
   const [isFavorite, setIsFavorite] = useState(Boolean(meeting?.isFavorite));
   const [isPinned, setIsPinned] = useState(Boolean(meeting?.isPinned));
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const handleClick = () => {
     if (meetingId) {
@@ -152,6 +162,32 @@ export default function MeetingCard({ meeting }) {
             >
               <Download size={14} />
             </button>
+
+            {/* Quick Edit Button */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditModalOpen(true);
+              }}
+              className="rounded-lg p-1.5 text-slate-500 hover:text-indigo-400 hover:bg-white/[0.06] transition cursor-pointer"
+              title="Edit meeting details"
+            >
+              <Pencil size={14} />
+            </button>
+
+            {/* Quick Delete Button */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeleteModalOpen(true);
+              }}
+              className="rounded-lg p-1.5 text-slate-500 hover:text-rose-400 hover:bg-white/[0.06] transition cursor-pointer"
+              title="Delete meeting"
+            >
+              <Trash2 size={14} />
+            </button>
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-4 sm:gap-6 text-xs text-slate-400">
@@ -190,6 +226,24 @@ export default function MeetingCard({ meeting }) {
           </div>
         </div>
       </div>
+
+      <EditMeetingModal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        meeting={meeting}
+        onUpdated={(updated) => {
+          onMeetingUpdated?.(updated);
+        }}
+      />
+
+      <DeleteMeetingModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        meeting={meeting}
+        onDeleted={(deletedId) => {
+          onMeetingDeleted?.(deletedId);
+        }}
+      />
     </div>
   );
 }

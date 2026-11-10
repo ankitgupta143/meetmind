@@ -158,6 +158,7 @@ export default function MeetingDetailsPage() {
         <MeetingDetailsHeader
           meeting={meeting}
           insights={insights}
+          onMeetingUpdated={(updated) => setMeeting(updated)}
         />
 
         <MeetingWorkspace

@@ -77,8 +77,12 @@ export function formatMeetingStatus(processingStatus) {
 
 export function mapMeetingToCard(meeting) {
   return {
-    id: meeting._id,
+    id: meeting._id || meeting.id,
+    _id: meeting._id || meeting.id,
     title: meeting.title,
+    description: meeting.description || "",
+    meetingDate: meeting.meetingDate,
+    durationSeconds: meeting.durationSeconds,
     date: formatMeetingDate(meeting.meetingDate),
     duration: formatMeetingDuration(meeting.durationSeconds),
     participants: meeting.participants?.length ?? 0,

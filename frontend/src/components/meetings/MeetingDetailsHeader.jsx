@@ -13,15 +13,20 @@ import {
   Star,
   Pin,
   Hash,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useExportDrawer } from "@/context/ExportDrawerContext";
 import api from "@/lib/api";
 import PostToSlackModal from "./modals/PostToSlackModal";
+import EditMeetingModal from "./modals/EditMeetingModal";
+import DeleteMeetingModal from "./modals/DeleteMeetingModal";
 
 export default function MeetingDetailsHeader({
   meeting,
   insights,
+  onMeetingUpdated,
 }) {
   const router = useRouter();
   const { setOpen, openExport } = useExportDrawer();
@@ -29,6 +34,8 @@ export default function MeetingDetailsHeader({
   const [isFavorite, setIsFavorite] = useState(Boolean(meeting?.isFavorite));
   const [isPinned, setIsPinned] = useState(Boolean(meeting?.isPinned));
   const [slackModalOpen, setSlackModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const formatDate = (date) => {
     if (!date) return "Unknown date";
@@ -252,6 +259,26 @@ export default function MeetingDetailsHeader({
             <Hash size={15} className="text-amber-400" />
             <span>Post to Slack</span>
           </button>
+
+          {/* Edit Details Button */}
+          <button
+            onClick={() => setEditModalOpen(true)}
+            className="flex items-center gap-2 rounded-xl border border-indigo-500/20 bg-indigo-500/10 px-3.5 py-2.5 text-xs font-semibold text-indigo-300 transition hover:bg-indigo-500/20 hover:border-indigo-500/40 hover:text-white active:scale-95 cursor-pointer"
+            title="Edit Meeting Details"
+          >
+            <Pencil size={15} className="text-indigo-400" />
+            <span>Edit</span>
+          </button>
+
+          {/* Delete Meeting Button */}
+          <button
+            onClick={() => setDeleteModalOpen(true)}
+            className="flex items-center gap-2 rounded-xl border border-rose-500/20 bg-rose-500/10 px-3.5 py-2.5 text-xs font-semibold text-rose-300 transition hover:bg-rose-500/20 hover:border-rose-500/40 hover:text-rose-100 active:scale-95 cursor-pointer"
+            title="Delete Meeting"
+          >
+            <Trash2 size={15} className="text-rose-400" />
+            <span>Delete</span>
+          </button>
         </div>
       </div>
 
@@ -259,6 +286,26 @@ export default function MeetingDetailsHeader({
         isOpen={slackModalOpen}
         onClose={() => setSlackModalOpen(false)}
         meeting={meeting}
+      />
+
+      <EditMeetingModal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        meeting={meeting}
+        onUpdated={(updated) => {
+          if (onMeetingUpdated) {
+            onMeetingUpdated(updated);
+          }
+        }}
+      />
+
+      <DeleteMeetingModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        meeting={meeting}
+        onDeleted={() => {
+          router.push("/meetings");
+        }}
       />
     </div>
   );

@@ -122,6 +122,34 @@ export default function MeetingsPage() {
     }
   };
 
+  const handleMeetingUpdated = (updatedMeeting) => {
+    if (!updatedMeeting) return;
+    const cardData = mapMeetingToCard(updatedMeeting);
+    setMeetings((prev) =>
+      prev.map((m) =>
+        m.id === cardData.id || m._id === cardData.id
+          ? { ...m, ...cardData }
+          : m
+      )
+    );
+  };
+
+  const handleMeetingDeleted = (deletedId) => {
+    if (!deletedId) return;
+    setMeetings((prev) => {
+      const remaining = prev.filter(
+        (m) => m.id !== deletedId && m._id !== deletedId
+      );
+      if (remaining.length === 0 && page > 1) {
+        setPage((p) => Math.max(1, p - 1));
+      }
+      return remaining;
+    });
+    setPagination((prev) =>
+      prev ? { ...prev, total: Math.max(0, (prev.total || 1) - 1) } : prev
+    );
+  };
+
   const isFiltered = Boolean(debouncedSearch.trim() || status !== "all");
 
   return (
@@ -145,6 +173,8 @@ export default function MeetingsPage() {
           error={error}
           isFiltered={isFiltered}
           onClearFilters={handleClearFilters}
+          onMeetingUpdated={handleMeetingUpdated}
+          onMeetingDeleted={handleMeetingDeleted}
         />
       </div>
     </AppLayout>

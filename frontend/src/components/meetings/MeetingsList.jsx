@@ -11,6 +11,8 @@ export default function MeetingsList({
   error,
   isFiltered = false,
   onClearFilters,
+  onMeetingUpdated,
+  onMeetingDeleted,
 }) {
   const { setOpen } = useUploadModal();
 
@@ -87,7 +89,11 @@ export default function MeetingsList({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25, delay: index * 0.04 }}
         >
-          <MeetingCard meeting={meeting} />
+          <MeetingCard
+            meeting={meeting}
+            onMeetingUpdated={onMeetingUpdated}
+            onMeetingDeleted={onMeetingDeleted}
+          />
         </motion.div>
       ))}
     </div>

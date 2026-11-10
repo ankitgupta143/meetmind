@@ -1,8 +1,10 @@
 import { askMeetingAssistant } from "../services/assistant.service.js";
 import {
   createMeeting,
+  deleteMeeting,
   getUserMeetingById,
   getUserMeetings,
+  updateMeeting,
 } from "../services/meeting.service.js";
 import { generateMeetingInsights, getUserMeetingInsights } from "../services/meetingInsights.service.js";
 import { processMeeting } from "../services/meetingProcessing.service.js";
@@ -193,3 +195,41 @@ export async function meetingAssistantController(req, res, next) {
     next(error);
   }
 }
+
+export async function updateMeetingController(req, res, next) {
+  try {
+    const meeting = await updateMeeting({
+      meetingId: req.params.id,
+      userId: req.user.id,
+      updates: req.body,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Meeting updated successfully.",
+      data: {
+        meeting,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function deleteMeetingController(req, res, next) {
+  try {
+    const result = await deleteMeeting({
+      meetingId: req.params.id,
+      userId: req.user.id,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Meeting deleted successfully.",
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+

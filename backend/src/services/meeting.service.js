@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import Meeting from "../models/Meeting.js";
+import Transcript from "../models/Transcript.js";
+import MeetingInsights from "../models/MeetingInsights.js";
 import { deleteMeetingFromCloudinary, uploadMeetingToCloudinary } from "./cloudinary.service.js";
 
 function escapeRegex(text) {
@@ -155,4 +157,153 @@ export async function createMeeting({ userId, file }) {
 
     throw error;
   }
+}
+
+export async function updateMeeting({ meetingId, userId, updates = {} }) {
+  if (!mongoose.Types.ObjectId.isValid(meetingId)) {
+    const error = new Error("Meeting not found.");
+    error.code = "MEETING_NOT_FOUND";
+    throw error;
+  }
+
+  const setOperations = {};
+
+  if (updates.title !== undefined) {
+    const cleanTitle = updates.title.trim();
+    if (!cleanTitle) {
+      const error = new Error("Meeting title cannot be empty.");
+      error.code = "INVALID_MEETING_TITLE";
+      throw error;
+    }
+    setOperations.title = cleanTitle;
+  }
+
+  if (updates.description !== undefined) {
+    setOperations.description = updates.description.trim();
+  }
+
+  if (updates.meetingDate !== undefined) {
+    const parsedDate = new Date(updates.meetingDate);
+    if (isNaN(parsedDate.getTime())) {
+      const error = new Error("Invalid meeting date.");
+      error.code = "INVALID_MEETING_DATE";
+      throw error;
+    }
+    setOperations.meetingDate = parsedDate;
+  }
+
+  if (updates.durationSeconds !== undefined) {
+    setOperations.durationSeconds = Math.max(0, Number(updates.durationSeconds) || 0);
+  }
+
+  if (updates.participants !== undefined) {
+    setOperations.participants = Array.isArray(updates.participants)
+      ? updates.participants
+          .map((p) => {
+            if (typeof p === "string") {
+              const name = p.trim();
+              return name ? { name, email: "" } : null;
+            }
+            if (p && typeof p === "object") {
+              const name = p.name ? p.name.trim() : "";
+              const email = p.email ? p.email.trim().toLowerCase() : "";
+              if (name || email) {
+                return { name, email };
+              }
+            }
+            return null;
+          })
+          .filter(Boolean)
+      : [];
+  }
+
+  if (updates.isFavorite !== undefined) {
+    setOperations.isFavorite = Boolean(updates.isFavorite);
+  }
+
+  if (updates.isPinned !== undefined) {
+    setOperations.isPinned = Boolean(updates.isPinned);
+  }
+
+  if (updates.status !== undefined) {
+    setOperations.status = updates.status;
+  }
+
+  if (Object.keys(setOperations).length === 0) {
+    const error = new Error("No fields provided to update.");
+    error.code = "NO_UPDATES_PROVIDED";
+    throw error;
+  }
+
+  const meeting = await Meeting.findOneAndUpdate(
+    {
+      _id: new mongoose.Types.ObjectId(meetingId),
+      ownerId: new mongoose.Types.ObjectId(userId),
+      status: { $ne: "deleted" },
+    },
+    {
+      $set: setOperations,
+    },
+    {
+      returnDocument: "after",
+      runValidators: true,
+    }
+  ).lean();
+
+  if (!meeting) {
+    const error = new Error("Meeting not found.");
+    error.code = "MEETING_NOT_FOUND";
+    throw error;
+  }
+
+  return meeting;
+}
+
+export async function deleteMeeting({ meetingId, userId }) {
+  if (!mongoose.Types.ObjectId.isValid(meetingId)) {
+    const error = new Error("Meeting not found.");
+    error.code = "MEETING_NOT_FOUND";
+    throw error;
+  }
+
+  const meetingObjectId = new mongoose.Types.ObjectId(meetingId);
+  const userObjectId = new mongoose.Types.ObjectId(userId);
+
+  // 1. Permanently remove meeting document from MongoDB
+  const meeting = await Meeting.findOneAndDelete({
+    _id: meetingObjectId,
+    ownerId: userObjectId,
+  }).lean();
+
+  if (!meeting) {
+    const error = new Error("Meeting not found.");
+    error.code = "MEETING_NOT_FOUND";
+    throw error;
+  }
+
+  // 2. Cascade delete associated Transcripts & MeetingInsights from MongoDB
+  await Promise.allSettled([
+    Transcript.deleteMany({ meetingId: meetingObjectId }),
+    MeetingInsights.deleteMany({ meetingId: meetingObjectId }),
+  ]);
+
+  // 3. Safely clean up Cloudinary storage if recording was uploaded
+  if (meeting.recording?.publicId) {
+    try {
+      const resourceType = meeting.recording.mimeType?.startsWith("video")
+        ? "video"
+        : "video";
+      await deleteMeetingFromCloudinary(meeting.recording.publicId, resourceType);
+    } catch (cleanupError) {
+      console.warn(
+        `[Meeting Delete] Cloudinary cleanup failed for ${meeting._id}:`,
+        cleanupError.message
+      );
+    }
+  }
+
+  return {
+    id: meeting._id,
+    deleted: true,
+  };
 }

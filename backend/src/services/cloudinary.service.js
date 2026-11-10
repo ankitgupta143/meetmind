@@ -1,7 +1,4 @@
-import { resolve } from "dns";
 import cloudinary from "../config/cloudinary.js";
-import { buffer } from "stream/consumers";
-import { error } from "console";
 
 export const uploadBufferToCloudinary = (buffer, options = {}) => {
   return new Promise((resolve, reject) => {
@@ -39,7 +36,6 @@ export const deleteFromCloudinary = (publicId) => {
   });
 };
 
-
 export const uploadMeetingToCloudinary = (buffer, options = {}) => {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
@@ -49,29 +45,47 @@ export const uploadMeetingToCloudinary = (buffer, options = {}) => {
         ...options,
       },
       (error, result) => {
-        if(error){
+        if (error) {
           return reject(error);
         }
         resolve(result);
-      }
+      },
     );
     uploadStream.end(buffer);
-  })
-}
+  });
+};
 
+export const deleteMeetingFromCloudinary = async (
+  publicId,
+  resourceType = "video",
+) => {
+  if (!publicId) return { result: "no_public_id" };
 
-export const deleteMeetingFromCloudinary = (publicId, resourceType = "video") => {
-  return new Promise((resolve, reject) => {
-    cloudinary.uploader.destroy(publicId, 
-      {
-        resource_type: resourceType,
-      },
-      (error, result) => {
-        if(error){
-          return reject(error);
-        }
-        resolve(result);
-      }
-    )
-  })
-}
+  try {
+    const res = await cloudinary.uploader.destroy(publicId, {
+      resource_type: resourceType,
+    });
+
+    if (res?.result === "ok") {
+      return res;
+    }
+
+    // Fallback: If Cloudinary stored an audio file as "raw", destroy with raw
+    if (res?.result === "not found" && resourceType !== "raw") {
+      const fallback = await cloudinary.uploader.destroy(publicId, {
+        resource_type: "raw",
+      });
+      return fallback;
+    }
+
+    return res;
+  } catch (error) {
+    try {
+      return await cloudinary.uploader.destroy(publicId, {
+        resource_type: "raw",
+      });
+    } catch (_) {
+      throw error;
+    }
+  }
+};

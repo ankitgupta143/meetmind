@@ -2,6 +2,7 @@ import express from "express";
 import { authenticate } from "../middlewares/auth.middleware.js";
 import {
   createMeetingController,
+  deleteMeetingController,
   getDashboardStatsController,
   getMeetingByIdController,
   getMeetingInsightsController,
@@ -9,9 +10,12 @@ import {
   meetingAssistantController,
   testMeetingInsightsController,
   testTranscriptionController,
+  updateMeetingController,
 } from "../controllers/meeting.controller.js";
 import { getMeetingTranscriptController } from "../controllers/transcript.controller.js";
 import meetingUpload from "../middlewares/meetingUpload.js";
+import { validate } from "../middlewares/validate.middleware.js";
+import { updateMeetingSchema } from "../validators/meeting.validator.js";
 import {
   updateActionItemController,
   createActionItemController,
@@ -37,6 +41,13 @@ router.get("/", authenticate, getMeetingsController);
 router.get("/stats", authenticate, getDashboardStatsController);
 router.get("/dashboard/stats", authenticate, getDashboardStatsController);
 router.get("/:id", authenticate, getMeetingByIdController);
+router.patch(
+  "/:id",
+  authenticate,
+  validate(updateMeetingSchema),
+  updateMeetingController,
+);
+router.delete("/:id", authenticate, deleteMeetingController);
 router.get("/:id/transcript", authenticate, getMeetingTranscriptController);
 router.get("/:id/insights", authenticate, getMeetingInsightsController);
 router.post(
