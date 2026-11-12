@@ -15,7 +15,7 @@ import {
 import { getMeetingTranscriptController } from "../controllers/transcript.controller.js";
 import meetingUpload from "../middlewares/meetingUpload.js";
 import { validate } from "../middlewares/validate.middleware.js";
-import { updateMeetingSchema } from "../validators/meeting.validator.js";
+import { updateMeetingSchema, assistantMessageSchema } from "../validators/meeting.validator.js";
 import {
   updateActionItemController,
   createActionItemController,
@@ -34,6 +34,7 @@ import {
 } from "../controllers/transcriptDiarization.controller.js";
 import { exportMeetingController } from "../controllers/meetingExport.controller.js";
 import { updateMeetingSpeakersController } from "../controllers/meetingSpeaker.controller.js";
+import { aiRateLimiter } from "../middlewares/rateLimit.middleware.js";
 
 const router = express.Router();
 
@@ -56,10 +57,19 @@ router.post(
   meetingUpload.single("recording"),
   createMeetingController,
 );
-router.post("/:id/transcribe", authenticate, testTranscriptionController);
-router.post("/:id/insights", authenticate, testMeetingInsightsController);
+// Manual test endpoints: restricted strictly to development environments
+if (process.env.NODE_ENV === "development") {
+  router.post("/:id/transcribe", authenticate, testTranscriptionController);
+  router.post("/:id/insights", authenticate, testMeetingInsightsController);
+}
 
-router.post("/:id/assistant", authenticate, meetingAssistantController);
+router.post(
+  "/:id/assistant",
+  authenticate,
+  aiRateLimiter,
+  validate(assistantMessageSchema),
+  meetingAssistantController
+);
 
 router.post(
   "/:meetingId/action-items",

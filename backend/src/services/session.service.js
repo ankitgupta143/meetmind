@@ -36,6 +36,11 @@ export async function createSession({ userId, userAgent, ipAddress, mongoSession
 }
 
 export async function findValidSession(refreshToken) {
+  if (typeof refreshToken !== "string" || !refreshToken.trim()) {
+    const error = new Error("Invalid refresh token.");
+    error.code = "INVALID_REFRESH_TOKEN";
+    throw error;
+  }
   const tokenHash = hashRefreshToken(refreshToken);
   const session = await Session.findOne({ tokenHash });
 
@@ -114,7 +119,7 @@ export async function rotateSession({
 export async function revokeSessionByRefreshToken(
   refreshToken
 ) {
-  if (!refreshToken) {
+  if (!refreshToken || typeof refreshToken !== "string") {
     return null;
   }
 

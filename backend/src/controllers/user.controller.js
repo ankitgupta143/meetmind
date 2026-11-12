@@ -3,6 +3,7 @@ import {
   uploadBufferToCloudinary,
 } from "../services/cloudinary.service.js";
 import { getCurrentUser, updateCurrentUser } from "../services/user.service.js";
+import { isValidImageSignature } from "../utils/fileSignature.js";
 
 export async function getCurrentUserController(req, res, next) {
   try {
@@ -43,6 +44,12 @@ export async function uploadAvatarController(req, res, next) {
     if (!req.file) {
       const error = new Error("Avatar image is required.");
       error.code = "AVATAR_REQUIRED";
+      throw error;
+    }
+
+    if (!isValidImageSignature(req.file.buffer)) {
+      const error = new Error("Invalid image file content. File does not match valid JPEG, PNG, GIF, or WebP headers.");
+      error.code = "INVALID_FILE_SIGNATURE";
       throw error;
     }
 

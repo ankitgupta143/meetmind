@@ -1,5 +1,8 @@
 import express from "express";
 import { authenticate } from "../middlewares/auth.middleware.js";
+import { aiRateLimiter } from "../middlewares/rateLimit.middleware.js";
+import { validate } from "../middlewares/validate.middleware.js";
+import { assistantMessageSchema } from "../validators/meeting.validator.js";
 import {
   globalAssistantController,
   createConversationController,
@@ -13,7 +16,13 @@ import {
 const router = express.Router();
 
 // Direct chat endpoint (preserved for backwards compatibility)
-router.post("/chat", authenticate, globalAssistantController);
+router.post(
+  "/chat",
+  authenticate,
+  aiRateLimiter,
+  validate(assistantMessageSchema),
+  globalAssistantController
+);
 
 // Persisted Conversation Endpoints
 router.post("/conversations", authenticate, createConversationController);
@@ -26,6 +35,8 @@ router.get(
 router.post(
   "/conversations/:conversationId/messages",
   authenticate,
+  aiRateLimiter,
+  validate(assistantMessageSchema),
   sendConversationMessageController
 );
 router.delete(

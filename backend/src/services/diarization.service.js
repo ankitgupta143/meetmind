@@ -30,6 +30,11 @@ export async function diarizeMeeting(meetingIdOrOptions, maybeUserId) {
     throw new Error("Meeting recording not found.");
   }
 
+  const recordingUrl = new URL(meeting.recording.url);
+  if (recordingUrl.protocol !== "https:" || !recordingUrl.hostname.endsWith("cloudinary.com")) {
+    throw new Error("Invalid or untrusted recording URL source.");
+  }
+
   const response = await deepgram.listen.v1.media.transcribeUrl({
     url: meeting.recording.url,
     model: "nova-3",

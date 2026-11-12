@@ -29,6 +29,11 @@ export async function transcribeMeeting({
   await meeting.save();
 
   try {
+    const recordingUrl = new URL(meeting.recording.url);
+    if (recordingUrl.protocol !== "https:" || !recordingUrl.hostname.endsWith("cloudinary.com")) {
+      throw new Error("Invalid or untrusted recording URL source.");
+    }
+
     const response = await fetch(meeting.recording.url);
 
     if (!response.ok) {

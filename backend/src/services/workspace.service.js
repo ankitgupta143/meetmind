@@ -346,8 +346,13 @@ export async function toggleWorkspaceActionItem({
   }
 
   const currentItem = insights.actionItems[itemIndex];
+  const validStatuses = ["pending", "in_progress", "completed"];
   const newStatus =
-    targetStatus || (currentItem.status === "completed" ? "pending" : "completed");
+    targetStatus && validStatuses.includes(targetStatus)
+      ? targetStatus
+      : currentItem.status === "completed"
+      ? "pending"
+      : "completed";
 
   currentItem.status = newStatus;
   await insights.save();

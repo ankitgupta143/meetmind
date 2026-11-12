@@ -4,6 +4,21 @@ import Transcript from "../models/Transcript.js";
 import MeetingInsights from "../models/MeetingInsights.js";
 
 /**
+ * Validates that a webhook URL is a valid, secure Slack incoming webhook URL.
+ * Protects against Server-Side Request Forgery (SSRF) to internal/cloud metadata networks.
+ */
+export function validateSlackWebhookUrl(url) {
+  if (!url || typeof url !== "string") return false;
+  try {
+    const parsed = new URL(url.trim());
+    if (parsed.protocol !== "https:") return false;
+    return parsed.hostname === "hooks.slack.com" || parsed.hostname.endsWith(".slack.com");
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Get all connected integrations for a user
  */
 export async function getUserIntegrations(userId) {
@@ -38,6 +53,14 @@ export async function connectUserIntegration({
   }
 
   const normalizedProvider = provider.trim().toLowerCase();
+
+  if (normalizedProvider === "slack" && config.webhookUrl) {
+    if (!validateSlackWebhookUrl(config.webhookUrl)) {
+      const error = new Error("Invalid Slack webhook URL. It must be a valid https://hooks.slack.com URL.");
+      error.code = "INVALID_WEBHOOK_URL";
+      throw error;
+    }
+  }
 
   const integration = await Integration.findOneAndUpdate(
     {
@@ -106,6 +129,14 @@ export async function syncUserIntegration({ userId, provider }) {
 
   const normalizedProvider = provider.trim().toLowerCase();
 
+  if (normalizedProvider === "slack" && config.webhookUrl) {
+    if (!validateSlackWebhookUrl(config.webhookUrl)) {
+      const error = new Error("Invalid Slack webhook URL. It must be a valid https://hooks.slack.com URL.");
+      error.code = "INVALID_WEBHOOK_URL";
+      throw error;
+    }
+  }
+
   const integration = await Integration.findOneAndUpdate(
     {
       userId,
@@ -147,6 +178,14 @@ export async function updateIntegrationConfig({ userId, provider, config = {} })
   }
 
   const normalizedProvider = provider.trim().toLowerCase();
+
+  if (normalizedProvider === "slack" && config.webhookUrl) {
+    if (!validateSlackWebhookUrl(config.webhookUrl)) {
+      const error = new Error("Invalid Slack webhook URL. It must be a valid https://hooks.slack.com URL.");
+      error.code = "INVALID_WEBHOOK_URL";
+      throw error;
+    }
+  }
 
   const integration = await Integration.findOneAndUpdate(
     { userId, provider: normalizedProvider },
@@ -319,7 +358,7 @@ export async function postMeetingToSlack({
   };
 
   let realDispatch = false;
-  if (webhookUrl && webhookUrl.startsWith("http")) {
+  if (webhookUrl && validateSlackWebhookUrl(webhookUrl)) {
     try {
       const response = await fetch(webhookUrl, {
         method: "POST",
@@ -333,6 +372,8 @@ export async function postMeetingToSlack({
         netErr.message
       );
     }
+  } else if (webhookUrl) {
+    console.warn("[Security] Blocked untrusted or invalid Slack webhook URL:", webhookUrl);
   }
 
   // Update lastSyncAt for Slack

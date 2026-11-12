@@ -39,10 +39,10 @@ export function errorHandler(err, req, res, next) {
     });
   }
 
-  if (err.code === "INVALID_FILE_TYPE") {
+  if (err.code === "INVALID_FILE_TYPE" || err.code === "INVALID_FILE_SIGNATURE") {
     return res.status(400).json({
       success: false,
-      message: `${err.message} Received type: ${err.receivedMimeType || "unknown"}.`,
+      message: err.message,
     });
   }
 
@@ -170,6 +170,7 @@ export function errorHandler(err, req, res, next) {
 
   if (
     err.code === "INVALID_CONVERSATION_ID" ||
+    err.code === "INVALID_WEBHOOK_URL" ||
     err.code === "MESSAGE_REQUIRED" ||
     err.code === "Message_REQUIRED" ||
     err.code === "MESSAGE_TOO_LONG" ||

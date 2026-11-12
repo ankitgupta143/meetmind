@@ -12,6 +12,9 @@ import searchRoutes from "./routes/search.routes.js";
 import workspaceRoutes from "./routes/workspace.routes.js";
 import integrationRoutes from "./routes/integration.routes.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
+import { generalRateLimiter } from "./middlewares/rateLimit.middleware.js";
+
+const isDevelopment = process.env.NODE_ENV !== "production";
 
 const allowedOrigins = [
   process.env.FRONTEND_URL,
@@ -21,6 +24,15 @@ const allowedOrigins = [
   "http://127.0.0.1:3001",
 ].filter(Boolean);
 
+// Security Headers Middleware
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  res.setHeader("X-XSS-Protection", "0");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  next();
+});
+
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -28,8 +40,9 @@ app.use(
       if (!origin) return callback(null, true);
       if (
         allowedOrigins.includes(origin) ||
-        /^http:\/\/localhost:\d+$/.test(origin) ||
-        /^http:\/\/127\.0\.0\.1:\d+$/.test(origin)
+        (isDevelopment &&
+          (/^http:\/\/localhost:\d+$/.test(origin) ||
+            /^http:\/\/127\.0\.0\.1:\d+$/.test(origin)))
       ) {
         return callback(null, true);
       }
@@ -51,6 +64,8 @@ app.get("/health", (req, res) => {
         message: "MeetMind API is running",
     });
 });
+
+app.use("/api/v1", generalRateLimiter);
 
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);

@@ -3,6 +3,19 @@ import Meeting from "../models/Meeting.js";
 import MeetingInsights from "../models/MeetingInsights.js";
 import Transcript from "../models/Transcript.js";
 
+/**
+ * Escapes unsafe HTML characters to prevent Stored XSS in exported reports
+ */
+export function escapeHtml(value) {
+  if (value === null || value === undefined) return "";
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 function formatDuration(seconds = 0) {
   if (!seconds || seconds <= 0) return "0 min";
   const mins = Math.floor(seconds / 60);
@@ -362,12 +375,12 @@ export function generateHtmlExport({ meeting, insights, transcript, sections = [
     bodyHtml += `
       <section class="section">
         <h2>Executive Summary</h2>
-        <p class="lead">${insights.summary?.overview || "No summary overview available."}</p>
+        <p class="lead">${escapeHtml(insights.summary?.overview) || "No summary overview available."}</p>
         ${
           insights.summary?.keyTakeaways?.length > 0
             ? `<h3>Key Takeaways</h3>
                <ul>
-                 ${insights.summary.keyTakeaways.map((t) => `<li>${t}</li>`).join("")}
+                 ${insights.summary.keyTakeaways.map((t) => `<li>${escapeHtml(t)}</li>`).join("")}
                </ul>`
             : ""
         }
@@ -398,9 +411,9 @@ export function generateHtmlExport({ meeting, insights, transcript, sections = [
                        (item) => `
                      <tr>
                        <td><span class="badge ${item.status === "completed" ? "badge-success" : "badge-pending"}">${item.status === "completed" ? "Completed" : "Pending"}</span></td>
-                       <td><strong>${item.title}</strong>${item.description ? `<br><small style="color: #64748b">${item.description}</small>` : ""}</td>
-                       <td>${item.assignee ? `@${item.assignee}` : "Unassigned"}</td>
-                       <td><span class="badge badge-${item.priority || "medium"}">${(item.priority || "medium").toUpperCase()}</span></td>
+                       <td><strong>${escapeHtml(item.title)}</strong>${item.description ? `<br><small style="color: #64748b">${escapeHtml(item.description)}</small>` : ""}</td>
+                       <td>${item.assignee ? `@${escapeHtml(item.assignee)}` : "Unassigned"}</td>
+                       <td><span class="badge badge-${escapeHtml(item.priority || "medium")}">${escapeHtml((item.priority || "medium").toUpperCase())}</span></td>
                      </tr>
                    `
                      )
@@ -426,9 +439,9 @@ export function generateHtmlExport({ meeting, insights, transcript, sections = [
                    .map(
                      (d, idx) => `
                    <div class="card">
-                     <div class="card-title"><strong>#${idx + 1}</strong> ${d.title}</div>
-                     ${d.rationale ? `<p><strong>Rationale:</strong> ${d.rationale}</p>` : ""}
-                     ${d.impact ? `<p><strong>Impact:</strong> ${d.impact}</p>` : ""}
+                     <div class="card-title"><strong>#${idx + 1}</strong> ${escapeHtml(d.title)}</div>
+                     ${d.rationale ? `<p><strong>Rationale:</strong> ${escapeHtml(d.rationale)}</p>` : ""}
+                     ${d.impact ? `<p><strong>Impact:</strong> ${escapeHtml(d.impact)}</p>` : ""}
                    </div>
                  `
                    )
@@ -462,7 +475,7 @@ export function generateHtmlExport({ meeting, insights, transcript, sections = [
                      .map(
                        (s) => `
                      <tr>
-                       <td><strong>${s.speaker}</strong></td>
+                       <td><strong>${escapeHtml(s.speaker)}</strong></td>
                        <td>${formatDuration(s.talkTimeSeconds)}</td>
                        <td>${getSpeakerPercentage(s, meeting.durationSeconds, stats)}%</td>
                        <td>${s.wordCount || "-"}</td>
@@ -492,17 +505,17 @@ export function generateHtmlExport({ meeting, insights, transcript, sections = [
                      (seg) => `
                    <div class="transcript-entry">
                      <div class="transcript-meta">
-                       <strong>${seg.speaker}</strong>
+                       <strong>${escapeHtml(seg.speaker)}</strong>
                        ${includeTimestamps ? `<span>${formatTimestamp(seg.startTime)} - ${formatTimestamp(seg.endTime)}</span>` : ""}
                      </div>
-                     <p>${seg.text}</p>
+                     <p>${escapeHtml(seg.text)}</p>
                    </div>
                  `
                    )
                    .join("")}
                </div>`
             : transcript.fullText
-            ? `<p>${transcript.fullText}</p>`
+            ? `<p>${escapeHtml(transcript.fullText)}</p>`
             : `<p class="muted">No transcript available.</p>`
         }
       </section>
@@ -513,7 +526,7 @@ export function generateHtmlExport({ meeting, insights, transcript, sections = [
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>${meeting.title} - MeetMind Meeting Report</title>
+  <title>${escapeHtml(meeting.title)} - MeetMind Meeting Report</title>
   <style>
     @page { size: ${pageSize}; margin: 20mm; }
     * { box-sizing: border-box; }
@@ -580,11 +593,11 @@ export function generateHtmlExport({ meeting, insights, transcript, sections = [
 <body>
   <header>
     ${includeBranding ? `<div class="brand">MeetMind AI Intelligence Report</div>` : ""}
-    <h1>${meeting.title}</h1>
+    <h1>${escapeHtml(meeting.title)}</h1>
     <div class="meta-bar">
-      <span><strong>Date:</strong> ${formatDate(meeting.meetingDate || meeting.createdAt)}</span>
-      <span><strong>Duration:</strong> ${formatDuration(meeting.durationSeconds)}</span>
-      ${formatAttendees(meeting.participants) ? `<span><strong>Attendees:</strong> ${formatAttendees(meeting.participants)}</span>` : ""}
+      <span><strong>Date:</strong> ${escapeHtml(formatDate(meeting.meetingDate || meeting.createdAt))}</span>
+      <span><strong>Duration:</strong> ${escapeHtml(formatDuration(meeting.durationSeconds))}</span>
+      ${formatAttendees(meeting.participants) ? `<span><strong>Attendees:</strong> ${escapeHtml(formatAttendees(meeting.participants))}</span>` : ""}
     </div>
   </header>
 

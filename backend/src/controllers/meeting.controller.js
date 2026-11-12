@@ -10,6 +10,7 @@ import { generateMeetingInsights, getUserMeetingInsights } from "../services/mee
 import { processMeeting } from "../services/meetingProcessing.service.js";
 import { getDashboardOverview } from "../services/dashboard.service.js";
 import { transcribeMeeting } from "../services/transcription.service.js";
+import { isValidAudioVideoSignature } from "../utils/fileSignature.js";
 
 export async function getDashboardStatsController(req, res, next) {
   try {
@@ -88,6 +89,18 @@ export async function getMeetingByIdController(req, res, next) {
 
 export async function createMeetingController(req, res, next) {
   try {
+    if (!req.file) {
+      const error = new Error("Meeting recording is required.");
+      error.code = "MEETING_FILE_REQUIRED";
+      throw error;
+    }
+
+    if (!isValidAudioVideoSignature(req.file.buffer)) {
+      const error = new Error("Invalid recording file content. File does not match valid MP3, WAV, M4A, or MP4 headers.");
+      error.code = "INVALID_FILE_SIGNATURE";
+      throw error;
+    }
+
     const meeting = await createMeeting({
       userId: req.user.id,
       file: req.file,

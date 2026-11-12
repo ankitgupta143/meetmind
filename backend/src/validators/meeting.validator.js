@@ -48,4 +48,12 @@ export const updateMeetingSchema = z.object({
   isPinned: z.boolean().optional(),
 
   status: z.enum(["draft", "ready", "archived", "deleted"]).optional(),
-});
+}).strict();
+
+export const assistantMessageSchema = z.object({
+  message: z
+    .string()
+    .trim()
+    .min(1, "Message cannot be empty")
+    .max(2000, "Message cannot exceed 2000 characters"),
+}).strict();
