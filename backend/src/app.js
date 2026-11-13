@@ -11,6 +11,7 @@ import globalAssistantRoutes from "./routes/globalAssistant.routes.js";
 import searchRoutes from "./routes/search.routes.js";
 import workspaceRoutes from "./routes/workspace.routes.js";
 import integrationRoutes from "./routes/integration.routes.js";
+import notificationRoutes from "./routes/notification.routes.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import { generalRateLimiter } from "./middlewares/rateLimit.middleware.js";
 
@@ -74,6 +75,7 @@ app.use("/api/v1/global-assistant", globalAssistantRoutes);
 app.use("/api/v1/search", searchRoutes);
 app.use("/api/v1/workspace", workspaceRoutes);
 app.use("/api/v1/integrations", integrationRoutes);
+app.use("/api/v1/notifications", notificationRoutes);
 app.use(errorHandler);
 
 export default app;

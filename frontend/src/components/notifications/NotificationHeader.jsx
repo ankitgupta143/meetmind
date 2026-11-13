@@ -1,10 +1,10 @@
 export default function NotificationHeader({ hasUnread, onMarkAllRead }) {
   return (
-    <header className="flex items-center justify-between border-b border-zinc-200 px-5 py-4">
-      <h2 className="text-base font-semibold text-zinc-950">Notifications</h2>
+    <header className="flex items-center justify-between border-b border-white/10 px-5 py-3.5">
+      <h2 className="text-sm font-semibold text-white">Notifications</h2>
       {hasUnread && (
         <button
-          className="text-xs font-medium text-indigo-600 hover:text-indigo-700"
+          className="text-xs font-medium text-indigo-400 transition hover:text-indigo-300"
           onClick={onMarkAllRead}
           type="button"
         >

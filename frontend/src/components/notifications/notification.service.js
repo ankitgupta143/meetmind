@@ -1,44 +1,43 @@
+import api from "@/lib/api";
 import { NOTIFICATION_TYPES } from "./notification.constant";
 
-const INITIAL_NOTIFICATIONS = [
-  {
-    id: "ai-summary-ready",
-    type: NOTIFICATION_TYPES.AI,
-    title: "AI Summary Ready",
-    description: "Weekly Engineering Sync",
-    timestamp: "2 min ago",
-    read: false,
-  },
-  {
-    id: "export-completed",
-    type: NOTIFICATION_TYPES.EXPORT,
-    title: "Export Completed",
-    description: "Download ready",
-    timestamp: "12 min ago",
-    read: false,
-  },
-  {
-    id: "mention-john",
-    type: NOTIFICATION_TYPES.MENTION,
-    title: "John mentioned you",
-    description: "Sprint Review",
-    timestamp: "1 hour ago",
-    read: false,
-  },
-  {
-    id: "meeting-reminder",
-    type: NOTIFICATION_TYPES.REMINDER,
-    title: "Meeting starts in 15 min",
-    description: "Product Planning",
-    timestamp: "Today, 2:45 PM",
-    read: true,
-  },
-];
+/**
+ * Fetch user notifications from backend API with optional filter ('all' | 'unread')
+ */
+export async function fetchNotificationsApi(filter = "all", limit = 20) {
+  const response = await api.get("/notifications", {
+    params: { filter, limit },
+  });
+  return response.data?.data || { notifications: [], unreadCount: 0 };
+}
 
 /**
- * Notification data boundary. Replace these local records with an API client
- * when the backend is available; presentation components consume this shape.
+ * Mark a single notification as read
+ */
+export async function markNotificationAsReadApi(notificationId) {
+  const response = await api.patch(`/notifications/${notificationId}/read`);
+  return response.data?.data;
+}
+
+/**
+ * Mark all notifications as read for current user
+ */
+export async function markAllNotificationsAsReadApi() {
+  const response = await api.patch("/notifications/read-all");
+  return response.data;
+}
+
+/**
+ * Delete a notification
+ */
+export async function deleteNotificationApi(notificationId) {
+  const response = await api.delete(`/notifications/${notificationId}`);
+  return response.data;
+}
+
+/**
+ * Fallback initial notification state
  */
 export function getInitialNotifications() {
-  return INITIAL_NOTIFICATIONS;
+  return [];
 }

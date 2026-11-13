@@ -2,6 +2,7 @@ import Meeting from "../models/Meeting.js";
 import { generateMeetingInsights } from "./meetingInsights.service.js";
 import { transcribeMeeting } from "./transcription.service.js";
 import { applyTranscriptDiarization } from "./transcriptDiarization.service.js";
+import { createNotification } from "./notification.service.js";
 
 export async function processMeeting({ meetingId, userId }) {
   try {
@@ -56,7 +57,7 @@ export async function processMeeting({ meetingId, userId }) {
     // 4. Final meeting status
     // ----------------------------------------
 
-    await Meeting.findOneAndUpdate(
+    const updatedMeeting = await Meeting.findOneAndUpdate(
       {
         _id: meetingId,
         ownerId: userId,
@@ -65,15 +66,29 @@ export async function processMeeting({ meetingId, userId }) {
         processingStatus: "completed",
         processingError: null,
       },
+      { new: true },
     );
 
     console.log(`[Meeting Processing] Completed: ${meetingId}`);
+
+    try {
+      await createNotification({
+        recipient: userId,
+        type: "ai",
+        title: "AI Summary Ready",
+        description: updatedMeeting?.title || "Your meeting transcript & insights are ready",
+        meetingId: updatedMeeting?._id || meetingId,
+        link: `/meetings/${meetingId}`,
+      });
+    } catch (notifErr) {
+      console.warn(`[Meeting Processing] Failed to create completion notification:`, notifErr.message);
+    }
 
     return true;
   } catch (error) {
     console.error(`[Meeting Processing] Failed: ${meetingId}`, error);
 
-    await Meeting.findOneAndUpdate(
+    const failedMeeting = await Meeting.findOneAndUpdate(
       {
         _id: meetingId,
         ownerId: userId,
@@ -82,7 +97,21 @@ export async function processMeeting({ meetingId, userId }) {
         processingStatus: "failed",
         processingError: error.message || "Meeting processing failed.",
       },
+      { new: true },
     );
+
+    try {
+      await createNotification({
+        recipient: userId,
+        type: "processing",
+        title: "Processing Failed",
+        description: `Failed to process ${failedMeeting?.title || "meeting"}.`,
+        meetingId,
+        link: `/meetings/${meetingId}`,
+      });
+    } catch (notifErr) {
+      console.warn(`[Meeting Processing] Failed to create failure notification:`, notifErr.message);
+    }
 
     throw error;
   }
