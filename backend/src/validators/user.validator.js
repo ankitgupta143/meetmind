@@ -63,3 +63,58 @@ export const updateProfileSchema = z
       message: "At least one profile field is required.",
     }
   );
+
+export const updateSettingsSchema = z
+  .object({
+    appearance: z
+      .object({
+        theme: z.enum(["light", "dark", "system"]).optional(),
+        accentColor: z.string().trim().max(30).optional(),
+        animations: z.boolean().optional(),
+        compactView: z.boolean().optional(),
+      })
+      .strict()
+      .optional(),
+
+    localization: z
+      .object({
+        language: z.string().trim().max(20).optional(),
+        timezone: z.string().trim().max(100).optional(),
+      })
+      .strict()
+      .optional(),
+
+    notifications: z
+      .object({
+        email: z.boolean().optional(),
+        push: z.boolean().optional(),
+        inApp: z.boolean().optional(),
+        meetingReady: z.boolean().optional(),
+        summaryReady: z.boolean().optional(),
+        mentions: z.boolean().optional(),
+        weeklyDigest: z.boolean().optional(),
+        workspaceUpdates: z.boolean().optional(),
+      })
+      .strict()
+      .optional(),
+
+    ai: z
+      .object({
+        model: z.string().trim().max(50).optional(),
+        summaryStyle: z.enum(["short", "balanced", "detailed"]).optional(),
+        responseTone: z.enum(["professional", "friendly", "concise"]).optional(),
+        autoSummary: z.boolean().optional(),
+        autoActionItems: z.boolean().optional(),
+        autoDecisions: z.boolean().optional(),
+        autoAnalytics: z.boolean().optional(),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict()
+  .refine(
+    (data) => Object.keys(data).length > 0,
+    {
+      message: "At least one settings field must be provided.",
+    }
+  );

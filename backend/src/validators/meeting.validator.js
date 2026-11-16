@@ -56,4 +56,5 @@ export const assistantMessageSchema = z.object({
     .trim()
     .min(1, "Message cannot be empty")
     .max(2000, "Message cannot exceed 2000 characters"),
+  stream: z.union([z.boolean(), z.enum(["true", "false"])]).optional(),
 }).strict();

@@ -2,7 +2,11 @@ import {
   deleteFromCloudinary,
   uploadBufferToCloudinary,
 } from "../services/cloudinary.service.js";
-import { getCurrentUser, updateCurrentUser } from "../services/user.service.js";
+import {
+  getCurrentUser,
+  updateCurrentUser,
+  updateUserSettings,
+} from "../services/user.service.js";
 import { isValidImageSignature } from "../utils/fileSignature.js";
 
 export async function getCurrentUserController(req, res, next) {
@@ -28,6 +32,22 @@ export async function updateCurrentUserController(req, res, next) {
     return res.status(200).json({
       success: true,
       message: "Profile updated successfully.",
+      data: {
+        user,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateSettingsController(req, res, next) {
+  try {
+    const user = await updateUserSettings(req.user.id, req.body);
+
+    return res.status(200).json({
+      success: true,
+      message: "Settings updated successfully.",
       data: {
         user,
       },

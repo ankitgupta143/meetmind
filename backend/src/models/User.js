@@ -152,6 +152,11 @@ const userSchema = new Schema(
           type: Boolean,
           default: true,
         },
+
+        compactView: {
+          type: Boolean,
+          default: false,
+        },
       },
 
       localization: {
@@ -187,12 +192,22 @@ const userSchema = new Schema(
           default: true,
         },
 
+        summaryReady: {
+          type: Boolean,
+          default: true,
+        },
+
         mentions: {
           type: Boolean,
           default: true,
         },
 
         weeklyDigest: {
+          type: Boolean,
+          default: true,
+        },
+
+        workspaceUpdates: {
           type: Boolean,
           default: true,
         },

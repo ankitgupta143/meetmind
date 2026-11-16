@@ -10,18 +10,20 @@ import {
   Bot,
   Check,
   ChevronRight,
-  CircleHelp,
   Cpu,
   Info,
   KeyRound,
   Laptop,
   Link2,
+  Loader2,
   Lock,
   Palette,
   ShieldCheck,
   Sparkles,
   UserRound,
 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { updateSettingsApi } from "./services/settings.service";
 
 const tabs = [
   ["profile", "Profile", UserRound],
@@ -55,6 +57,7 @@ const Toggle = ({ checked, onChange }) => (
 
 const Choice = ({ checked, label, onClick }) => (
   <button
+    type="button"
     onClick={onClick}
     className="flex items-center gap-2.5 text-xs font-semibold text-foreground/90 cursor-pointer"
   >
@@ -78,25 +81,37 @@ const SectionHeading = ({ title, description }) => (
   </div>
 );
 
-export default function SettingsPage() {
+function SettingsContent({ user, updateUser }) {
   const [active, setActive] = useState("appearance");
   const { theme, setTheme } = useTheme();
-  const [accent, setAccent] = useState("purple");
-  const [settings, setSettings] = useState({
-    animations: true,
-    compact: false,
-    meeting: true,
-    summary: true,
-    digest: true,
-    mentions: true,
-    workspace: true,
-    marketing: false,
-    inApp: true,
-    autoSummary: true,
-    actionItems: true,
-    decisions: true,
-    analytics: true,
-  });
+
+  const userSettings = user?.settings || {};
+
+  const [accent, setAccent] = useState(
+    () => userSettings.appearance?.accentColor || "purple"
+  );
+  const [aiModel, setAiModel] = useState(
+    () => userSettings.ai?.model || "gemini-flash"
+  );
+  const [summaryStyle, setSummaryStyle] = useState(
+    () => userSettings.ai?.summaryStyle || "balanced"
+  );
+  const [isSaving, setIsSaving] = useState(false);
+
+  const [settings, setSettings] = useState(() => ({
+    animations: userSettings.appearance?.animations ?? true,
+    compact: userSettings.appearance?.compactView ?? false,
+    meeting: userSettings.notifications?.meetingReady ?? true,
+    summary: userSettings.notifications?.summaryReady ?? true,
+    digest: userSettings.notifications?.weeklyDigest ?? true,
+    mentions: userSettings.notifications?.mentions ?? true,
+    workspace: userSettings.notifications?.workspaceUpdates ?? true,
+    inApp: userSettings.notifications?.inApp ?? true,
+    autoSummary: userSettings.ai?.autoSummary ?? true,
+    actionItems: userSettings.ai?.autoActionItems ?? true,
+    decisions: userSettings.ai?.autoDecisions ?? true,
+    analytics: userSettings.ai?.autoAnalytics ?? true,
+  }));
 
   const toggle = (key, value) =>
     setSettings((current) => ({ ...current, [key]: value }));
@@ -108,6 +123,63 @@ export default function SettingsPage() {
     </div>
   );
 
+  const handleSaveChanges = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
+
+    try {
+      const payload = {
+        appearance: {
+          theme: theme || "system",
+          accentColor: accent,
+          animations: settings.animations,
+          compactView: settings.compact,
+        },
+        notifications: {
+          email: settings.meeting || settings.summary || settings.digest,
+          push: settings.mentions || settings.workspace,
+          inApp: settings.inApp,
+          meetingReady: settings.meeting,
+          summaryReady: settings.summary,
+          mentions: settings.mentions,
+          weeklyDigest: settings.digest,
+          workspaceUpdates: settings.workspace,
+        },
+        ai: {
+          model: aiModel,
+          summaryStyle: summaryStyle,
+          autoSummary: settings.autoSummary,
+          autoActionItems: settings.actionItems,
+          autoDecisions: settings.decisions,
+          autoAnalytics: settings.analytics,
+        },
+      };
+
+      const updatedUser = await updateSettingsApi(payload);
+      if (updatedUser) {
+        updateUser(updatedUser);
+      }
+
+      toast.success("Settings saved successfully!");
+    } catch (error) {
+      console.error("[Settings] Failed to save settings:", error);
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to save settings. Please try again."
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const userDisplayName =
+    `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() ||
+    "Authenticated Member";
+  const userRoleTitle = user?.profile?.jobTitle
+    ? `${user.profile.jobTitle} · ${user?.email ?? ""}`
+    : user?.email ?? "";
+
   const content = {
     profile: (
       <>
@@ -116,10 +188,8 @@ export default function SettingsPage() {
           description="Manage your personal information and preferences."
         />
         <div className="rounded-2xl border border-border bg-surface-raised/40 p-5">
-          <p className="text-sm font-bold text-foreground">Ankit Gupta</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            Frontend Engineer · ankit@gmail.com
-          </p>
+          <p className="text-sm font-bold text-foreground">{userDisplayName}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">{userRoleTitle}</p>
           <Link
             href="/profile"
             className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
@@ -169,6 +239,7 @@ export default function SettingsPage() {
                 ["emerald", "bg-emerald-500", "Emerald Glow"],
               ].map(([key, color, label]) => (
                 <button
+                  type="button"
                   key={key}
                   onClick={() => setAccent(key)}
                   className={`flex items-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-semibold transition cursor-pointer ${
@@ -230,6 +301,10 @@ export default function SettingsPage() {
                 ["Workspace Activity Updates", "workspace"],
               ],
             ],
+            [
+              "In-App Drawer",
+              [["In-App Notification Drawer Badges", "inApp"]],
+            ],
           ].map(([title, items]) => (
             <div key={title}>
               <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
@@ -261,12 +336,24 @@ export default function SettingsPage() {
         />
         <div className="space-y-5">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <label
+              htmlFor="primary-llm-select"
+              className="block text-xs font-bold uppercase tracking-wider text-muted-foreground"
+            >
               Primary LLM Provider
             </label>
-            <select className="mt-2 h-10 w-full rounded-xl border border-border bg-surface-raised px-3 text-xs text-foreground outline-none focus:border-indigo-500">
-              <option className="bg-popover text-popover-foreground">Gemini 1.5 Flash (Ultra Fast)</option>
-              <option className="bg-popover text-popover-foreground">Gemini 1.5 Pro (Deep Analysis)</option>
+            <select
+              id="primary-llm-select"
+              value={aiModel}
+              onChange={(e) => setAiModel(e.target.value)}
+              className="mt-2 h-10 w-full rounded-xl border border-border bg-surface-raised px-3 text-xs text-foreground outline-none focus:border-indigo-500 cursor-pointer"
+            >
+              <option value="gemini-flash" className="bg-popover text-popover-foreground">
+                Gemini 1.5 Flash (Ultra Fast)
+              </option>
+              <option value="gemini-pro" className="bg-popover text-popover-foreground">
+                Gemini 1.5 Pro (Deep Analysis)
+              </option>
             </select>
           </div>
 
@@ -275,9 +362,21 @@ export default function SettingsPage() {
               Executive Summary Style
             </p>
             <div className="flex gap-4">
-              <Choice label="Bullet Points" checked={false} onClick={() => {}} />
-              <Choice label="Balanced Synthesis" checked onClick={() => {}} />
-              <Choice label="Comprehensive Report" checked={false} onClick={() => {}} />
+              <Choice
+                label="Bullet Points"
+                checked={summaryStyle === "short"}
+                onClick={() => setSummaryStyle("short")}
+              />
+              <Choice
+                label="Balanced Synthesis"
+                checked={summaryStyle === "balanced"}
+                onClick={() => setSummaryStyle("balanced")}
+              />
+              <Choice
+                label="Comprehensive Report"
+                checked={summaryStyle === "detailed"}
+                onClick={() => setSummaryStyle("detailed")}
+              />
             </div>
           </div>
 
@@ -321,8 +420,9 @@ export default function SettingsPage() {
             ["Storage Encryption", "End-to-end media storage encryption.", Cpu],
           ].map(([title, description, Icon]) => (
             <button
+              type="button"
               key={title}
-              onClick={() => toast.info(`${title} is managed via Auth0/OAuth.`)}
+              onClick={() => toast.info(`${title} is managed via Auth settings.`)}
               className="flex w-full items-center gap-3.5 py-4 text-left transition hover:bg-surface-hover/50 cursor-pointer"
             >
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-primary">
@@ -388,7 +488,7 @@ export default function SettingsPage() {
             ["Frontend Framework", "Next.js (Turbopack)"],
             ["Styling System", "Neo-Glass Obsidian CSS"],
             ["Motion Engine", "Framer Motion"],
-            ["AI Engine", "Gemini 1.5 Flash Diarization"],
+            ["AI Engine", "Groq Whisper & Deepgram Nova-3"],
           ].map(([key, value]) => (
             <div key={key} className="flex justify-between py-3 text-xs">
               <span className="text-muted-foreground">{key}</span>
@@ -421,6 +521,7 @@ export default function SettingsPage() {
             const isActive = active === id;
             return (
               <button
+                type="button"
                 key={id}
                 onClick={() => setActive(id)}
                 className={`relative mb-1 flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-xs font-semibold transition cursor-pointer ${
@@ -446,13 +547,27 @@ export default function SettingsPage() {
         <section className="rounded-2xl border border-border bg-card p-6 shadow-xs">
           {content[active]}
           <button
-            onClick={() => toast.success("Settings saved successfully!")}
-            className="mt-6 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-2.5 text-xs font-semibold text-white shadow-lg shadow-indigo-600/25 transition hover:shadow-indigo-600/40 active:scale-95 cursor-pointer"
+            type="button"
+            disabled={isSaving}
+            onClick={handleSaveChanges}
+            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-2.5 text-xs font-semibold text-white shadow-lg shadow-indigo-600/25 transition hover:shadow-indigo-600/40 active:scale-95 disabled:opacity-50 cursor-pointer"
           >
-            Save Changes
+            {isSaving ? (
+              <>
+                <Loader2 size={14} className="animate-spin" />
+                <span>Saving Changes...</span>
+              </>
+            ) : (
+              <span>Save Changes</span>
+            )}
           </button>
         </section>
       </div>
     </div>
   );
+}
+
+export default function SettingsPage() {
+  const { user, updateUser } = useAuth();
+  return <SettingsContent key={user?.id || user?._id || "guest"} user={user} updateUser={updateUser} />;
 }
