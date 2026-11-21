@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -19,6 +19,16 @@ export default function LoginForm() {
 
   const { login } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const oauthError = params.get("error");
+      if (oauthError) {
+        toast.error(oauthError);
+      }
+    }
+  }, []);
 
   const validate = () => {
     const next = {

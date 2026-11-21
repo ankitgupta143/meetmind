@@ -61,6 +61,24 @@ const userSchema = new Schema(
       default: "local",
     },
 
+    googleId: {
+      type: String,
+      default: null,
+      index: {
+        unique: true,
+        partialFilterExpression: { googleId: { $type: "string" } },
+      },
+    },
+
+    githubId: {
+      type: String,
+      default: null,
+      index: {
+        unique: true,
+        partialFilterExpression: { githubId: { $type: "string" } },
+      },
+    },
+
     emailVerifiedAt: {
       type: Date,
       default: null,
