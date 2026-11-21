@@ -3,16 +3,31 @@
 import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { ArrowLeft, Mail, Sparkles } from "lucide-react";
+import { ArrowLeft, Mail, Sparkles, Loader2 } from "lucide-react";
+import { forgotPasswordApi } from "./services/auth.service";
 
 export default function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const submit = (event) => {
+  const submit = async (event) => {
     event.preventDefault();
-    setSent(true);
-    toast.success("Password reset email dispatched.");
+    if (!email || isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      const result = await forgotPasswordApi(email);
+      setSent(true);
+      toast.success(result?.message || "Password reset email dispatched.");
+    } catch (error) {
+      const msg =
+        error.response?.data?.message ||
+        "Failed to request password reset. Please try again.";
+      toast.error(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (sent) {
@@ -66,15 +81,24 @@ export default function ForgotPasswordForm() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             placeholder="you@company.com"
-            className="h-10 w-full rounded-xl border border-white/[0.08] bg-slate-900 px-3.5 text-xs text-white placeholder-slate-500 outline-none transition focus:border-indigo-500/60 focus:ring-2 focus:ring-indigo-500/20"
+            disabled={isSubmitting}
+            className="h-10 w-full rounded-xl border border-white/[0.08] bg-slate-900 px-3.5 text-xs text-white placeholder-slate-500 outline-none transition focus:border-indigo-500/60 focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
           />
         </div>
 
         <button
           type="submit"
-          className="flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-xs font-semibold text-white shadow-lg shadow-indigo-600/25 transition hover:shadow-indigo-600/40 active:scale-95 cursor-pointer"
+          disabled={isSubmitting}
+          className="flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-xs font-semibold text-white shadow-lg shadow-indigo-600/25 transition hover:shadow-indigo-600/40 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
         >
-          <span>Send Recovery Link</span>
+          {isSubmitting ? (
+            <>
+              <Loader2 className="size-3.5 animate-spin" />
+              <span>Sending link...</span>
+            </>
+          ) : (
+            <span>Send Recovery Link</span>
+          )}
         </button>
       </form>
 

@@ -1,7 +1,11 @@
-import { success } from "zod";
 import { refreshTokenCookieOptions } from "../config/cookies.js";
 import { refreshAccessToken } from "../services/auth-refresh.service.js";
-import { registerUser, loginUser } from "../services/auth.service.js";
+import {
+  registerUser,
+  loginUser,
+  requestPasswordReset,
+  resetPasswordWithToken,
+} from "../services/auth.service.js";
 import { revokeSessionByRefreshToken } from "../services/session.service.js";
 
 export async function registerController(req, res, next) {
@@ -89,6 +93,33 @@ export async function logoutController(req, res, next) {
     return res.status(200).json({
       success: true,
       message: "Logged out successfully.",
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function forgotPasswordController(req, res, next) {
+  try {
+    const result = await requestPasswordReset(req.body.email);
+    return res.status(200).json({
+      success: true,
+      message: result.message,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function resetPasswordController(req, res, next) {
+  try {
+    const result = await resetPasswordWithToken({
+      token: req.body.token,
+      newPassword: req.body.password,
+    });
+    return res.status(200).json({
+      success: true,
+      message: result.message,
     });
   } catch (error) {
     next(error);

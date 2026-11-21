@@ -65,7 +65,6 @@ export async function findValidSession(refreshToken) {
   return session;
 }
 
-
 export async function revokeSession(sessionId){
     const session = await Session.findById(sessionId);
 
@@ -81,6 +80,13 @@ export async function revokeSession(sessionId){
     }
 
     return session;
+}
+
+export async function revokeAllUserSessions(userId, reason = "password-change") {
+  return await Session.updateMany(
+    { userId, revokedAt: null },
+    { revokedAt: new Date(), revokeReason: reason }
+  );
 }
 
 

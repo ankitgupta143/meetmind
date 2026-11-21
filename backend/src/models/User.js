@@ -43,6 +43,18 @@ const userSchema = new Schema(
       },
     },
 
+    passwordResetToken: {
+      type: String,
+      select: false,
+      default: null,
+    },
+
+    passwordResetExpires: {
+      type: Date,
+      select: false,
+      default: null,
+    },
+
     authProvider: {
       type: String,
       enum: ["local", "google", "github"],
