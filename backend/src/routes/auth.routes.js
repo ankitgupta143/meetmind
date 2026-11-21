@@ -7,6 +7,8 @@ import {
   logoutController,
   forgotPasswordController,
   resetPasswordController,
+  verifyEmailController,
+  resendVerificationController,
   googleInitController,
   googleCallbackController,
   githubInitController,
@@ -18,6 +20,8 @@ import {
   loginSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  verifyEmailSchema,
+  resendVerificationSchema,
 } from "../validators/auth.validator.js";
 import { authRateLimiter } from "../middlewares/rateLimit.middleware.js";
 
@@ -29,6 +33,8 @@ router.post("/refresh", authRateLimiter, refreshController);
 router.post("/logout", logoutController);
 router.post("/forgot-password", authRateLimiter, validate(forgotPasswordSchema), forgotPasswordController);
 router.post("/reset-password", authRateLimiter, validate(resetPasswordSchema), resetPasswordController);
+router.post("/verify-email", validate(verifyEmailSchema), verifyEmailController);
+router.post("/resend-verification", authRateLimiter, validate(resendVerificationSchema), resendVerificationController);
 
 // OAuth Routes (Google & GitHub)
 router.get("/google", googleInitController);

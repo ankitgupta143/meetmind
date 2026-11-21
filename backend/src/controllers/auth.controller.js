@@ -5,6 +5,8 @@ import {
   loginUser,
   requestPasswordReset,
   resetPasswordWithToken,
+  verifyEmailWithToken,
+  resendVerificationEmail,
 } from "../services/auth.service.js";
 import { revokeSessionByRefreshToken } from "../services/session.service.js";
 import {
@@ -142,6 +144,34 @@ export async function resetPasswordController(req, res, next) {
     next(error);
   }
 }
+
+export async function verifyEmailController(req, res, next) {
+  try {
+    const result = await verifyEmailWithToken(req.body.token);
+    return res.status(200).json({
+      success: true,
+      message: result.message,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function resendVerificationController(req, res, next) {
+  try {
+    const result = await resendVerificationEmail(req.body.email);
+    return res.status(200).json({
+      success: true,
+      message: result.message,
+      data: {
+        alreadyVerified: result.alreadyVerified || false,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 
 // ──────────────────────────────────────────────
 // OAuth Controllers (Google & GitHub)

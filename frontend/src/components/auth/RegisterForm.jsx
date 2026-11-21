@@ -70,7 +70,7 @@ export default function RegisterForm() {
         password: form.password,
       });
       toast.success(result?.message || "Account created successfully! Check your inbox.");
-      router.push("/verify-email");
+      router.push(`/verify-email?email=${encodeURIComponent(form.email)}`);
     } catch (error) {
       toast.error(error.message || "Registration failed. Please try again.");
     } finally {

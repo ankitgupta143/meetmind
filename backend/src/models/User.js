@@ -84,6 +84,18 @@ const userSchema = new Schema(
       default: null,
     },
 
+    emailVerificationToken: {
+      type: String,
+      select: false,
+      default: null,
+    },
+
+    emailVerificationExpires: {
+      type: Date,
+      select: false,
+      default: null,
+    },
+
     // ─────────────────────────────
     // Account
     // ─────────────────────────────

@@ -67,3 +67,24 @@ export const resetPasswordSchema = z
   })
   .strict();
 
+export const verifyEmailSchema = z
+  .object({
+    token: z
+      .string()
+      .trim()
+      .min(1, "Verification token is required"),
+  })
+  .strict();
+
+export const resendVerificationSchema = z
+  .object({
+    email: z
+      .string()
+      .trim()
+      .email("Please provide a valid email address")
+      .max(254, "Email cannot exceed 254 characters")
+      .transform((value) => value.toLowerCase()),
+  })
+  .strict();
+
+

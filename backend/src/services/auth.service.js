@@ -3,7 +3,7 @@ import User from "../models/User.js";
 import { hashPassword, verifyPassword } from "./password.service.js";
 import { generateAccessToken } from "./token.service.js";
 import { createSession, revokeAllUserSessions } from "./session.service.js";
-import { sendPasswordResetEmail } from "./email.service.js";
+import { sendPasswordResetEmail, sendVerificationEmail } from "./email.service.js";
 
 export async function registerUser({ firstName, lastName, email, password }) {
   const normalizedEmail = email.trim().toLowerCase();
@@ -19,13 +19,30 @@ export async function registerUser({ firstName, lastName, email, password }) {
 
   const passwordHash = await hashPassword(password);
 
+  // Generate 32-byte secure email verification token and hash
+  const rawVerificationToken = crypto.randomBytes(32).toString("hex");
+  const tokenHash = crypto.createHash("sha256").update(rawVerificationToken).digest("hex");
+
   const user = await User.create({
     firstName: firstName.trim(),
     lastName: lastName.trim(),
     email: normalizedEmail,
     passwordHash,
     authProvider: "local",
+    emailVerificationToken: tokenHash,
+    emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
   });
+
+  // Dispatch transactional activation email
+  try {
+    await sendVerificationEmail({
+      email: user.email,
+      name: user.firstName,
+      verificationToken: rawVerificationToken,
+    });
+  } catch (err) {
+    console.error("[AuthService] Failed to dispatch verification email on signup:", err.message);
+  }
 
   return {
     id: user._id,
@@ -195,4 +212,82 @@ export async function resetPasswordWithToken({ token, newPassword }) {
     message: "Password has been successfully reset. Please log in with your new password.",
   };
 }
+
+export async function verifyEmailWithToken(token) {
+  if (!token || typeof token !== "string" || !token.trim()) {
+    const error = new Error("Invalid or missing verification token.");
+    error.code = "INVALID_VERIFICATION_TOKEN";
+    error.status = 400;
+    throw error;
+  }
+
+  const tokenHash = crypto.createHash("sha256").update(token.trim()).digest("hex");
+
+  const user = await User.findOne({
+    emailVerificationToken: tokenHash,
+    emailVerificationExpires: { $gt: new Date() },
+  }).select("+emailVerificationToken +emailVerificationExpires");
+
+  if (!user) {
+    const error = new Error("Email verification link is invalid or has expired.");
+    error.code = "EXPIRED_OR_INVALID_TOKEN";
+    error.status = 400;
+    throw error;
+  }
+
+  user.emailVerifiedAt = new Date();
+  user.emailVerificationToken = null;
+  user.emailVerificationExpires = null;
+  await user.save();
+
+  return {
+    message: "Email verified successfully! You can now access your workspace.",
+  };
+}
+
+export async function resendVerificationEmail(email) {
+  const normalizedEmail = email.trim().toLowerCase();
+  const user = await User.findOne({ email: normalizedEmail }).select(
+    "+emailVerificationToken +emailVerificationExpires"
+  );
+
+  const genericResponse = {
+    message: "If an unverified account exists with that email, a verification link has been sent.",
+  };
+
+  // User not found or non-local account
+  if (!user || user.authProvider !== "local" || user.status !== "active") {
+    await new Promise((resolve) => setTimeout(resolve, 80));
+    return genericResponse;
+  }
+
+  // If already verified
+  if (user.emailVerifiedAt) {
+    return {
+      message: "Your email address is already verified. You can sign in directly.",
+      alreadyVerified: true,
+    };
+  }
+
+  // Generate fresh token
+  const rawToken = crypto.randomBytes(32).toString("hex");
+  const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
+
+  user.emailVerificationToken = tokenHash;
+  user.emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+  await user.save();
+
+  try {
+    await sendVerificationEmail({
+      email: user.email,
+      name: user.firstName,
+      verificationToken: rawToken,
+    });
+  } catch (emailErr) {
+    console.error("[AuthService] Failed to dispatch verification email on resend:", emailErr.message);
+  }
+
+  return genericResponse;
+}
+
 
